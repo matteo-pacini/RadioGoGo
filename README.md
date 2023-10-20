@@ -1,6 +1,9 @@
 # RadioGoGo 📻
 
-![RadioGoGo Logo](./logo.png)
+<div style="display:flex;justify-content:center;">
+    <img src="./logo.png" alt="RadioGoGo Logo" width="200" height="200">
+</div>
+<br>
 
 RadioGoGo is a CLI application developed in Go, enabling seamless access to a wide array of radio stations from around the world directly from your terminal.
 
@@ -83,7 +86,7 @@ doas pkg_add ffmpeg
 
 ### Installing via Go
 
-Ensure you have [Go](https://golang.org/dl/) installed (version 1.16 or later).
+Ensure you have [Go](https://golang.org/dl/) installed (version 1.17 or later).
 
 ```bash
 go install github.com/Zi0P4tch0/RadioGoGo@latest

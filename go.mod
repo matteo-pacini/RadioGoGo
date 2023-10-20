@@ -1,6 +1,6 @@
 module radiogogo
 
-go 1.21.3
+go 1.17
 
 require (
 	github.com/charmbracelet/bubbles v0.16.1
