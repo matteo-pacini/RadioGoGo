@@ -37,8 +37,7 @@ const (
 	stationsState
 )
 
-// Messages
-// State Switching
+// State switching messages
 
 type switchToErrorModelMsg struct {
 	err string
@@ -52,14 +51,24 @@ type switchToStationsModelMsg struct {
 	stations []api.Station
 }
 
-// Other
+// Dependency injection messages
 
 type radioBrowserReadyMsg struct {
 	browser *api.RadioBrowser
 }
 
+// UI messages
+
 type bottomBarUpdateMsg struct {
 	commands []string
+}
+
+// Quit message
+
+type quitMsg struct{}
+
+func radiogogoQuit() tea.Msg {
+	return quitMsg{}
 }
 
 // Model
@@ -126,11 +135,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	var cmd tea.Cmd
 
+	// Top-level messages
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
 		return m, nil
+	case quitMsg:
+		return m, tea.Quit
 	case radioBrowserReadyMsg:
 		m.browser = msg.browser
 		return m, nil

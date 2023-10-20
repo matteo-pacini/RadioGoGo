@@ -214,7 +214,7 @@ func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, killFfplay(m.currentFfplay)
 			}
 		case "q":
-			return m, tea.Sequence(killFfplay(m.currentFfplay), tea.Quit)
+			return m, tea.Sequence(killFfplay(m.currentFfplay), radiogogoQuit)
 		case "s":
 			return m, tea.Sequence(
 				killFfplay(m.currentFfplay),

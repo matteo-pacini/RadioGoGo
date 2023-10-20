@@ -58,7 +58,7 @@ func (m SearchModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "q":
-			return m, tea.Quit
+			return m, radiogogoQuit
 		case "enter":
 			return m, func() tea.Msg {
 				return switchToLoadingModelMsg{query: m.inputModel.Value()}
