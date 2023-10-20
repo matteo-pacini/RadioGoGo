@@ -22,7 +22,6 @@ package ui
 import (
 	"radiogogo/api"
 	"radiogogo/playback"
-	"runtime"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -31,7 +30,8 @@ import (
 type modelState int
 
 const (
-	searchState modelState = iota
+	bootState modelState = iota
+	searchState
 	errorState
 	loadingState
 	stationsState
@@ -71,6 +71,27 @@ func radiogogoQuit() tea.Msg {
 	return quitMsg{}
 }
 
+// Commands
+
+func checkFFPlay() tea.Msg {
+	if !playback.IsFFplayAvailable() {
+		return switchToErrorModelMsg{
+			err: `RadioGoGo requires "ffplay" (part of "ffmpeg") to be installed and available in your PATH.`,
+		}
+	}
+	return initBrowserMsg{}
+}
+
+type initBrowserMsg struct{}
+
+func initBrowser() tea.Msg {
+	browser, err := api.NewRadioBrowser()
+	if err != nil {
+		return switchToErrorModelMsg{err: err.Error()}
+	}
+	return radioBrowserReadyMsg{browser: browser}
+}
+
 // Model
 
 type Model struct {
@@ -89,46 +110,11 @@ type Model struct {
 }
 
 func NewModel() Model {
-	return Model{
-		state: searchState,
-	}
+	return Model{}
 }
 
 func (m Model) Init() tea.Cmd {
-	return tea.Sequence(func() tea.Msg {
-		if !playback.IsFFplayAvailable() {
-			var osSpecific string
-			switch runtime.GOOS {
-			case "darwin":
-				osSpecific = "\n\nFFmpeg can be installed with Homebrew: 'brew install ffmpeg'."
-			case "linux":
-				osSpecific = "\n\nFFmpeg can be installed with your distro's package manager, such as `apt` for Debian/Ubuntu or `dnf` for Fedora."
-			case "windows":
-				osSpecific = "\n\nFFmpeg can be installed with Chocolatey: choco install ffmpeg."
-			case "freebsd":
-				osSpecific = "\n\nFFmpeg can be installed with pkg: pkg install ffmpeg."
-			case "netbsd":
-				osSpecific = "\n\nFFmpeg can be installed with pkgsrc: pkgin install ffmpeg."
-			case "openbsd":
-				osSpecific = "\n\nFFmpeg can be installed with pkg_add: pkg_add ffmpeg."
-			default:
-				osSpecific = "\n\n(Sorry, FFmpeg installation instructions are not available for your operating system)"
-			}
-
-			return switchToErrorModelMsg{
-				err: `RadioGoGo requires "ffplay" (part of "ffmpeg") to be installed and available in your PATH.` + osSpecific,
-			}
-		}
-		return nil
-	}, func() tea.Msg {
-		browser, err := api.NewRadioBrowser()
-		if err != nil {
-			return switchToErrorModelMsg{err: err.Error()}
-		}
-		return radioBrowserReadyMsg{browser: browser}
-	}, func() tea.Msg {
-		return switchToSearchModelMsg{}
-	})
+	return checkFFPlay
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -143,9 +129,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 	case quitMsg:
 		return m, tea.Quit
+	case initBrowserMsg:
+		return m, initBrowser
 	case radioBrowserReadyMsg:
 		m.browser = msg.browser
-		return m, nil
+		return m, func() tea.Msg {
+			return switchToSearchModelMsg{}
+		}
 	case bottomBarUpdateMsg:
 		m.bottomBarCommands = msg.commands
 		return m, nil
@@ -207,6 +197,8 @@ func (m Model) View() string {
 	var currentView string
 
 	switch m.state {
+	case bootState:
+		currentView = "\nInitializing..."
 	case searchState:
 		m.searchModel.width = m.width
 		m.searchModel.height = effectiveHeight
@@ -227,7 +219,7 @@ func (m Model) View() string {
 
 	view += currentView
 
-	// Push the view down to the bottom of the terminal
+	// Push the bottom bar at the bottom of the terminal
 
 	view += lipgloss.NewStyle().
 		Height(m.height - currentViewHeight).

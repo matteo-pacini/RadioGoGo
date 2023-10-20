@@ -20,14 +20,21 @@
 package ui
 
 import (
+	"fmt"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
 
+const (
+	quitTicks = 30
+)
+
 type ErrorModel struct {
 	message string
+
+	tickCount int
 }
 
 func NewErrorModel(err string) ErrorModel {
@@ -39,26 +46,42 @@ func NewErrorModel(err string) ErrorModel {
 }
 
 func (m ErrorModel) Init() tea.Cmd {
-	return nil
+	return tea.Tick(time.Second, func(t time.Time) tea.Msg {
+		return quitTickMsg{}
+	})
 }
 
-type quitInAMomentMsg struct{}
+type quitTickMsg struct{}
 
 func (m ErrorModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	// Quit after 1 second
-	if _, ok := msg.(quitInAMomentMsg); ok {
-		return m, tea.Quit
+
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch msg.String() {
+		case "q":
+			return m, radiogogoQuit
+		}
+	case quitTickMsg:
+		m.tickCount++
+		if m.tickCount >= quitTicks {
+			return m, radiogogoQuit
+		}
+		return m, tea.Tick(time.Second, func(t time.Time) tea.Msg {
+			return quitTickMsg{}
+		})
 	}
-	return m, tea.Tick(time.Second, func(t time.Time) tea.Msg {
-		return quitInAMomentMsg{}
-	})
+
+	return m, nil
+
 }
 
 func (m ErrorModel) View() string {
 
-	errorRedStyle :=
-		lipgloss.NewStyle().Foreground(lipgloss.Color("9"))
+	message := fmt.Sprintf("%s\n\nQuitting in %d seconds (or press \"q\" to exit now)...", m.message, quitTicks-m.tickCount)
 
-	return errorRedStyle.Render(m.message) + "\n\n"
+	errorRedStyle :=
+		lipgloss.NewStyle().Foreground(lipgloss.Color("#ff0000"))
+
+	return "\n" + errorRedStyle.Render(message) + "\n\n"
 
 }
