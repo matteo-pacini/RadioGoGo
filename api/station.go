@@ -137,8 +137,8 @@ const (
 // The offset parameter specifies the number of results to skip before returning the remaining results.
 // The limit parameter specifies the maximum number of results to return.
 // The hideBroken parameter specifies whether to exclude broken stations from the results.
-// Returns a pointer to a slice of Station structs and an error if any occurred.
-func (RadioBrowser *RadioBrowser) GetStations(
+// Returns a slice of Station structs and an error if any occurred.
+func (radioBrowser *RadioBrowser) GetStations(
 	stationQuery StationQuery,
 	searchTerm string,
 	order string,
@@ -148,7 +148,7 @@ func (RadioBrowser *RadioBrowser) GetStations(
 	hideBroken bool,
 ) ([]Station, error) {
 
-	url := RadioBrowser.BaseUrl.JoinPath("/stations")
+	url := radioBrowser.BaseUrl.JoinPath("/stations")
 	if stationQuery != StationQueryAll {
 		url = url.JoinPath("/" + string(stationQuery) + "/" + searchTerm)
 	}
@@ -191,4 +191,56 @@ func (RadioBrowser *RadioBrowser) GetStations(
 
 	return stations, nil
 
+}
+
+// ClickStationResponse represents the response returned by the API when a user clicks on a station.
+type ClickStationResponse struct {
+	// Ok indicates whether the request was successful or not.
+	Ok bool `json:"ok"`
+
+	// Message contains an optional message returned by the server.
+	Message string `json:"message"`
+
+	// StationUuid is the unique identifier of the station.
+	StationUuid uuid.UUID `json:"stationuuid"`
+
+	// Name is the name of the station.
+	Name string `json:"name"`
+
+	// Url is the URL of the station's stream.
+	Url RadioGoGoURL `json:"url"`
+}
+
+// ClickStation sends a POST request to the RadioBrowser API to increment the click count of a given station.
+// It takes a Station struct as input and returns a ClickStationResponse struct and an error.
+func (radioBrowser *RadioBrowser) ClickStation(station Station) (ClickStationResponse, error) {
+
+	// POST json/url/stationuuid
+
+	url := radioBrowser.BaseUrl.JoinPath("/url/" + station.StationUuid.String())
+
+	headers := make(map[string]string)
+	headers["User-Agent"] = data.UserAgent
+	headers["Accept"] = "application/json"
+
+	req, err := http.NewRequest("POST", url.String(), nil)
+	if err != nil {
+		return ClickStationResponse{}, err
+	}
+
+	result, err := Client.Do(req)
+	if err != nil {
+		return ClickStationResponse{}, err
+	}
+
+	defer result.Body.Close()
+
+	var response ClickStationResponse
+	err = json.NewDecoder(result.Body).Decode(&response)
+
+	if err != nil {
+		return ClickStationResponse{}, err
+	}
+
+	return response, nil
 }

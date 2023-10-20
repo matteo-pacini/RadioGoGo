@@ -136,7 +136,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.state = loadingState
 		return m, m.loadingModel.Init()
 	case switchToStationsModelMsg:
-		m.stationsModel = NewStationsModel(msg.stations)
+		m.stationsModel = NewStationsModel(m.browser, msg.stations)
 		m.state = stationsState
 		return m, m.stationsModel.Init()
 	case switchToErrorModelMsg:

@@ -1,46 +1,109 @@
 # RadioGoGo 📻
 
-RadioGoGo is CLI application developed in Go, enabling seamless access to a wide array of radio stations from around the world directly from your terminal.
+RadioGoGo is a CLI application developed in Go, enabling seamless access to a wide array of radio stations from around the world directly from your terminal.
 
-Leveraging the streamlined [BubbleTea](https://github.com/charmbracelet/bubbletea) TUI (Terminal User Interface) and the expansive capabilities of [RadioBrowser API](http://www.radio-browser.info/), your desired stations are merely a keystroke away.
+Leveraging the streamlined [BubbleTea](https://github.com/charmbracelet/bubbletea) TUI (Terminal User Interface) and the expansive capabilities of [RadioBrowser API](http://www.radio-browser.info/), your desired stations are merely a keystroke away. 
 
 ## ⭐️ Features
 
 - Sleek and intuitive TUI that's a joy to navigate.
-- Search, browse and play radio stations from a vast global database.
-- Cross-platform compatibility, because radio waves know no bounds.
+- Search, browse, and play radio stations from a vast global database.
+- Enjoy cross-platform compatibility, because radio waves know no bounds.
+- Integrated playback using `ffplay`.
 
-## 📋 Upcoming Features |||IMPROVE: make it nice as Features|||
+## 📋 Upcoming Features
 
-- Favorites
-- Search refining 
-- Recording
+- Bookmark your favorite stations for easy access.
+- Refine your searches to find the perfect station.
+- Record your favorite broadcasts for later listening.
+- Integrated playback using `mpv`.
 
 ## ⚒️ Installation
 
-### Through Go ||| IMPROVE: better title |||
+### Dependencies: Installing FFmpeg
 
-Make sure you have [Go](https://golang.org/dl/) installed (version 1.16 or later).
+For seamless playback, ensure `ffplay` is installed:
+
+#### Windows:
+
+Download FFmpeg from the [official website](https://ffmpeg.org/download.html) and add it to your system's PATH.
+
+#### Linux:
+
+##### For apt-based distros (like Ubuntu and Debian):
 
 ```bash
-go install github.com/Zi0P4tch0/RadioGoGo
+sudo apt update
+sudo apt install ffmpeg
 ```
 
-### Grab a binary
+##### For dnf-based distros (like Fedora):
 
-||| IMPROVE: Explain how to grab a binary from the Release page |||
+```bash
+sudo dnf install ffmpeg
+```
+
+##### For pacman-based distros (like Arch):
+
+```bash
+sudo pacman -S ffmpeg
+```
+
+##### For Gentoo:
+
+```bash
+emerge --ask --quiet --verbose media-video/ffmpeg
+```
+
+#### macOS:
+
+```bash
+brew install ffmpeg
+```
+
+#### FreeBSD:
+
+```bash
+pkg install ffmpeg
+```
+
+#### NetBSD:
+
+```bash
+pkg_add ffmpeg
+```
+
+#### OpenBSD:
+
+```bash
+doas pkg_add ffmpeg
+```
+
+### Installing via Go
+
+Ensure you have [Go](https://golang.org/dl/) installed (version 1.16 or later).
+
+```bash
+go install github.com/Zi0P4tch0/RadioGoGo@latest
+```
+
+### Downloading the Binary
+
+Navigate to the `Releases` section of the project repository. 
+
+Find the appropriate binary for your OS, download it, and place it in your system's PATH for easy access.
 
 ## 🚀 Usage
 
-2. Launch RadioGoGo by executing the following command:
+1. Launch RadioGoGo by executing the following command:
 
 ```bash
 radiogogo
 ```
 
-# ❤️ Contributing
+## ❤️ Contributing
 
-We welcome contributions of all shapes and sizes |||IMPROVE: singular, elaborate also|||
+All contributions, big or small, are warmly welcomed. Whether it's a typo fix, new feature, or bug report, I appreciate your effort to make RadioGoGo even better!
 
 ## ⚖️ License(s)
 
@@ -49,6 +112,7 @@ RadioGoGo is licensed under the [MIT License](LICENSE).
 ### Third-party dependencies
 
 BubbleTea TUI license (MIT):
+
 ```
 MIT License
 

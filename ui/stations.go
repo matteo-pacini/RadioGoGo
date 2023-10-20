@@ -24,6 +24,7 @@ import (
 	"os/exec"
 	"radiogogo/api"
 	"radiogogo/playback"
+	"time"
 
 	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/table"
@@ -39,14 +40,17 @@ type StationsModel struct {
 	currentStationSpinner spinner.Model
 	volume                int
 	err                   string
+
+	browser *api.RadioBrowser
 }
 
-func NewStationsModel(stations []api.Station) StationsModel {
+func NewStationsModel(browser *api.RadioBrowser, stations []api.Station) StationsModel {
 
 	return StationsModel{
 		stations:      stations,
 		stationsTable: newStationsTableModel(stations),
 		volume:        80,
+		browser:       browser,
 	}
 }
 
@@ -98,15 +102,12 @@ type playbackStartedMsg struct {
 	cmd     *exec.Cmd
 }
 type playbackStoppedMsg struct{}
-type playbackError struct {
-	err error
-}
 
 func runFfplay(station api.Station, volume int) tea.Cmd {
 	return func() tea.Msg {
 		cmd, err := playback.FFPlayPlayStation(station, volume)
 		if err != nil {
-			return playbackError{err: err}
+			return nonFatalError{stopPlayback: false, err: err}
 		}
 		return playbackStartedMsg{station: station, cmd: cmd}
 	}
@@ -129,6 +130,24 @@ func killFfplay(cmd *exec.Cmd) tea.Cmd {
 	}
 }
 
+func notifyRadioBrowser(browser *api.RadioBrowser, station api.Station) tea.Cmd {
+	return func() tea.Msg {
+		_, err := browser.ClickStation(station)
+		if err != nil {
+			return nonFatalError{stopPlayback: false, err: err}
+		}
+		return nil
+	}
+}
+
+// Error messages
+
+type nonFatalError struct {
+	stopPlayback bool
+	err          error
+}
+type clearNonFatalError struct{}
+
 // Model
 
 func (m StationsModel) Init() tea.Cmd {
@@ -144,16 +163,29 @@ func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.currentStationSpinner = spinner.New()
 		m.currentStationSpinner.Spinner = spinner.Dot
 		m.currentStationSpinner.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("#5a4f9f"))
-		return m, m.currentStationSpinner.Tick
+		return m, tea.Batch(
+			m.currentStationSpinner.Tick,
+			notifyRadioBrowser(m.browser, m.currentStation),
+		)
 	case playbackStoppedMsg:
 		m.currentStation = api.Station{}
 		m.currentFfplay = nil
 		m.currentStationSpinner = spinner.Model{}
 		return m, nil
-	case playbackError:
-		m.currentStation = api.Station{}
-		m.currentFfplay = nil
+	case nonFatalError:
+		var cmds []tea.Cmd
+		if msg.stopPlayback {
+			cmds = append(cmds, killFfplay(m.currentFfplay))
+		}
 		m.err = msg.err.Error()
+
+		cmds = append(cmds, tea.Tick(3*time.Second, func(t time.Time) tea.Msg {
+			return clearNonFatalError{}
+		}))
+
+		return m, tea.Sequence(cmds...)
+	case clearNonFatalError:
+		m.err = ""
 		return m, nil
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -202,15 +234,15 @@ func (m StationsModel) View() string {
 
 	playingBar := ""
 
-	if m.currentFfplay != nil {
+	if m.err != "" {
+		playingBar += StyleSetError(m.err)
+		playingBar += "\n"
+	} else if m.currentFfplay != nil {
 		playingBar +=
 			m.currentStationSpinner.View() +
 				StyleSetPlaying("now playing: "+m.currentStation.Name) +
 				" " +
 				m.currentStationSpinner.View()
-		playingBar += "\n"
-	} else if m.err != "" {
-		playingBar += StyleSetError(m.err)
 		playingBar += "\n"
 	}
 
