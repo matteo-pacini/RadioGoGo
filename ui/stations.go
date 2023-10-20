@@ -145,10 +145,10 @@ func notifyRadioBrowser(browser *api.RadioBrowser, station api.Station) tea.Cmd 
 func updateCommandsMsg(isPlaying bool, volume int) tea.Cmd {
 	return func() tea.Msg {
 
-		commands := []string{"q: quit", "s: search", "enter: play", "↑/↓: navigate"}
+		commands := []string{"q: quit", "s: search", "enter: play", "↑/↓: move cursor"}
 
 		if isPlaying {
-			commands = append(commands, "ctrl+k: stop playing")
+			commands = append(commands, "ctrl+k: stop")
 		} else {
 			commands = append(commands, "9/0: volume down/up", "volume: "+fmt.Sprintf("%d", volume))
 		}
