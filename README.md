@@ -1,5 +1,7 @@
 # RadioGoGo 📻
 
+![RadioGoGo Logo](./logo.png)
+
 RadioGoGo is a CLI application developed in Go, enabling seamless access to a wide array of radio stations from around the world directly from your terminal.
 
 Leveraging the streamlined [BubbleTea](https://github.com/charmbracelet/bubbletea) TUI (Terminal User Interface) and the expansive capabilities of [RadioBrowser API](http://www.radio-browser.info/), your desired stations are merely a keystroke away. 
