@@ -45,15 +45,16 @@ func NewSearchModel() SearchModel {
 }
 
 func (m SearchModel) Init() tea.Cmd {
-	return textinput.Blink
+	return tea.Batch(textinput.Blink, func() tea.Msg {
+		return bottomBarUpdateMsg{
+			commands: []string{"q: quit"},
+		}
+	})
 }
 
 func (m SearchModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
-	case tea.WindowSizeMsg:
-		m.width = msg.Width
-		m.height = msg.Height
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "q":
@@ -73,8 +74,10 @@ func (m SearchModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m SearchModel) View() string {
 
-	return fmt.Sprintf(
-		"Search a radio by name\n\n%s",
+	v := fmt.Sprintf(
+		"\nSearch a radio by name\n\n%s",
 		m.inputModel.View(),
-	) + "\n\n" + StyleBottomBar([]string{"q: quit"})
+	)
+
+	return v
 }

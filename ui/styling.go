@@ -79,5 +79,5 @@ func Header() string {
 	header := headerStyle.Render("radiogogo")
 	version := versionStyle.Render(fmt.Sprintf("v%s", data.Version))
 
-	return header + version
+	return header + version + "\n"
 }

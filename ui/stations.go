@@ -42,6 +42,8 @@ type StationsModel struct {
 	err                   string
 
 	browser *api.RadioBrowser
+	width   int
+	height  int
 }
 
 func NewStationsModel(browser *api.RadioBrowser, stations []api.Station) StationsModel {
@@ -140,6 +142,23 @@ func notifyRadioBrowser(browser *api.RadioBrowser, station api.Station) tea.Cmd 
 	}
 }
 
+func updateCommandsMsg(isPlaying bool, volume int) tea.Cmd {
+	return func() tea.Msg {
+
+		commands := []string{"q: quit", "s: search", "enter: play", "↑/↓: navigate"}
+
+		if isPlaying {
+			commands = append(commands, "ctrl+k: stop playing")
+		} else {
+			commands = append(commands, "9/0: volume down/up", "volume: "+fmt.Sprintf("%d", volume))
+		}
+
+		return bottomBarUpdateMsg{
+			commands: commands,
+		}
+	}
+}
+
 // Error messages
 
 type nonFatalError struct {
@@ -151,7 +170,7 @@ type clearNonFatalError struct{}
 // Model
 
 func (m StationsModel) Init() tea.Cmd {
-	return nil
+	return updateCommandsMsg(false, m.volume)
 }
 
 func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -166,12 +185,13 @@ func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, tea.Batch(
 			m.currentStationSpinner.Tick,
 			notifyRadioBrowser(m.browser, m.currentStation),
+			updateCommandsMsg(true, m.volume),
 		)
 	case playbackStoppedMsg:
 		m.currentStation = api.Station{}
 		m.currentFfplay = nil
 		m.currentStationSpinner = spinner.Model{}
-		return m, nil
+		return m, updateCommandsMsg(false, m.volume)
 	case nonFatalError:
 		var cmds []tea.Cmd
 		if msg.stopPlayback {
@@ -196,22 +216,28 @@ func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "q":
 			return m, tea.Sequence(killFfplay(m.currentFfplay), tea.Quit)
 		case "s":
-			return m, tea.Sequence(killFfplay(m.currentFfplay), func() tea.Msg {
-				return switchToSearchModelMsg{}
-			})
+			return m, tea.Sequence(
+				killFfplay(m.currentFfplay),
+				func() tea.Msg {
+					return switchToSearchModelMsg{}
+				},
+			)
 		case "9":
 			if m.volume > 0 {
 				m.volume -= 10
 			}
-			return m, nil
+			return m, updateCommandsMsg(false, m.volume)
 		case "0":
 			if m.volume < 100 {
 				m.volume += 10
 			}
-			return m, nil
+			return m, updateCommandsMsg(false, m.volume)
 		case "enter":
 			station := m.stations[m.stationsTable.Cursor()]
-			return m, tea.Sequence(killFfplay(m.currentFfplay), runFfplay(station, m.volume))
+			return m, tea.Sequence(
+				killFfplay(m.currentFfplay),
+				runFfplay(station, m.volume),
+			)
 		}
 	}
 
@@ -232,25 +258,23 @@ func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m StationsModel) View() string {
 
-	playingBar := ""
+	extraBar := ""
 
 	if m.err != "" {
-		playingBar += StyleSetError(m.err)
-		playingBar += "\n"
+		extraBar += StyleSetError(m.err)
 	} else if m.currentFfplay != nil {
-		playingBar +=
+		extraBar +=
 			m.currentStationSpinner.View() +
-				StyleSetPlaying("now playing: "+m.currentStation.Name)
-		playingBar += "\n"
+				StyleSetPlaying("Listening to: "+m.currentStation.Name)
 	}
 
-	commands := []string{"q: quit", "s: search", "enter: play", "↑/↓: navigate"}
+	v := "\n" + m.stationsTable.View() + "\n\n"
 
-	if m.currentFfplay != nil {
-		commands = append(commands, "ctrl+k: stop playing")
-	} else {
-		commands = append(commands, "9/0: volume down/up", "volume: "+fmt.Sprintf("%d", m.volume))
-	}
+	vHeight := lipgloss.Height(v)
 
-	return m.stationsTable.View() + "\n\n" + playingBar + StyleBottomBar(commands)
+	v += lipgloss.NewStyle().
+		PaddingTop(m.height - vHeight).
+		Render(extraBar)
+
+	return v
 }

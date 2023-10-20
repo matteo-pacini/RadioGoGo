@@ -25,6 +25,7 @@ import (
 	"runtime"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
 type modelState int
@@ -57,6 +58,10 @@ type radioBrowserReadyMsg struct {
 	browser *api.RadioBrowser
 }
 
+type bottomBarUpdateMsg struct {
+	commands []string
+}
+
 // Model
 
 type Model struct {
@@ -68,7 +73,10 @@ type Model struct {
 	stationsModel StationsModel
 
 	// State
-	browser *api.RadioBrowser
+	width             int
+	height            int
+	browser           *api.RadioBrowser
+	bottomBarCommands []string
 }
 
 func NewModel() Model {
@@ -119,8 +127,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		m.width = msg.Width
+		m.height = msg.Height
+		return m, nil
 	case radioBrowserReadyMsg:
 		m.browser = msg.browser
+		return m, nil
+	case bottomBarUpdateMsg:
+		m.bottomBarCommands = msg.commands
 		return m, nil
 	}
 
@@ -173,18 +188,42 @@ func (m Model) View() string {
 
 	var view string
 
-	view = Header() + "\n\n"
+	view = Header()
+
+	effectiveHeight := m.height - 2 // 2 = header height + bottom bar height
+
+	var currentView string
 
 	switch m.state {
 	case searchState:
-		view += m.searchModel.View()
+		m.searchModel.width = m.width
+		m.searchModel.height = effectiveHeight
+		currentView = m.searchModel.View()
 	case loadingState:
-		view += m.loadingModel.View()
+		currentView = m.loadingModel.View()
 	case stationsState:
-		view += m.stationsModel.View()
+		m.stationsModel.width = m.width
+		m.stationsModel.height = effectiveHeight
+		currentView = m.stationsModel.View()
 	case errorState:
-		view += m.errorModel.View()
+		currentView = m.errorModel.View()
 	}
+
+	currentViewHeight := lipgloss.Height(currentView)
+
+	// Render the current view
+
+	view += currentView
+
+	// Push the view down to the bottom of the terminal
+
+	view += lipgloss.NewStyle().
+		Height(m.height - currentViewHeight).
+		Render()
+
+	// Render bottom bar
+
+	view += StyleBottomBar(m.bottomBarCommands)
 
 	return view
 }
