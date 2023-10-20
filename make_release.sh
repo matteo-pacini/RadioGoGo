@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -eo pipefail
+
 rm -rf bin 2> /dev/null
 
 if [ -z "$1" ]; then
@@ -38,6 +40,9 @@ TARGETS=(
     "netbsd|arm64"
 )
 
+mkdir bin
+touch bin/checksums.txt
+
 for target in "${TARGETS[@]}"; do
     IFS='|' read -ra target <<< "$target"
     GOOS=${target[0]}
@@ -56,7 +61,6 @@ for target in "${TARGETS[@]}"; do
     zip -j "bin/radiogogo_$1_${GOOS}_${GOARCH}.zip" $OUTPUT
     rm -rf $OUTPUT
 
-    CHECKSUM=$(shasum -a 512 "bin/radiogogo_$1_${GOOS}_${GOARCH}.zip" | cut -d ' ' -f 1)
-    echo "$CHECKSUM" > "bin/radiogogo_$1_${GOOS}_${GOARCH}.zip.sha512"
+    cd bin && shasum -a 256 "radiogogo_$1_${GOOS}_${GOARCH}.zip" >> "checksums.txt" && cd ..
 
 done

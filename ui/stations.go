@@ -240,9 +240,7 @@ func (m StationsModel) View() string {
 	} else if m.currentFfplay != nil {
 		playingBar +=
 			m.currentStationSpinner.View() +
-				StyleSetPlaying("now playing: "+m.currentStation.Name) +
-				" " +
-				m.currentStationSpinner.View()
+				StyleSetPlaying("now playing: "+m.currentStation.Name)
 		playingBar += "\n"
 	}
 
