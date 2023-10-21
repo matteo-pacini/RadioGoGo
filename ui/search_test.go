@@ -54,7 +54,7 @@ func TestSearchModel_Init(t *testing.T) {
 
 		assert.True(t, found)
 
-		expectedCommands := []string{"q: quit"}
+		expectedCommands := []string{"q: quit", "enter: search"}
 
 		assert.Equal(t, expectedCommands, commands)
 

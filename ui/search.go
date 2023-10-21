@@ -47,7 +47,7 @@ func NewSearchModel() SearchModel {
 func (m SearchModel) Init() tea.Cmd {
 	return tea.Batch(textinput.Blink, func() tea.Msg {
 		return bottomBarUpdateMsg{
-			commands: []string{"q: quit"},
+			commands: []string{"q: quit", "enter: search"},
 		}
 	})
 }
