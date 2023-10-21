@@ -64,12 +64,12 @@ func (m ErrorModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "q":
-			return m, radiogogoQuit
+			return m, quitCmd
 		}
 	case quitTickMsg:
 		m.tickCount++
 		if m.tickCount >= quitTicks {
-			return m, radiogogoQuit
+			return m, quitCmd
 		}
 		return m, tea.Tick(time.Second, func(t time.Time) tea.Msg {
 			return quitTickMsg{}

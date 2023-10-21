@@ -61,13 +61,13 @@ type bottomBarUpdateMsg struct {
 
 type quitMsg struct{}
 
-func radiogogoQuit() tea.Msg {
+func quitCmd() tea.Msg {
 	return quitMsg{}
 }
 
 // Commands
 
-func checkFFPlay(playbackManager playback.PlaybackManager) tea.Cmd {
+func checkIfPlaybackIsPossibleCmd(playbackManager playback.PlaybackManager) tea.Cmd {
 	return func() tea.Msg {
 		if !playbackManager.IsAvailable() {
 			return switchToErrorModelMsg{
@@ -121,7 +121,7 @@ func NewModel(
 }
 
 func (m Model) Init() tea.Cmd {
-	return checkFFPlay(m.playbackManager)
+	return checkIfPlaybackIsPossibleCmd(m.playbackManager)
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {

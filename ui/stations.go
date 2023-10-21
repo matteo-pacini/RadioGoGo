@@ -215,7 +215,7 @@ func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return playbackStoppedMsg{}
 			}
 		case "q":
-			return m, tea.Sequence(stopStationCmd(m.playbackManager), radiogogoQuit)
+			return m, tea.Sequence(stopStationCmd(m.playbackManager), quitCmd)
 		case "s":
 			return m, tea.Sequence(
 				stopStationCmd(m.playbackManager),

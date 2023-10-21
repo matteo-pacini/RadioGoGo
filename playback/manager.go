@@ -39,6 +39,7 @@ type PlaybackManager interface {
 	StopStation() error
 }
 
+// DefaultPlaybackManager is a PlaybackManager that uses ffplay to play radio stations.
 type DefaultPlaybackManager struct {
 	nowPlaying *exec.Cmd
 }
