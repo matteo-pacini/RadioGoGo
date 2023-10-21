@@ -21,7 +21,6 @@ package ui
 
 import (
 	"fmt"
-	"os/exec"
 	"radiogogo/api"
 	"radiogogo/playback"
 	"time"
@@ -35,24 +34,29 @@ import (
 type StationsModel struct {
 	stations              []api.Station
 	stationsTable         table.Model
-	currentFfplay         *exec.Cmd
 	currentStation        api.Station
 	currentStationSpinner spinner.Model
 	volume                int
 	err                   string
 
-	browser *api.RadioBrowser
-	width   int
-	height  int
+	browser         *api.RadioBrowser
+	playbackManager playback.PlaybackManager
+	width           int
+	height          int
 }
 
-func NewStationsModel(browser *api.RadioBrowser, stations []api.Station) StationsModel {
+func NewStationsModel(
+	browser *api.RadioBrowser,
+	playbackManager playback.PlaybackManager,
+	stations []api.Station,
+) StationsModel {
 
 	return StationsModel{
-		stations:      stations,
-		stationsTable: newStationsTableModel(stations),
-		volume:        80,
-		browser:       browser,
+		stations:        stations,
+		stationsTable:   newStationsTableModel(stations),
+		volume:          80,
+		browser:         browser,
+		playbackManager: playbackManager,
 	}
 }
 
@@ -97,42 +101,46 @@ func newStationsTableModel(stations []api.Station) table.Model {
 
 }
 
-// Playback
+// Messages
 
 type playbackStartedMsg struct {
 	station api.Station
-	cmd     *exec.Cmd
 }
 type playbackStoppedMsg struct{}
 
-func runFfplay(station api.Station, volume int) tea.Cmd {
+type nonFatalError struct {
+	stopPlayback bool
+	err          error
+}
+type clearNonFatalError struct{}
+
+// Commands
+
+func playStationCmd(
+	playbackManager playback.PlaybackManager,
+	station api.Station,
+	volume int,
+) tea.Cmd {
 	return func() tea.Msg {
-		cmd, err := playback.FFPlayPlayStation(station, volume)
+		err := playbackManager.PlayStation(station, volume)
 		if err != nil {
 			return nonFatalError{stopPlayback: false, err: err}
 		}
-		return playbackStartedMsg{station: station, cmd: cmd}
+		return playbackStartedMsg{station: station}
 	}
 }
 
-func killFfplay(cmd *exec.Cmd) tea.Cmd {
+func stopStationCmd(playbackManager playback.PlaybackManager) tea.Cmd {
 	return func() tea.Msg {
-		if cmd == nil {
-			return nil
-		}
-		err := cmd.Process.Kill()
+		err := playbackManager.StopStation()
 		if err != nil {
-			return switchToErrorModelMsg{err: err.Error()}
-		}
-		_, err = cmd.Process.Wait()
-		if err != nil {
-			return switchToErrorModelMsg{err: err.Error()}
+			return nonFatalError{stopPlayback: false, err: err}
 		}
 		return playbackStoppedMsg{}
 	}
 }
 
-func notifyRadioBrowser(browser *api.RadioBrowser, station api.Station) tea.Cmd {
+func notifyRadioBrowserCmd(browser *api.RadioBrowser, station api.Station) tea.Cmd {
 	return func() tea.Msg {
 		_, err := browser.ClickStation(station)
 		if err != nil {
@@ -142,7 +150,7 @@ func notifyRadioBrowser(browser *api.RadioBrowser, station api.Station) tea.Cmd 
 	}
 }
 
-func updateCommandsMsg(isPlaying bool, volume int) tea.Cmd {
+func updateCommandsCmd(isPlaying bool, volume int) tea.Cmd {
 	return func() tea.Msg {
 
 		commands := []string{"q: quit", "s: search", "enter: play", "↑/↓: move"}
@@ -159,18 +167,10 @@ func updateCommandsMsg(isPlaying bool, volume int) tea.Cmd {
 	}
 }
 
-// Error messages
-
-type nonFatalError struct {
-	stopPlayback bool
-	err          error
-}
-type clearNonFatalError struct{}
-
 // Model
 
 func (m StationsModel) Init() tea.Cmd {
-	return updateCommandsMsg(false, m.volume)
+	return updateCommandsCmd(false, m.volume)
 }
 
 func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -178,27 +178,24 @@ func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case playbackStartedMsg:
 		m.currentStation = msg.station
-		m.currentFfplay = msg.cmd
 		m.currentStationSpinner = spinner.New()
 		m.currentStationSpinner.Spinner = spinner.Dot
 		m.currentStationSpinner.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("#5a4f9f"))
 		return m, tea.Batch(
 			m.currentStationSpinner.Tick,
-			notifyRadioBrowser(m.browser, m.currentStation),
-			updateCommandsMsg(true, m.volume),
+			notifyRadioBrowserCmd(m.browser, m.currentStation),
+			updateCommandsCmd(true, m.volume),
 		)
 	case playbackStoppedMsg:
 		m.currentStation = api.Station{}
-		m.currentFfplay = nil
 		m.currentStationSpinner = spinner.Model{}
-		return m, updateCommandsMsg(false, m.volume)
+		return m, updateCommandsCmd(false, m.volume)
 	case nonFatalError:
 		var cmds []tea.Cmd
 		if msg.stopPlayback {
-			cmds = append(cmds, killFfplay(m.currentFfplay))
+			cmds = append(cmds, stopStationCmd(m.playbackManager))
 		}
 		m.err = msg.err.Error()
-
 		cmds = append(cmds, tea.Tick(3*time.Second, func(t time.Time) tea.Msg {
 			return clearNonFatalError{}
 		}))
@@ -210,42 +207,43 @@ func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+k":
-			if m.currentFfplay != nil {
-				return m, killFfplay(m.currentFfplay)
+			return m, func() tea.Msg {
+				err := m.playbackManager.StopStation()
+				if err != nil {
+					return nonFatalError{stopPlayback: false, err: err}
+				}
+				return playbackStoppedMsg{}
 			}
 		case "q":
-			return m, tea.Sequence(killFfplay(m.currentFfplay), radiogogoQuit)
+			return m, tea.Sequence(stopStationCmd(m.playbackManager), radiogogoQuit)
 		case "s":
 			return m, tea.Sequence(
-				killFfplay(m.currentFfplay),
+				stopStationCmd(m.playbackManager),
 				func() tea.Msg {
 					return switchToSearchModelMsg{}
 				},
 			)
 		case "9":
-			if m.volume > 0 && m.currentFfplay == nil {
+			if m.volume > 0 && !m.playbackManager.IsPlaying() {
 				m.volume -= 10
-				return m, updateCommandsMsg(false, m.volume)
+				return m, updateCommandsCmd(false, m.volume)
 			}
 			return m, nil
 		case "0":
-			if m.volume < 100 && m.currentFfplay == nil {
+			if m.volume < 100 && !m.playbackManager.IsPlaying() {
 				m.volume += 10
-				return m, updateCommandsMsg(false, m.volume)
+				return m, updateCommandsCmd(false, m.volume)
 			}
 			return m, nil
 		case "enter":
 			station := m.stations[m.stationsTable.Cursor()]
-			return m, tea.Sequence(
-				killFfplay(m.currentFfplay),
-				runFfplay(station, m.volume),
-			)
+			return m, playStationCmd(m.playbackManager, station, m.volume)
 		}
 	}
 
 	var cmds []tea.Cmd
 
-	if m.currentFfplay != nil {
+	if m.playbackManager.IsPlaying() {
 		newSpinner, cmd := m.currentStationSpinner.Update(msg)
 		m.currentStationSpinner = newSpinner
 		cmds = append(cmds, cmd)
@@ -264,7 +262,7 @@ func (m StationsModel) View() string {
 
 	if m.err != "" {
 		extraBar += StyleSetError(m.err)
-	} else if m.currentFfplay != nil {
+	} else if m.playbackManager.IsPlaying() {
 		extraBar +=
 			m.currentStationSpinner.View() +
 				StyleSetPlaying("Listening to: "+m.currentStation.Name)

@@ -148,7 +148,7 @@ func (radioBrowser *RadioBrowser) GetStations(
 	hideBroken bool,
 ) ([]Station, error) {
 
-	url := radioBrowser.BaseUrl.JoinPath("/stations")
+	url := radioBrowser.baseUrl.JoinPath("/stations")
 	if stationQuery != StationQueryAll {
 		url = url.JoinPath("/" + string(stationQuery) + "/" + searchTerm)
 	}
@@ -176,7 +176,7 @@ func (radioBrowser *RadioBrowser) GetStations(
 		req.Header.Set(key, value)
 	}
 
-	result, err := Client.Do(req)
+	result, err := radioBrowser.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -217,7 +217,7 @@ func (radioBrowser *RadioBrowser) ClickStation(station Station) (ClickStationRes
 
 	// POST json/url/stationuuid
 
-	url := radioBrowser.BaseUrl.JoinPath("/url/" + station.StationUuid.String())
+	url := radioBrowser.baseUrl.JoinPath("/url/" + station.StationUuid.String())
 
 	headers := make(map[string]string)
 	headers["User-Agent"] = data.UserAgent
@@ -232,7 +232,7 @@ func (radioBrowser *RadioBrowser) ClickStation(station Station) (ClickStationRes
 		req.Header.Set(key, value)
 	}
 
-	result, err := Client.Do(req)
+	result, err := radioBrowser.httpClient.Do(req)
 	if err != nil {
 		return ClickStationResponse{}, err
 	}

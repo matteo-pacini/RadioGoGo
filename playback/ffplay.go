@@ -25,13 +25,62 @@ import (
 	"radiogogo/api"
 )
 
-func IsFFplayAvailable() bool {
+// PlaybackManager is an interface that defines methods for managing playback of a radio station.
+type PlaybackManager interface {
+	// IsAvailable returns true if the playback manager is available for use.
+	IsAvailable() bool
+	// IsPlaying returns true if a radio station is currently being played.
+	IsPlaying() bool
+	// PlayStation starts playing the specified radio station at the given volume.
+	// If a radio station is already being played, it is stopped first.
+	PlayStation(station api.Station, volume int) error
+	// StopStation stops the currently playing radio station.
+	// If no radio station is being played, this method does nothing.
+	StopStation() error
+}
+
+type DefaultPlaybackManager struct {
+	nowPlaying *exec.Cmd
+}
+
+func NewDefaultPlaybackManager() *DefaultPlaybackManager {
+	return &DefaultPlaybackManager{}
+}
+
+func (d DefaultPlaybackManager) IsPlaying() bool {
+	return d.nowPlaying != nil
+}
+
+func (d DefaultPlaybackManager) IsAvailable() bool {
 	_, err := exec.LookPath("ffplay")
 	return err == nil
 }
 
-func FFPlayPlayStation(station api.Station, volume int) (*exec.Cmd, error) {
+func (d *DefaultPlaybackManager) PlayStation(station api.Station, volume int) error {
+	err := d.StopStation()
+	if err != nil {
+		return err
+	}
 	cmd := exec.Command("ffplay", "-nodisp", "-volume", fmt.Sprintf("%d", volume), station.Url.URL.String())
-	err := cmd.Start()
-	return cmd, err
+	err = cmd.Start()
+	if err != nil {
+		return err
+	}
+	d.nowPlaying = cmd
+	return nil
+}
+
+func (d *DefaultPlaybackManager) StopStation() error {
+	if d.nowPlaying != nil {
+		err := d.nowPlaying.Process.Kill()
+		if err != nil {
+			return err
+		}
+		_, err = d.nowPlaying.Process.Wait()
+		if err != nil {
+			return err
+		}
+		d.nowPlaying = nil
+	}
+	return nil
 }

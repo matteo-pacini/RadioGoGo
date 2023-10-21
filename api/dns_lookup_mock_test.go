@@ -17,30 +17,15 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-package main
+package api
 
-import (
-	"fmt"
-	"os"
-	"radiogogo/ui"
+type MockDNSLookupService struct {
+	LookupIPFunc func(host string) ([]string, error)
+}
 
-	tea "github.com/charmbracelet/bubbletea"
-)
-
-func main() {
-
-	model, err := ui.NewDefaultModel()
-
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error initializing model: %v", err)
-		os.Exit(1)
+func (m *MockDNSLookupService) LookupIP(host string) ([]string, error) {
+	if m.LookupIPFunc != nil {
+		return m.LookupIPFunc(host)
 	}
-
-	p := tea.NewProgram(model, tea.WithAltScreen())
-
-	if _, err := p.Run(); err != nil {
-		fmt.Fprintf(os.Stderr, "Error starting program: %v", err)
-		os.Exit(1)
-	}
-
+	return []string{}, nil
 }

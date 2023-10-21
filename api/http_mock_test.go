@@ -19,51 +19,15 @@
 
 package api
 
-import (
-	"net"
-	"testing"
+import "net/http"
 
-	"github.com/stretchr/testify/assert"
-)
+type MockHttpClient struct {
+	DoFunc func(req *http.Request) (*http.Response, error)
+}
 
-func TestDnsLookup(t *testing.T) {
-
-	t.Run("lookup valid IP address returns IP address", func(t *testing.T) {
-		lookupIPFunc = func(host string) ([]net.IP, error) {
-			return []net.IP{net.ParseIP("1.1.1.1")}, nil
-		}
-
-		ips, err := dnsLookup("8.8.8.8")
-		assert.NoError(t, err)
-		assert.Len(t, ips, 1)
-		assert.Equal(t, "8.8.8.8", ips[0])
-	})
-
-	t.Run("lookup valid hostname returns IP address if lookup succeeds", func(t *testing.T) {
-
-		lookupIPFunc = func(host string) ([]net.IP, error) {
-			return []net.IP{net.ParseIP("127.0.0.1")}, nil
-		}
-
-		ips, err := dnsLookup("all.api.radio-browser.info")
-
-		assert.NoError(t, err)
-		assert.Len(t, ips, 1)
-		assert.Equal(t, "127.0.0.1", ips[0])
-
-	})
-
-	t.Run("lookup valid hostname returns error if lookup fails", func(t *testing.T) {
-
-		lookupIPFunc = func(host string) ([]net.IP, error) {
-			return []net.IP{}, &net.DNSError{}
-		}
-
-		ips, err := dnsLookup("all.api.radio-browser.info")
-
-		assert.Error(t, err)
-		assert.Len(t, ips, 0)
-
-	})
-
+func (m *MockHttpClient) Do(req *http.Request) (*http.Response, error) {
+	if m.DoFunc != nil {
+		return m.DoFunc(req)
+	}
+	return &http.Response{}, nil
 }

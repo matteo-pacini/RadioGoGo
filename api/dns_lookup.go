@@ -24,21 +24,32 @@ import (
 	"net"
 )
 
-var lookupIPFunc = func(host string) ([]net.IP, error) {
-	resolver := net.DefaultResolver
-	return resolver.LookupIP(context.Background(), "ip4", host)
+// DNSLookupService defines the behavior for looking up IP addresses for a given host.
+type DNSLookupService interface {
+	// LookupIP returns the IP address of a given host. If the host is already an IP address, it returns the same IP address.
+	// Otherwise, it performs a DNS lookup and returns the IP addresses associated with the host.
+	// The function uses the default resolver and the "ip4" network to perform the lookup.
+	// If the lookup fails, it returns an empty slice and the error encountered.
+	LookupIP(host string) ([]string, error)
 }
 
-// dnsLookup performs a DNS lookup for the given hostname and returns a slice of IP addresses as strings.
-// If the hostname is already an IP address, it returns a slice containing only that IP address.
-// If the lookup fails, it returns an empty slice and the error encountered.
-func dnsLookup(hostname string) ([]string, error) {
+// DefaultDNSLookupService provides a default implementation of the DNSLookupService interface.
+type DefaultDNSLookupService struct{}
 
-	if net.ParseIP(hostname) != nil {
-		return []string{hostname}, nil
+func NewDefaultDNSLookupService() *DefaultDNSLookupService {
+	return &DefaultDNSLookupService{}
+}
+
+// LookupIP performs a DNS lookup to retrieve IP addresses for the given host.
+func (s *DefaultDNSLookupService) LookupIP(host string) ([]string, error) {
+
+	if net.ParseIP(host) != nil {
+		return []string{host}, nil
 	}
 
-	ips, err := lookupIPFunc(hostname)
+	resolver := net.DefaultResolver
+
+	ips, err := resolver.LookupIP(context.Background(), "ip4", host)
 	if err != nil {
 		return []string{}, err
 	}

@@ -23,7 +23,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
-	"net"
 	"net/http"
 	"radiogogo/data"
 	"testing"
@@ -31,18 +30,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
-
-type MockClient struct {
-	DoFunc func(req *http.Request) (*http.Response, error)
-}
-
-func (m *MockClient) Do(req *http.Request) (*http.Response, error) {
-	if m.DoFunc != nil {
-		return m.DoFunc(req)
-	}
-	// just in case you want default correct return value
-	return &http.Response{}, nil
-}
 
 func TestStationJSON(t *testing.T) {
 
@@ -189,11 +176,13 @@ func TestGetStationsURLBuilding(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 
-			lookupIPFunc = func(host string) ([]net.IP, error) {
-				return []net.IP{net.ParseIP("127.0.0.1")}, nil
+			mockDNSLookupService := MockDNSLookupService{
+				LookupIPFunc: func(host string) ([]string, error) {
+					return []string{"127.0.0.1"}, nil
+				},
 			}
 
-			Client = &MockClient{
+			mockHttpClient := MockHttpClient{
 				DoFunc: func(req *http.Request) (*http.Response, error) {
 					assert.Equal(t, tc.expectedEndpoint, req.URL.Path)
 					assert.Equal(t, "GET", req.Method)
@@ -207,7 +196,7 @@ func TestGetStationsURLBuilding(t *testing.T) {
 				},
 			}
 
-			browser, err := NewRadioBrowser()
+			browser, err := NewRadioBrowser(&mockDNSLookupService, &mockHttpClient)
 
 			assert.NoError(t, err)
 
@@ -224,11 +213,13 @@ func TestClickStation(t *testing.T) {
 		StationUuid: uuid.MustParse("941ef6f1-0699-4821-95b1-2b678e3ff62e"),
 	}
 
-	lookupIPFunc = func(host string) ([]net.IP, error) {
-		return []net.IP{net.ParseIP("127.0.0.1")}, nil
+	mockDNSLookupService := MockDNSLookupService{
+		LookupIPFunc: func(host string) ([]string, error) {
+			return []string{"127.0.0.1"}, nil
+		},
 	}
 
-	mockClient := &MockClient{
+	mockHttpClient := MockHttpClient{
 		DoFunc: func(req *http.Request) (*http.Response, error) {
 			expectedUrl := "http://127.0.0.1/json/url/941ef6f1-0699-4821-95b1-2b678e3ff62e"
 			assert.Equal(t, "POST", req.Method)
@@ -252,9 +243,7 @@ func TestClickStation(t *testing.T) {
 		},
 	}
 
-	Client = mockClient
-
-	radioBrowser, err := NewRadioBrowser()
+	radioBrowser, err := NewRadioBrowser(&mockDNSLookupService, &mockHttpClient)
 	assert.NoError(t, err)
 
 	response, err := radioBrowser.ClickStation(station)

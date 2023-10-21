@@ -17,16 +17,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-// Go client for the Radio Browser API.
-//
-// # Usage
-//
-// Create a new instance of RadioBrowser:
-//
-//	browser, err := radiogogo.NewRadioBrowser()
-//	if err != nil {
-//	    // Handle error
-//	}
 package api
 
 import (
@@ -37,16 +27,32 @@ import (
 )
 
 type RadioBrowser struct {
+	// The HTTP client used to make requests to the Radio Browser API.
+	httpClient HTTPClient
 	// The base URL for the Radio Browser API.)
-	BaseUrl url.URL
+	baseUrl url.URL
 }
 
-// NewRadioBrowser creates a new instance of RadioBrowser and returns a pointer to it.
-// It performs a DNS lookup to get a random IP address of the radio browser API and sets the base URL of the browser.
-// Returns an error if the DNS lookup fails.
-func NewRadioBrowser() (*RadioBrowser, error) {
-	browser := &RadioBrowser{}
-	ips, err := dnsLookup("all.api.radio-browser.info")
+// DefaultRadioBrowser returns a new instance of RadioBrowser with the default DNS lookup service and HTTP client.
+func NewDefaultRadioBrowser() (*RadioBrowser, error) {
+	return NewRadioBrowser(
+		&DefaultDNSLookupService{},
+		http.DefaultClient,
+	)
+}
+
+// NewRadioBrowser creates a new instance of RadioBrowser struct with the provided DNSLookupService and HTTPClient.
+// It returns a pointer to the created instance and an error if any.
+// The function performs a DNS lookup for "all.api.radio-browser.info" and selects a random IP address from the returned list.
+// It then constructs a base URL using the selected IP address and sets it as the baseUrl of the created instance.
+func NewRadioBrowser(
+	dnsLookupService DNSLookupService,
+	httpClient HTTPClient,
+) (*RadioBrowser, error) {
+	browser := &RadioBrowser{
+		httpClient: httpClient,
+	}
+	ips, err := dnsLookupService.LookupIP("all.api.radio-browser.info")
 	if err != nil {
 		return nil, err
 	}
@@ -61,10 +67,6 @@ func NewRadioBrowser() (*RadioBrowser, error) {
 	if err != nil {
 		return nil, err
 	}
-	browser.BaseUrl = *url
+	browser.baseUrl = *url
 	return browser, nil
-}
-
-func init() {
-	Client = &http.Client{}
 }

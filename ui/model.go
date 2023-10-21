@@ -51,12 +51,6 @@ type switchToStationsModelMsg struct {
 	stations []api.Station
 }
 
-// Dependency injection messages
-
-type radioBrowserReadyMsg struct {
-	browser *api.RadioBrowser
-}
-
 // UI messages
 
 type bottomBarUpdateMsg struct {
@@ -73,48 +67,61 @@ func radiogogoQuit() tea.Msg {
 
 // Commands
 
-func checkFFPlay() tea.Msg {
-	if !playback.IsFFplayAvailable() {
-		return switchToErrorModelMsg{
-			err: `RadioGoGo requires "ffplay" (part of "ffmpeg") to be installed and available in your PATH.`,
+func checkFFPlay(playbackManager playback.PlaybackManager) tea.Cmd {
+	return func() tea.Msg {
+		if !playbackManager.IsAvailable() {
+			return switchToErrorModelMsg{
+				err: `RadioGoGo requires "ffplay" (part of "ffmpeg") to be installed and available in your PATH.`,
+			}
 		}
+		return switchToSearchModelMsg{}
 	}
-	return initBrowserMsg{}
-}
-
-type initBrowserMsg struct{}
-
-func initBrowser() tea.Msg {
-	browser, err := api.NewRadioBrowser()
-	if err != nil {
-		return switchToErrorModelMsg{err: err.Error()}
-	}
-	return radioBrowserReadyMsg{browser: browser}
 }
 
 // Model
 
 type Model struct {
 	// Models
-	state         modelState
-	searchModel   SearchModel
-	errorModel    ErrorModel
-	loadingModel  LoadingModel
-	stationsModel StationsModel
+	state             modelState
+	searchModel       SearchModel
+	errorModel        ErrorModel
+	loadingModel      LoadingModel
+	stationsModel     StationsModel
+	bottomBarCommands []string
 
 	// State
-	width             int
-	height            int
-	browser           *api.RadioBrowser
-	bottomBarCommands []string
+	width           int
+	height          int
+	browser         *api.RadioBrowser
+	playbackManager playback.PlaybackManager
 }
 
-func NewModel() Model {
-	return Model{}
+func NewDefaultModel() (Model, error) {
+
+	browser, err := api.NewDefaultRadioBrowser()
+	if err != nil {
+		return Model{}, err
+	}
+
+	playbackManager := playback.NewDefaultPlaybackManager()
+
+	return NewModel(browser, playbackManager), nil
+
+}
+
+func NewModel(
+	browser *api.RadioBrowser,
+	playbackManager playback.PlaybackManager,
+) Model {
+	return Model{
+		state:           bootState,
+		browser:         browser,
+		playbackManager: playbackManager,
+	}
 }
 
 func (m Model) Init() tea.Cmd {
-	return checkFFPlay
+	return checkFFPlay(m.playbackManager)
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -129,13 +136,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 	case quitMsg:
 		return m, tea.Quit
-	case initBrowserMsg:
-		return m, initBrowser
-	case radioBrowserReadyMsg:
-		m.browser = msg.browser
-		return m, func() tea.Msg {
-			return switchToSearchModelMsg{}
-		}
 	case bottomBarUpdateMsg:
 		m.bottomBarCommands = msg.commands
 		return m, nil
@@ -153,7 +153,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.state = loadingState
 		return m, m.loadingModel.Init()
 	case switchToStationsModelMsg:
-		m.stationsModel = NewStationsModel(m.browser, msg.stations)
+		m.stationsModel = NewStationsModel(m.browser, m.playbackManager, msg.stations)
 		m.state = stationsState
 		return m, m.stationsModel.Init()
 	case switchToErrorModelMsg:
