@@ -13,6 +13,29 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestBrowserImplEscapesIPV6(t *testing.T) {
+
+	mockDNSLookupService := mocks.MockDNSLookupService{
+		LookupIPFunc: func(host string) ([]string, error) {
+			return []string{"2001:db8::1"}, nil
+		},
+	}
+
+	mockHttpClient := mocks.MockHttpClient{
+		DoFunc: func(req *http.Request) (*http.Response, error) {
+			return nil, io.EOF
+		},
+	}
+
+	browser, err := NewRadioBrowserWithDependencies(&mockDNSLookupService, &mockHttpClient)
+	assert.NoError(t, err)
+
+	assert.Equal(t, "http://[2001:db8::1]/json", browser.baseUrl.String())
+
+	assert.NoError(t, err)
+
+}
+
 func TestBrowserImplGetStations(t *testing.T) {
 
 	// Note: Search term set to "searchTerm" in all test cases
@@ -133,7 +156,7 @@ func TestBrowserImplGetStations(t *testing.T) {
 		})
 	}
 }
-func TestClickStation(t *testing.T) {
+func TestBrowserImplClickStation(t *testing.T) {
 
 	station := models.Station{
 		StationUuid: uuid.MustParse("941ef6f1-0699-4821-95b1-2b678e3ff62e"),

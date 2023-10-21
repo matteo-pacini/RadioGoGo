@@ -33,15 +33,15 @@ type DNSLookupService interface {
 	LookupIP(host string) ([]string, error)
 }
 
-// DefaultDNSLookupService provides a default implementation of the DNSLookupService interface.
-type DefaultDNSLookupService struct{}
+// DNSLookupServiceImpl provides a default implementation of the DNSLookupService interface.
+type DNSLookupServiceImpl struct{}
 
-func NewDefaultDNSLookupService() *DefaultDNSLookupService {
-	return &DefaultDNSLookupService{}
+func NewDNSLookupService() *DNSLookupServiceImpl {
+	return &DNSLookupServiceImpl{}
 }
 
 // LookupIP performs a DNS lookup to retrieve IP addresses for the given host.
-func (s *DefaultDNSLookupService) LookupIP(host string) ([]string, error) {
+func (s *DNSLookupServiceImpl) LookupIP(host string) ([]string, error) {
 
 	if net.ParseIP(host) != nil {
 		return []string{host}, nil

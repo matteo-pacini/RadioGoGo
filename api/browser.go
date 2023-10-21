@@ -46,7 +46,7 @@ type RadioBrowserService interface {
 
 type RadioBrowserImpl struct {
 	// The HTTP client used to make requests to the Radio Browser API.
-	httpClient HTTPClient
+	httpClient HTTPClientService
 	// The base URL for the Radio Browser API.)
 	baseUrl url.URL
 }
@@ -54,7 +54,7 @@ type RadioBrowserImpl struct {
 // NewRadioBrowser returns a new instance of RadioBrowserService with the default DNS lookup service and HTTP client.
 func NewRadioBrowser() (*RadioBrowserImpl, error) {
 	return NewRadioBrowserWithDependencies(
-		&DefaultDNSLookupService{},
+		&DNSLookupServiceImpl{},
 		http.DefaultClient,
 	)
 }
@@ -65,7 +65,7 @@ func NewRadioBrowser() (*RadioBrowserImpl, error) {
 // It then constructs a base URL using the selected IP address and sets it as the baseUrl of the created instance.
 func NewRadioBrowserWithDependencies(
 	dnsLookupService DNSLookupService,
-	httpClient HTTPClient,
+	httpClient HTTPClientService,
 ) (*RadioBrowserImpl, error) {
 	browser := &RadioBrowserImpl{
 		httpClient: httpClient,
