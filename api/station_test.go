@@ -25,6 +25,7 @@ import (
 	"io"
 	"net/http"
 	"radiogogo/data"
+	"radiogogo/mocks"
 	"testing"
 
 	"github.com/google/uuid"
@@ -176,13 +177,13 @@ func TestGetStationsURLBuilding(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 
-			mockDNSLookupService := MockDNSLookupService{
+			mockDNSLookupService := mocks.MockDNSLookupService{
 				LookupIPFunc: func(host string) ([]string, error) {
 					return []string{"127.0.0.1"}, nil
 				},
 			}
 
-			mockHttpClient := MockHttpClient{
+			mockHttpClient := mocks.MockHttpClient{
 				DoFunc: func(req *http.Request) (*http.Response, error) {
 					assert.Equal(t, tc.expectedEndpoint, req.URL.Path)
 					assert.Equal(t, "GET", req.Method)
@@ -213,13 +214,13 @@ func TestClickStation(t *testing.T) {
 		StationUuid: uuid.MustParse("941ef6f1-0699-4821-95b1-2b678e3ff62e"),
 	}
 
-	mockDNSLookupService := MockDNSLookupService{
+	mockDNSLookupService := mocks.MockDNSLookupService{
 		LookupIPFunc: func(host string) ([]string, error) {
 			return []string{"127.0.0.1"}, nil
 		},
 	}
 
-	mockHttpClient := MockHttpClient{
+	mockHttpClient := mocks.MockHttpClient{
 		DoFunc: func(req *http.Request) (*http.Response, error) {
 			expectedUrl := "http://127.0.0.1/json/url/941ef6f1-0699-4821-95b1-2b678e3ff62e"
 			assert.Equal(t, "POST", req.Method)

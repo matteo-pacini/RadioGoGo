@@ -17,15 +17,17 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-package api
+package mocks
 
-type MockDNSLookupService struct {
-	LookupIPFunc func(host string) ([]string, error)
+import "net/http"
+
+type MockHttpClient struct {
+	DoFunc func(req *http.Request) (*http.Response, error)
 }
 
-func (m *MockDNSLookupService) LookupIP(host string) ([]string, error) {
-	if m.LookupIPFunc != nil {
-		return m.LookupIPFunc(host)
+func (m *MockHttpClient) Do(req *http.Request) (*http.Response, error) {
+	if m.DoFunc != nil {
+		return m.DoFunc(req)
 	}
-	return []string{}, nil
+	return &http.Response{}, nil
 }
