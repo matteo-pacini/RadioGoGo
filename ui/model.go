@@ -21,7 +21,7 @@ package ui
 
 import (
 	"radiogogo/api"
-	"radiogogo/models"
+	"radiogogo/common"
 	"radiogogo/playback"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -49,7 +49,7 @@ type switchToLoadingModelMsg struct {
 	query string
 }
 type switchToStationsModelMsg struct {
-	stations []models.Station
+	stations []common.Station
 }
 
 // UI messages
@@ -93,7 +93,7 @@ type Model struct {
 	// State
 	width           int
 	height          int
-	browser         *api.RadioBrowserImpl
+	browser         api.RadioBrowserService
 	playbackManager playback.PlaybackManagerService
 }
 

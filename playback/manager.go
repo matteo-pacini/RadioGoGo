@@ -22,7 +22,7 @@ package playback
 import (
 	"fmt"
 	"os/exec"
-	"radiogogo/models"
+	"radiogogo/common"
 )
 
 // PlaybackManagerService is an interface that defines methods for managing playback of a radio station.
@@ -33,7 +33,7 @@ type PlaybackManagerService interface {
 	IsPlaying() bool
 	// PlayStation starts playing the specified radio station at the given volume.
 	// If a radio station is already being played, it is stopped first.
-	PlayStation(station models.Station, volume int) error
+	PlayStation(station common.Station, volume int) error
 	// StopStation stops the currently playing radio station.
 	// If no radio station is being played, this method does nothing.
 	StopStation() error
@@ -57,7 +57,7 @@ func (d PlaybackManagerServiceImpl) IsAvailable() bool {
 	return err == nil
 }
 
-func (d *PlaybackManagerServiceImpl) PlayStation(station models.Station, volume int) error {
+func (d *PlaybackManagerServiceImpl) PlayStation(station common.Station, volume int) error {
 	err := d.StopStation()
 	if err != nil {
 		return err

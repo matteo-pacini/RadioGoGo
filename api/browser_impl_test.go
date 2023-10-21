@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"io"
 	"net/http"
+	"radiogogo/common"
 	"radiogogo/data"
 	"radiogogo/mocks"
-	"radiogogo/models"
 	"testing"
 
 	"github.com/google/uuid"
@@ -42,82 +42,82 @@ func TestBrowserImplGetStations(t *testing.T) {
 
 	testCases := []struct {
 		name             string
-		queryType        StationQuery
+		queryType        common.StationQuery
 		expectedEndpoint string
 	}{
 		{
 			name:             "builds the correct URL for StationQueryAll",
-			queryType:        StationQueryAll,
+			queryType:        common.StationQueryAll,
 			expectedEndpoint: "/json/stations",
 		},
 		{
 			name:             "builds the correct URL for StationQueryByUUID",
-			queryType:        StationQueryByUuid,
+			queryType:        common.StationQueryByUuid,
 			expectedEndpoint: "/json/stations/byuuid/searchTerm",
 		},
 		{
 			name:             "builds the correct URL for StationQueryByName",
-			queryType:        StationQueryByName,
+			queryType:        common.StationQueryByName,
 			expectedEndpoint: "/json/stations/byname/searchTerm",
 		},
 		{
 			name:             "builds the correct URL for StationQueryByNameExact",
-			queryType:        StationQueryByNameExact,
+			queryType:        common.StationQueryByNameExact,
 			expectedEndpoint: "/json/stations/bynameexact/searchTerm",
 		},
 		{
 			name:             "builds the correct URL for StationQueryByCodec",
-			queryType:        StationQueryByCodec,
+			queryType:        common.StationQueryByCodec,
 			expectedEndpoint: "/json/stations/bycodec/searchTerm",
 		},
 		{
 			name:             "builds the correct URL for StationQueryByCodecExact",
-			queryType:        StationQueryByCodecExact,
+			queryType:        common.StationQueryByCodecExact,
 			expectedEndpoint: "/json/stations/bycodecexact/searchTerm",
 		},
 		{
 			name:             "builds the correct URL for StationQueryByCountry",
-			queryType:        StationQueryByCountry,
+			queryType:        common.StationQueryByCountry,
 			expectedEndpoint: "/json/stations/bycountry/searchTerm",
 		},
 		{
 			name:             "builds the correct URL for StationQueryByCountryExact",
-			queryType:        StationQueryByCountryExact,
+			queryType:        common.StationQueryByCountryExact,
 			expectedEndpoint: "/json/stations/bycountryexact/searchTerm",
 		},
 		{
 			name:             "builds the correct URL for StationQueryByCountryCodeExact",
-			queryType:        StationQueryByCountryCodeExact,
+			queryType:        common.StationQueryByCountryCodeExact,
 			expectedEndpoint: "/json/stations/bycountrycodeexact/searchTerm",
 		},
 		{
 			name:             "builds the correct URL for StationQueryByState",
-			queryType:        StationQueryByState,
+			queryType:        common.StationQueryByState,
 			expectedEndpoint: "/json/stations/bystate/searchTerm",
 		},
 		{
 			name:             "builds the correct URL for StationQueryByStateExact",
-			queryType:        StationQueryByStateExact,
+			queryType:        common.StationQueryByStateExact,
 			expectedEndpoint: "/json/stations/bystateexact/searchTerm",
 		},
 		{
 			name:             "builds the correct URL for StationQueryByLanguage",
-			queryType:        StationQueryByLanguage,
+			queryType:        common.StationQueryByLanguage,
 			expectedEndpoint: "/json/stations/bylanguage/searchTerm",
 		},
 		{
 			name:             "builds the correct URL for StationQueryByLanguageExact",
-			queryType:        StationQueryByLanguageExact,
+			queryType:        common.StationQueryByLanguageExact,
 			expectedEndpoint: "/json/stations/bylanguageexact/searchTerm",
 		},
 		{
 			name:             "builds the correct URL for StationQueryByTag",
-			queryType:        StationQueryByTag,
+			queryType:        common.StationQueryByTag,
 			expectedEndpoint: "/json/stations/bytag/searchTerm",
 		},
 		{
 			name:             "builds the correct URL for StationQueryByTagExact",
-			queryType:        StationQueryByTagExact,
+			queryType:        common.StationQueryByTagExact,
 			expectedEndpoint: "/json/stations/bytagexact/searchTerm",
 		},
 	}
@@ -158,7 +158,7 @@ func TestBrowserImplGetStations(t *testing.T) {
 }
 func TestBrowserImplClickStation(t *testing.T) {
 
-	station := models.Station{
+	station := common.Station{
 		StationUuid: uuid.MustParse("941ef6f1-0699-4821-95b1-2b678e3ff62e"),
 	}
 

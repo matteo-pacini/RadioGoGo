@@ -25,23 +25,31 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"radiogogo/common"
 	"radiogogo/data"
-	"radiogogo/models"
-
-	"github.com/google/uuid"
 )
 
 type RadioBrowserService interface {
+	// GetStations retrieves a list of radio stations from the RadioBrowser API based on the provided StationQuery, searchTerm, order, reverse, offset, limit and hideBroken parameters.
+	// If stationQuery is not StationQueryAll, the searchTerm is used to filter the results.
+	// The order parameter specifies the field to order the results by.
+	// The reverse parameter specifies whether the results should be returned in reverse order.
+	// The offset parameter specifies the number of results to skip before returning the remaining results.
+	// The limit parameter specifies the maximum number of results to return.
+	// The hideBroken parameter specifies whether to exclude broken stations from the results.
+	// Returns a slice of Station structs and an error if any occurred.
 	GetStations(
-		stationQuery StationQuery,
+		stationQuery common.StationQuery,
 		searchTerm string,
 		order string,
 		reverse bool,
 		offset uint64,
 		limit uint64,
 		hideBroken bool,
-	) ([]models.Station, error)
-	ClickStation(station models.Station) (ClickStationResponse, error)
+	) ([]common.Station, error)
+	// ClickStation sends a POST request to the RadioBrowser API to increment the click count of a given station.
+	// It takes a Station struct as input and returns a ClickStationResponse struct and an error.
+	ClickStation(station common.Station) (common.ClickStationResponse, error)
 }
 
 type RadioBrowserImpl struct {
@@ -89,46 +97,18 @@ func NewRadioBrowserWithDependencies(
 	return browser, nil
 }
 
-type StationQuery string
-
-const (
-	StationQueryAll                StationQuery = ""
-	StationQueryByUuid             StationQuery = "byuuid"
-	StationQueryByName             StationQuery = "byname"
-	StationQueryByNameExact        StationQuery = "bynameexact"
-	StationQueryByCodec            StationQuery = "bycodec"
-	StationQueryByCodecExact       StationQuery = "bycodecexact"
-	StationQueryByCountry          StationQuery = "bycountry"
-	StationQueryByCountryExact     StationQuery = "bycountryexact"
-	StationQueryByCountryCodeExact StationQuery = "bycountrycodeexact"
-	StationQueryByState            StationQuery = "bystate"
-	StationQueryByStateExact       StationQuery = "bystateexact"
-	StationQueryByLanguage         StationQuery = "bylanguage"
-	StationQueryByLanguageExact    StationQuery = "bylanguageexact"
-	StationQueryByTag              StationQuery = "bytag"
-	StationQueryByTagExact         StationQuery = "bytagexact"
-)
-
-// GetStations retrieves a list of radio stations from the RadioBrowser API based on the provided StationQuery, searchTerm, order, reverse, offset, limit and hideBroken parameters.
-// If stationQuery is not StationQueryAll, the searchTerm is used to filter the results.
-// The order parameter specifies the field to order the results by.
-// The reverse parameter specifies whether the results should be returned in reverse order.
-// The offset parameter specifies the number of results to skip before returning the remaining results.
-// The limit parameter specifies the maximum number of results to return.
-// The hideBroken parameter specifies whether to exclude broken stations from the results.
-// Returns a slice of Station structs and an error if any occurred.
 func (radioBrowser *RadioBrowserImpl) GetStations(
-	stationQuery StationQuery,
+	stationQuery common.StationQuery,
 	searchTerm string,
 	order string,
 	reverse bool,
 	offset uint64,
 	limit uint64,
 	hideBroken bool,
-) ([]models.Station, error) {
+) ([]common.Station, error) {
 
 	url := radioBrowser.baseUrl.JoinPath("/stations")
-	if stationQuery != StationQueryAll {
+	if stationQuery != common.StationQueryAll {
 		url = url.JoinPath("/" + string(stationQuery) + "/" + searchTerm)
 	}
 
@@ -144,7 +124,7 @@ func (radioBrowser *RadioBrowserImpl) GetStations(
 	headers["User-Agent"] = data.UserAgent
 	headers["Accept"] = "application/json"
 
-	var stations []models.Station
+	var stations []common.Station
 
 	req, err := http.NewRequest("GET", url.String(), nil)
 	if err != nil {
@@ -172,27 +152,7 @@ func (radioBrowser *RadioBrowserImpl) GetStations(
 
 }
 
-// ClickStationResponse represents the response returned by the API when a user clicks on a station.
-type ClickStationResponse struct {
-	// Ok indicates whether the request was successful or not.
-	Ok bool `json:"ok"`
-
-	// Message contains an optional message returned by the server.
-	Message string `json:"message"`
-
-	// StationUuid is the unique identifier of the station.
-	StationUuid uuid.UUID `json:"stationuuid"`
-
-	// Name is the name of the station.
-	Name string `json:"name"`
-
-	// Url is the URL of the station's stream.
-	Url models.RadioGoGoURL `json:"url"`
-}
-
-// ClickStation sends a POST request to the RadioBrowser API to increment the click count of a given station.
-// It takes a Station struct as input and returns a ClickStationResponse struct and an error.
-func (radioBrowser *RadioBrowserImpl) ClickStation(station models.Station) (ClickStationResponse, error) {
+func (radioBrowser *RadioBrowserImpl) ClickStation(station common.Station) (common.ClickStationResponse, error) {
 
 	// POST json/url/stationuuid
 
@@ -204,7 +164,7 @@ func (radioBrowser *RadioBrowserImpl) ClickStation(station models.Station) (Clic
 
 	req, err := http.NewRequest("POST", url.String(), nil)
 	if err != nil {
-		return ClickStationResponse{}, err
+		return common.ClickStationResponse{}, err
 	}
 
 	for key, value := range headers {
@@ -213,16 +173,16 @@ func (radioBrowser *RadioBrowserImpl) ClickStation(station models.Station) (Clic
 
 	result, err := radioBrowser.httpClient.Do(req)
 	if err != nil {
-		return ClickStationResponse{}, err
+		return common.ClickStationResponse{}, err
 	}
 
 	defer result.Body.Close()
 
-	var response ClickStationResponse
+	var response common.ClickStationResponse
 	err = json.NewDecoder(result.Body).Decode(&response)
 
 	if err != nil {
-		return ClickStationResponse{}, err
+		return common.ClickStationResponse{}, err
 	}
 
 	return response, nil

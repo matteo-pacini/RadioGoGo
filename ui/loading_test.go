@@ -1,10 +1,8 @@
 package ui
 
 import (
-	"bytes"
 	"io"
-	"net/http"
-	"radiogogo/api"
+	"radiogogo/common"
 	"radiogogo/mocks"
 	"testing"
 
@@ -15,27 +13,10 @@ import (
 
 func TestLoadingModel_Init(t *testing.T) {
 
-	mockDNSLookupService := mocks.MockDNSLookupService{
-		LookupIPFunc: func(host string) ([]string, error) {
-			return []string{"127.0.0.1"}, nil
-		},
-	}
-
-	mocksHttpClient := mocks.MockHttpClient{
-		DoFunc: func(req *http.Request) (*http.Response, error) {
-			return &http.Response{
-				StatusCode: 200,
-				Body:       io.NopCloser(bytes.NewReader([]byte("[]"))),
-			}, nil
-		},
-	}
-
 	t.Run("starts the spinner", func(t *testing.T) {
 
-		browser, _ := api.NewRadioBrowserWithDependencies(&mockDNSLookupService, &mocksHttpClient)
-		assert.NotNil(t, browser)
-
-		model := NewLoadingModel(browser, "text")
+		mockBrowser := mocks.MockRadioBrowserService{}
+		model := NewLoadingModel(&mockBrowser, "text")
 
 		cmd := model.Init()
 		assert.NotNil(t, cmd)
@@ -57,10 +38,16 @@ func TestLoadingModel_Init(t *testing.T) {
 
 	t.Run("searches for stations and broadcasts switchToStationsModelMsg on success", func(t *testing.T) {
 
-		browser, _ := api.NewRadioBrowserWithDependencies(&mockDNSLookupService, &mocksHttpClient)
-		assert.NotNil(t, browser)
+		mockBrowser := mocks.MockRadioBrowserService{
+			GetStationsFunc: func(stationQuery common.StationQuery, searchTerm string, order string, reverse bool, offset uint64, limit uint64, hideBroken bool) ([]common.Station, error) {
+				return []common.Station{}, nil
+			},
+			ClickStationFunc: func(station common.Station) (common.ClickStationResponse, error) {
+				return common.ClickStationResponse{}, nil
+			},
+		}
 
-		model := NewLoadingModel(browser, "text")
+		model := NewLoadingModel(&mockBrowser, "text")
 
 		cmd := model.Init()
 		assert.NotNil(t, cmd)
@@ -82,16 +69,16 @@ func TestLoadingModel_Init(t *testing.T) {
 
 	t.Run("searches for stations and broadcasts switchToErrorModelMsg on error", func(t *testing.T) {
 
-		mockHttpClient := mocks.MockHttpClient{
-			DoFunc: func(req *http.Request) (*http.Response, error) {
+		mockBrowser := mocks.MockRadioBrowserService{
+			GetStationsFunc: func(stationQuery common.StationQuery, searchTerm string, order string, reverse bool, offset uint64, limit uint64, hideBroken bool) ([]common.Station, error) {
 				return nil, io.EOF
+			},
+			ClickStationFunc: func(station common.Station) (common.ClickStationResponse, error) {
+				return common.ClickStationResponse{}, io.EOF
 			},
 		}
 
-		browser, _ := api.NewRadioBrowserWithDependencies(&mockDNSLookupService, &mockHttpClient)
-		assert.NotNil(t, browser)
-
-		model := NewLoadingModel(browser, "text")
+		model := NewLoadingModel(&mockBrowser, "text")
 
 		cmd := model.Init()
 		assert.NotNil(t, cmd)

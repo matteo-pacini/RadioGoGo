@@ -22,7 +22,7 @@ package ui
 import (
 	"fmt"
 	"radiogogo/api"
-	"radiogogo/models"
+	"radiogogo/common"
 	"radiogogo/playback"
 	"time"
 
@@ -33,23 +33,23 @@ import (
 )
 
 type StationsModel struct {
-	stations              []models.Station
+	stations              []common.Station
 	stationsTable         table.Model
-	currentStation        models.Station
+	currentStation        common.Station
 	currentStationSpinner spinner.Model
 	volume                int
 	err                   string
 
-	browser         *api.RadioBrowserImpl
+	browser         api.RadioBrowserService
 	playbackManager playback.PlaybackManagerService
 	width           int
 	height          int
 }
 
 func NewStationsModel(
-	browser *api.RadioBrowserImpl,
+	browser api.RadioBrowserService,
 	playbackManager playback.PlaybackManagerService,
-	stations []models.Station,
+	stations []common.Station,
 ) StationsModel {
 
 	return StationsModel{
@@ -61,7 +61,7 @@ func NewStationsModel(
 	}
 }
 
-func newStationsTableModel(stations []models.Station) table.Model {
+func newStationsTableModel(stations []common.Station) table.Model {
 
 	rows := make([]table.Row, len(stations))
 	for i, station := range stations {
@@ -105,7 +105,7 @@ func newStationsTableModel(stations []models.Station) table.Model {
 // Messages
 
 type playbackStartedMsg struct {
-	station models.Station
+	station common.Station
 }
 type playbackStoppedMsg struct{}
 
@@ -119,7 +119,7 @@ type clearNonFatalError struct{}
 
 func playStationCmd(
 	playbackManager playback.PlaybackManagerService,
-	station models.Station,
+	station common.Station,
 	volume int,
 ) tea.Cmd {
 	return func() tea.Msg {
@@ -141,7 +141,7 @@ func stopStationCmd(playbackManager playback.PlaybackManagerService) tea.Cmd {
 	}
 }
 
-func notifyRadioBrowserCmd(browser *api.RadioBrowserImpl, station models.Station) tea.Cmd {
+func notifyRadioBrowserCmd(browser api.RadioBrowserService, station common.Station) tea.Cmd {
 	return func() tea.Msg {
 		_, err := browser.ClickStation(station)
 		if err != nil {
@@ -188,7 +188,7 @@ func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			updateCommandsCmd(true, m.volume),
 		)
 	case playbackStoppedMsg:
-		m.currentStation = models.Station{}
+		m.currentStation = common.Station{}
 		m.currentStationSpinner = spinner.Model{}
 		return m, updateCommandsCmd(false, m.volume)
 	case nonFatalError:

@@ -21,7 +21,7 @@ package api
 
 import (
 	"encoding/json"
-	"radiogogo/models"
+	"radiogogo/common"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -73,7 +73,7 @@ func TestStationJSON(t *testing.T) {
 		}
 		]
 		`
-		var stations []models.Station
+		var stations []common.Station
 		err := json.Unmarshal([]byte(input), &stations)
 
 		assert.NoError(t, err)
