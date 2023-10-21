@@ -25,7 +25,11 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"radiogogo/data"
 	"testing"
+
+	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
 )
 
 type MockClient struct {
@@ -89,13 +93,8 @@ func TestStationJSON(t *testing.T) {
 		var stations []Station
 		err := json.Unmarshal([]byte(input), &stations)
 
-		if err != nil {
-			t.Errorf("Expected no error, but got %v", err)
-		}
-
-		if len(stations) != 1 {
-			t.Errorf("Expected one station, but got %v", len(stations))
-		}
+		assert.NoError(t, err)
+		assert.Len(t, stations, 1)
 
 	})
 
@@ -196,9 +195,10 @@ func TestGetStationsURLBuilding(t *testing.T) {
 
 			Client = &MockClient{
 				DoFunc: func(req *http.Request) (*http.Response, error) {
-					if req.URL.Path != tc.expectedEndpoint {
-						t.Errorf("Expected path to be %v, but got %v", tc.expectedEndpoint, req.URL.Path)
-					}
+					assert.Equal(t, tc.expectedEndpoint, req.URL.Path)
+					assert.Equal(t, "GET", req.Method)
+					assert.Equal(t, "application/json", req.Header.Get("Accept"))
+					assert.Equal(t, data.UserAgent, req.Header.Get("User-Agent"))
 					responseBody := io.NopCloser(bytes.NewReader([]byte(`[]`)))
 					return &http.Response{
 						StatusCode: 200,
@@ -208,15 +208,57 @@ func TestGetStationsURLBuilding(t *testing.T) {
 			}
 
 			browser, err := NewRadioBrowser()
-			if err != nil {
-				t.Errorf("Expected no error, but got %v", err)
-			}
+
+			assert.NoError(t, err)
 
 			_, err = browser.GetStations(tc.queryType, "searchTerm", "name", false, 0, 10, true)
 
-			if err != nil {
-				t.Errorf("Expected no error, but got %v", err)
-			}
+			assert.NoError(t, err)
+
 		})
 	}
+}
+func TestClickStation(t *testing.T) {
+
+	station := Station{
+		StationUuid: uuid.MustParse("941ef6f1-0699-4821-95b1-2b678e3ff62e"),
+	}
+
+	lookupIPFunc = func(host string) ([]net.IP, error) {
+		return []net.IP{net.ParseIP("127.0.0.1")}, nil
+	}
+
+	mockClient := &MockClient{
+		DoFunc: func(req *http.Request) (*http.Response, error) {
+			expectedUrl := "http://127.0.0.1/json/url/941ef6f1-0699-4821-95b1-2b678e3ff62e"
+			assert.Equal(t, "POST", req.Method)
+			assert.Equal(t, expectedUrl, req.URL.String())
+			assert.Equal(t, "application/json", req.Header.Get("Accept"))
+			assert.Equal(t, data.UserAgent, req.Header.Get("User-Agent"))
+
+			responseBody := io.NopCloser(bytes.NewReader([]byte(`
+			{
+				"ok": true,
+				"message": "retrieved station url",
+				"stationuuid": "9617a958-0601-11e8-ae97-52543be04c81",
+				"name": "Station name",
+				"url": "http://this.is.an.url"
+			}
+			`)))
+			return &http.Response{
+				StatusCode: 200,
+				Body:       responseBody,
+			}, nil
+		},
+	}
+
+	Client = mockClient
+
+	radioBrowser, err := NewRadioBrowser()
+	assert.NoError(t, err)
+
+	response, err := radioBrowser.ClickStation(station)
+	assert.NoError(t, err)
+
+	assert.Equal(t, true, response.Ok)
 }

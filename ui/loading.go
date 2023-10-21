@@ -59,7 +59,7 @@ func (m LoadingModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m LoadingModel) View() string {
-	return m.spinnerModel.View() + " Fetching radio stations..."
+	return "\n" + m.spinnerModel.View() + " Fetching radio stations..."
 }
 
 // Commands

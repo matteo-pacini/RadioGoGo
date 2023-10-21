@@ -228,6 +228,10 @@ func (radioBrowser *RadioBrowser) ClickStation(station Station) (ClickStationRes
 		return ClickStationResponse{}, err
 	}
 
+	for key, value := range headers {
+		req.Header.Set(key, value)
+	}
+
 	result, err := Client.Do(req)
 	if err != nil {
 		return ClickStationResponse{}, err

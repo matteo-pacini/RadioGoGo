@@ -223,15 +223,17 @@ func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				},
 			)
 		case "9":
-			if m.volume > 0 {
+			if m.volume > 0 && m.currentFfplay == nil {
 				m.volume -= 10
+				return m, updateCommandsMsg(false, m.volume)
 			}
-			return m, updateCommandsMsg(false, m.volume)
+			return m, nil
 		case "0":
-			if m.volume < 100 {
+			if m.volume < 100 && m.currentFfplay == nil {
 				m.volume += 10
+				return m, updateCommandsMsg(false, m.volume)
 			}
-			return m, updateCommandsMsg(false, m.volume)
+			return m, nil
 		case "enter":
 			station := m.stations[m.stationsTable.Cursor()]
 			return m, tea.Sequence(
