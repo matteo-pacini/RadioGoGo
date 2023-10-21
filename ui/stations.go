@@ -41,14 +41,14 @@ type StationsModel struct {
 	err                   string
 
 	browser         *api.RadioBrowser
-	playbackManager playback.PlaybackManager
+	playbackManager playback.PlaybackManagerService
 	width           int
 	height          int
 }
 
 func NewStationsModel(
 	browser *api.RadioBrowser,
-	playbackManager playback.PlaybackManager,
+	playbackManager playback.PlaybackManagerService,
 	stations []models.Station,
 ) StationsModel {
 
@@ -118,7 +118,7 @@ type clearNonFatalError struct{}
 // Commands
 
 func playStationCmd(
-	playbackManager playback.PlaybackManager,
+	playbackManager playback.PlaybackManagerService,
 	station models.Station,
 	volume int,
 ) tea.Cmd {
@@ -131,7 +131,7 @@ func playStationCmd(
 	}
 }
 
-func stopStationCmd(playbackManager playback.PlaybackManager) tea.Cmd {
+func stopStationCmd(playbackManager playback.PlaybackManagerService) tea.Cmd {
 	return func() tea.Msg {
 		err := playbackManager.StopStation()
 		if err != nil {

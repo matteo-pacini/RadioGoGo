@@ -68,7 +68,7 @@ func quitCmd() tea.Msg {
 
 // Commands
 
-func checkIfPlaybackIsPossibleCmd(playbackManager playback.PlaybackManager) tea.Cmd {
+func checkIfPlaybackIsPossibleCmd(playbackManager playback.PlaybackManagerService) tea.Cmd {
 	return func() tea.Msg {
 		if !playbackManager.IsAvailable() {
 			return switchToErrorModelMsg{
@@ -94,7 +94,7 @@ type Model struct {
 	width           int
 	height          int
 	browser         *api.RadioBrowser
-	playbackManager playback.PlaybackManager
+	playbackManager playback.PlaybackManagerService
 }
 
 func NewDefaultModel() (Model, error) {
@@ -112,7 +112,7 @@ func NewDefaultModel() (Model, error) {
 
 func NewModel(
 	browser *api.RadioBrowser,
-	playbackManager playback.PlaybackManager,
+	playbackManager playback.PlaybackManagerService,
 ) Model {
 	return Model{
 		state:           bootState,

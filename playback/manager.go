@@ -25,8 +25,8 @@ import (
 	"radiogogo/models"
 )
 
-// PlaybackManager is an interface that defines methods for managing playback of a radio station.
-type PlaybackManager interface {
+// PlaybackManagerService is an interface that defines methods for managing playback of a radio station.
+type PlaybackManagerService interface {
 	// IsAvailable returns true if the playback manager is available for use.
 	IsAvailable() bool
 	// IsPlaying returns true if a radio station is currently being played.
@@ -39,25 +39,25 @@ type PlaybackManager interface {
 	StopStation() error
 }
 
-// DefaultPlaybackManager is a PlaybackManager that uses ffplay to play radio stations.
-type DefaultPlaybackManager struct {
+// PlaybackManagerServiceImpl is a PlaybackManager that uses ffplay to play radio stations.
+type PlaybackManagerServiceImpl struct {
 	nowPlaying *exec.Cmd
 }
 
-func NewDefaultPlaybackManager() *DefaultPlaybackManager {
-	return &DefaultPlaybackManager{}
+func NewDefaultPlaybackManager() *PlaybackManagerServiceImpl {
+	return &PlaybackManagerServiceImpl{}
 }
 
-func (d DefaultPlaybackManager) IsPlaying() bool {
+func (d PlaybackManagerServiceImpl) IsPlaying() bool {
 	return d.nowPlaying != nil
 }
 
-func (d DefaultPlaybackManager) IsAvailable() bool {
+func (d PlaybackManagerServiceImpl) IsAvailable() bool {
 	_, err := exec.LookPath("ffplay")
 	return err == nil
 }
 
-func (d *DefaultPlaybackManager) PlayStation(station models.Station, volume int) error {
+func (d *PlaybackManagerServiceImpl) PlayStation(station models.Station, volume int) error {
 	err := d.StopStation()
 	if err != nil {
 		return err
@@ -71,7 +71,7 @@ func (d *DefaultPlaybackManager) PlayStation(station models.Station, volume int)
 	return nil
 }
 
-func (d *DefaultPlaybackManager) StopStation() error {
+func (d *PlaybackManagerServiceImpl) StopStation() error {
 	if d.nowPlaying != nil {
 		err := d.nowPlaying.Process.Kill()
 		if err != nil {
