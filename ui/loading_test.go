@@ -32,7 +32,7 @@ func TestLoadingModel_Init(t *testing.T) {
 
 	t.Run("starts the spinner", func(t *testing.T) {
 
-		browser, _ := api.NewRadioBrowser(&mockDNSLookupService, &mocksHttpClient)
+		browser, _ := api.NewRadioBrowserWithDependencies(&mockDNSLookupService, &mocksHttpClient)
 		assert.NotNil(t, browser)
 
 		model := NewLoadingModel(browser, "text")
@@ -57,7 +57,7 @@ func TestLoadingModel_Init(t *testing.T) {
 
 	t.Run("searches for stations and broadcasts switchToStationsModelMsg on success", func(t *testing.T) {
 
-		browser, _ := api.NewRadioBrowser(&mockDNSLookupService, &mocksHttpClient)
+		browser, _ := api.NewRadioBrowserWithDependencies(&mockDNSLookupService, &mocksHttpClient)
 		assert.NotNil(t, browser)
 
 		model := NewLoadingModel(browser, "text")
@@ -88,7 +88,7 @@ func TestLoadingModel_Init(t *testing.T) {
 			},
 		}
 
-		browser, _ := api.NewRadioBrowser(&mockDNSLookupService, &mockHttpClient)
+		browser, _ := api.NewRadioBrowserWithDependencies(&mockDNSLookupService, &mockHttpClient)
 		assert.NotNil(t, browser)
 
 		model := NewLoadingModel(browser, "text")

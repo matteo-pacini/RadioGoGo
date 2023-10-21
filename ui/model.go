@@ -93,13 +93,13 @@ type Model struct {
 	// State
 	width           int
 	height          int
-	browser         *api.RadioBrowser
+	browser         *api.RadioBrowserImpl
 	playbackManager playback.PlaybackManagerService
 }
 
 func NewDefaultModel() (Model, error) {
 
-	browser, err := api.NewDefaultRadioBrowser()
+	browser, err := api.NewRadioBrowser()
 	if err != nil {
 		return Model{}, err
 	}
@@ -111,7 +111,7 @@ func NewDefaultModel() (Model, error) {
 }
 
 func NewModel(
-	browser *api.RadioBrowser,
+	browser *api.RadioBrowserImpl,
 	playbackManager playback.PlaybackManagerService,
 ) Model {
 	return Model{

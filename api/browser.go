@@ -31,16 +31,29 @@ import (
 	"github.com/google/uuid"
 )
 
-type RadioBrowser struct {
+type RadioBrowserService interface {
+	GetStations(
+		stationQuery StationQuery,
+		searchTerm string,
+		order string,
+		reverse bool,
+		offset uint64,
+		limit uint64,
+		hideBroken bool,
+	) ([]models.Station, error)
+	ClickStation(station models.Station) (ClickStationResponse, error)
+}
+
+type RadioBrowserImpl struct {
 	// The HTTP client used to make requests to the Radio Browser API.
 	httpClient HTTPClient
 	// The base URL for the Radio Browser API.)
 	baseUrl url.URL
 }
 
-// DefaultRadioBrowser returns a new instance of RadioBrowser with the default DNS lookup service and HTTP client.
-func NewDefaultRadioBrowser() (*RadioBrowser, error) {
-	return NewRadioBrowser(
+// NewRadioBrowser returns a new instance of RadioBrowserService with the default DNS lookup service and HTTP client.
+func NewRadioBrowser() (*RadioBrowserImpl, error) {
+	return NewRadioBrowserWithDependencies(
 		&DefaultDNSLookupService{},
 		http.DefaultClient,
 	)
@@ -50,11 +63,11 @@ func NewDefaultRadioBrowser() (*RadioBrowser, error) {
 // It returns a pointer to the created instance and an error if any.
 // The function performs a DNS lookup for "all.api.radio-browser.info" and selects a random IP address from the returned list.
 // It then constructs a base URL using the selected IP address and sets it as the baseUrl of the created instance.
-func NewRadioBrowser(
+func NewRadioBrowserWithDependencies(
 	dnsLookupService DNSLookupService,
 	httpClient HTTPClient,
-) (*RadioBrowser, error) {
-	browser := &RadioBrowser{
+) (*RadioBrowserImpl, error) {
+	browser := &RadioBrowserImpl{
 		httpClient: httpClient,
 	}
 	ips, err := dnsLookupService.LookupIP("all.api.radio-browser.info")
@@ -104,7 +117,7 @@ const (
 // The limit parameter specifies the maximum number of results to return.
 // The hideBroken parameter specifies whether to exclude broken stations from the results.
 // Returns a slice of Station structs and an error if any occurred.
-func (radioBrowser *RadioBrowser) GetStations(
+func (radioBrowser *RadioBrowserImpl) GetStations(
 	stationQuery StationQuery,
 	searchTerm string,
 	order string,
@@ -179,7 +192,7 @@ type ClickStationResponse struct {
 
 // ClickStation sends a POST request to the RadioBrowser API to increment the click count of a given station.
 // It takes a Station struct as input and returns a ClickStationResponse struct and an error.
-func (radioBrowser *RadioBrowser) ClickStation(station models.Station) (ClickStationResponse, error) {
+func (radioBrowser *RadioBrowserImpl) ClickStation(station models.Station) (ClickStationResponse, error) {
 
 	// POST json/url/stationuuid
 

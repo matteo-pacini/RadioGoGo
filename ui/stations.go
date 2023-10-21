@@ -40,14 +40,14 @@ type StationsModel struct {
 	volume                int
 	err                   string
 
-	browser         *api.RadioBrowser
+	browser         *api.RadioBrowserImpl
 	playbackManager playback.PlaybackManagerService
 	width           int
 	height          int
 }
 
 func NewStationsModel(
-	browser *api.RadioBrowser,
+	browser *api.RadioBrowserImpl,
 	playbackManager playback.PlaybackManagerService,
 	stations []models.Station,
 ) StationsModel {
@@ -141,7 +141,7 @@ func stopStationCmd(playbackManager playback.PlaybackManagerService) tea.Cmd {
 	}
 }
 
-func notifyRadioBrowserCmd(browser *api.RadioBrowser, station models.Station) tea.Cmd {
+func notifyRadioBrowserCmd(browser *api.RadioBrowserImpl, station models.Station) tea.Cmd {
 	return func() tea.Msg {
 		_, err := browser.ClickStation(station)
 		if err != nil {

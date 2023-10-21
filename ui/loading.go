@@ -31,10 +31,10 @@ type LoadingModel struct {
 	spinnerModel spinner.Model
 	searchText   string
 
-	browser *api.RadioBrowser
+	browser *api.RadioBrowserImpl
 }
 
-func NewLoadingModel(browser *api.RadioBrowser, searchText string) LoadingModel {
+func NewLoadingModel(browser *api.RadioBrowserImpl, searchText string) LoadingModel {
 
 	s := spinner.New()
 	s.Spinner = spinner.Dot
@@ -64,7 +64,7 @@ func (m LoadingModel) View() string {
 
 // Commands
 
-func searchStations(browser *api.RadioBrowser, query string) tea.Cmd {
+func searchStations(browser *api.RadioBrowserImpl, query string) tea.Cmd {
 	return func() tea.Msg {
 		stations, err := browser.GetStations(api.StationQueryByName, query, "votes", true, 0, 100, true)
 		if err != nil {
