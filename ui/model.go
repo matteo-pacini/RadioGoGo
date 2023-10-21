@@ -111,7 +111,7 @@ func NewDefaultModel() (Model, error) {
 }
 
 func NewModel(
-	browser *api.RadioBrowserImpl,
+	browser api.RadioBrowserService,
 	playbackManager playback.PlaybackManagerService,
 ) Model {
 	return Model{

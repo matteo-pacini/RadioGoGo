@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"errors"
 	"io"
 	"net/http"
 	"radiogogo/common"
@@ -30,9 +31,55 @@ func TestBrowserImplEscapesIPV6(t *testing.T) {
 	browser, err := NewRadioBrowserWithDependencies(&mockDNSLookupService, &mockHttpClient)
 	assert.NoError(t, err)
 
-	assert.Equal(t, "http://[2001:db8::1]/json", browser.baseUrl.String())
+	assert.Equal(t, "http://[2001:db8::1]/json", browser.(*RadioBrowserImpl).baseUrl.String())
 
 	assert.NoError(t, err)
+
+}
+
+func TestBrowserImplNewRadioBrowserWithDependencies(t *testing.T) {
+
+	t.Run("returns an error if the DNS lookup fails", func(t *testing.T) {
+
+		mockDNSLookupService := mocks.MockDNSLookupService{
+			LookupIPFunc: func(host string) ([]string, error) {
+				return nil, errors.New("dns")
+			},
+		}
+
+		mockHttpClient := mocks.MockHttpClient{
+			DoFunc: func(req *http.Request) (*http.Response, error) {
+				return nil, errors.New("http")
+			},
+		}
+
+		_, err := NewRadioBrowserWithDependencies(&mockDNSLookupService, &mockHttpClient)
+
+		assert.Error(t, err)
+		assert.Equal(t, "dns", err.Error())
+
+	})
+
+	t.Run("returns an error if the URL parsing fails", func(t *testing.T) {
+
+		mockDNSLookupService := mocks.MockDNSLookupService{
+			LookupIPFunc: func(host string) ([]string, error) {
+				return []string{"&!@#*)!@)@)@"}, nil
+			},
+		}
+
+		mockHttpClient := mocks.MockHttpClient{
+			DoFunc: func(req *http.Request) (*http.Response, error) {
+				return nil, errors.New("http")
+			},
+		}
+
+		_, err := NewRadioBrowserWithDependencies(&mockDNSLookupService, &mockHttpClient)
+
+		assert.Error(t, err)
+		assert.Equal(t, "parse \"http://[&!@\": net/url: invalid userinfo", err.Error())
+
+	})
 
 }
 

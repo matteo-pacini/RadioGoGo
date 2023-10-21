@@ -36,7 +36,7 @@ type DNSLookupService interface {
 // DNSLookupServiceImpl provides a default implementation of the DNSLookupService interface.
 type DNSLookupServiceImpl struct{}
 
-func NewDNSLookupService() *DNSLookupServiceImpl {
+func NewDNSLookupService() DNSLookupService {
 	return &DNSLookupServiceImpl{}
 }
 
