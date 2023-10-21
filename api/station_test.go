@@ -26,6 +26,7 @@ import (
 	"net/http"
 	"radiogogo/data"
 	"radiogogo/mocks"
+	"radiogogo/models"
 	"testing"
 
 	"github.com/google/uuid"
@@ -78,7 +79,7 @@ func TestStationJSON(t *testing.T) {
 		}
 		]
 		`
-		var stations []Station
+		var stations []models.Station
 		err := json.Unmarshal([]byte(input), &stations)
 
 		assert.NoError(t, err)
@@ -210,7 +211,7 @@ func TestGetStationsURLBuilding(t *testing.T) {
 }
 func TestClickStation(t *testing.T) {
 
-	station := Station{
+	station := models.Station{
 		StationUuid: uuid.MustParse("941ef6f1-0699-4821-95b1-2b678e3ff62e"),
 	}
 

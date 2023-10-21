@@ -22,6 +22,7 @@ package ui
 import (
 	"fmt"
 	"radiogogo/api"
+	"radiogogo/models"
 	"radiogogo/playback"
 	"time"
 
@@ -32,9 +33,9 @@ import (
 )
 
 type StationsModel struct {
-	stations              []api.Station
+	stations              []models.Station
 	stationsTable         table.Model
-	currentStation        api.Station
+	currentStation        models.Station
 	currentStationSpinner spinner.Model
 	volume                int
 	err                   string
@@ -48,7 +49,7 @@ type StationsModel struct {
 func NewStationsModel(
 	browser *api.RadioBrowser,
 	playbackManager playback.PlaybackManager,
-	stations []api.Station,
+	stations []models.Station,
 ) StationsModel {
 
 	return StationsModel{
@@ -60,7 +61,7 @@ func NewStationsModel(
 	}
 }
 
-func newStationsTableModel(stations []api.Station) table.Model {
+func newStationsTableModel(stations []models.Station) table.Model {
 
 	rows := make([]table.Row, len(stations))
 	for i, station := range stations {
@@ -104,7 +105,7 @@ func newStationsTableModel(stations []api.Station) table.Model {
 // Messages
 
 type playbackStartedMsg struct {
-	station api.Station
+	station models.Station
 }
 type playbackStoppedMsg struct{}
 
@@ -118,7 +119,7 @@ type clearNonFatalError struct{}
 
 func playStationCmd(
 	playbackManager playback.PlaybackManager,
-	station api.Station,
+	station models.Station,
 	volume int,
 ) tea.Cmd {
 	return func() tea.Msg {
@@ -140,7 +141,7 @@ func stopStationCmd(playbackManager playback.PlaybackManager) tea.Cmd {
 	}
 }
 
-func notifyRadioBrowserCmd(browser *api.RadioBrowser, station api.Station) tea.Cmd {
+func notifyRadioBrowserCmd(browser *api.RadioBrowser, station models.Station) tea.Cmd {
 	return func() tea.Msg {
 		_, err := browser.ClickStation(station)
 		if err != nil {
@@ -187,7 +188,7 @@ func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			updateCommandsCmd(true, m.volume),
 		)
 	case playbackStoppedMsg:
-		m.currentStation = api.Station{}
+		m.currentStation = models.Station{}
 		m.currentStationSpinner = spinner.Model{}
 		return m, updateCommandsCmd(false, m.volume)
 	case nonFatalError:
