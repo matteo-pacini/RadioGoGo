@@ -26,8 +26,5 @@ type MockHttpClient struct {
 }
 
 func (m *MockHttpClient) Do(req *http.Request) (*http.Response, error) {
-	if m.DoFunc != nil {
-		return m.DoFunc(req)
-	}
-	return &http.Response{}, nil
+	return m.DoFunc(req)
 }
