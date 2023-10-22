@@ -12,6 +12,7 @@ Crafted with love in Go, RadioGoGo marries the elegance of the [BubbleTea TUI](h
 Dive into a world of sounds with just a few keystrokes. 
 
 Let's Go 🚀!
+
 <img src="./screen1.png" alt="RadioGoGo Search View" width="500" height="320">
 <img src="./screen2.png" alt="RadioGoGo Station List View" width="500" height="320">
 
