@@ -32,6 +32,10 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+const (
+	defaultVolume = 80
+)
+
 type StationsModel struct {
 	stations              []common.Station
 	stationsTable         table.Model
@@ -55,7 +59,7 @@ func NewStationsModel(
 	return StationsModel{
 		stations:        stations,
 		stationsTable:   newStationsTableModel(stations),
-		volume:          80,
+		volume:          defaultVolume,
 		browser:         browser,
 		playbackManager: playbackManager,
 	}
