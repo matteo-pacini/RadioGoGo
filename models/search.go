@@ -106,7 +106,9 @@ func (m SearchModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, updateCommandsForTextfieldFocus
 			}
 		case "q":
-			return m, quitCmd
+			if !m.inputModel.Focused() {
+				return m, quitCmd
+			}
 		case "enter":
 			if !m.inputModel.Focused() {
 				return m, nil

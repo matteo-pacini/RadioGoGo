@@ -65,9 +65,30 @@ func TestSearchModel_Init(t *testing.T) {
 
 func TestSearchModel_Update(t *testing.T) {
 
-	t.Run("broadcasts a quitMsg whe 'q' is pressed", func(t *testing.T) {
+	t.Run("does not broadcast quitMsg when 'q' is pressed and textarea is focused", func(t *testing.T) {
 
 		model := NewSearchModel()
+
+		model.inputModel.Focus()
+		model.querySelector.Blur()
+
+		input := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("q")}
+
+		_, cmd := model.Update(input)
+		assert.NotNil(t, cmd)
+
+		msg := cmd()
+
+		assert.IsType(t, tea.BatchMsg{}, msg)
+
+	})
+
+	t.Run("broadcasts a quitMsg when 'q' is pressed and textarea is not focused", func(t *testing.T) {
+
+		model := NewSearchModel()
+
+		model.inputModel.Blur()
+		model.querySelector.Focus()
 
 		input := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("q")}
 
