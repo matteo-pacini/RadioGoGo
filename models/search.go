@@ -21,11 +21,13 @@ package models
 
 import (
 	"fmt"
+	"radiogogo/assets"
 	"radiogogo/common"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
 type SearchModel struct {
@@ -135,12 +137,22 @@ func (m SearchModel) View() string {
 	searchType := m.querySelector.Selection().Render()
 	searchType = strings.ToLower(searchType)
 
-	v := fmt.Sprintf(
-		"\n%s\n\n%s\n\n%s\n",
-		StyleSetSectionTitle(fmt.Sprint("Search radio ", searchType)),
-		m.inputModel.View(),
-		m.querySelector.View(),
+	rightOfLogoStyle := lipgloss.NewStyle().
+		PaddingLeft(2)
+
+	rightV := rightOfLogoStyle.Render(
+		fmt.Sprintf("\n%s\n\n%s\n\n%s\n\n",
+			StyleSetSectionTitle(fmt.Sprint("Search radio ", searchType)),
+			m.inputModel.View(),
+			m.querySelector.View(),
+		))
+
+	leftV := fmt.Sprintf(
+		"\n%s\n\n",
+		assets.Logo,
 	)
+
+	v := lipgloss.JoinHorizontal(lipgloss.Top, leftV, rightV)
 
 	return v
 }
