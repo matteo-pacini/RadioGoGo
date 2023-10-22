@@ -9,6 +9,9 @@ RadioGoGo is a CLI application developed in Go, enabling seamless access to a wi
 
 Leveraging the streamlined [BubbleTea](https://github.com/charmbracelet/bubbletea) TUI (Terminal User Interface) and the expansive capabilities of [RadioBrowser API](http://www.radio-browser.info/), your desired stations are merely a keystroke away. 
 
+<img src="./screen1.png" alt="RadioGoGo Search View" width="350" height="250">
+<img src="./screen2.png" alt="RadioGoGo Station List View" width="350" height="250">
+
 ## ⭐️ Features
 
 - Sleek and intuitive TUI that's a joy to navigate.
