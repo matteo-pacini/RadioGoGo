@@ -17,76 +17,70 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-package ui
+package models
 
 import (
-	"fmt"
-	"time"
+	"testing"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
+	"github.com/stretchr/testify/assert"
 )
 
-const (
-	// How many ticks (one tick per second) to wait before quitting
-	quitTicks = 30
-)
+func TestErrorModel_Init(t *testing.T) {
 
-// Messages
+	model := NewErrorModel("this is an error")
 
-type quitTickMsg struct{}
+	t.Run("broadcasts a quitTickMsg", func(t *testing.T) {
 
-// Model
+		cmd := model.Init()
+		assert.NotNil(t, cmd)
 
-type ErrorModel struct {
-	message string
+		msg := cmd()
+		assert.IsType(t, quitTickMsg{}, msg)
 
-	tickCount int
-}
-
-func NewErrorModel(err string) ErrorModel {
-
-	return ErrorModel{
-		message: err,
-	}
-
-}
-
-func (m ErrorModel) Init() tea.Cmd {
-	return tea.Tick(time.Second, func(t time.Time) tea.Msg {
-		return quitTickMsg{}
 	})
-}
-
-func (m ErrorModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch msg.String() {
-		case "q":
-			return m, quitCmd
-		}
-	case quitTickMsg:
-		m.tickCount++
-		if m.tickCount >= quitTicks {
-			return m, quitCmd
-		}
-		return m, tea.Tick(time.Second, func(t time.Time) tea.Msg {
-			return quitTickMsg{}
-		})
-	}
-
-	return m, nil
 
 }
 
-func (m ErrorModel) View() string {
+func TestErrorModel_Update(t *testing.T) {
 
-	message := fmt.Sprintf("%s\n\nQuitting in %d seconds (or press \"q\" to exit now)...", m.message, quitTicks-m.tickCount)
+	model := NewErrorModel("this is an error")
 
-	errorRedStyle :=
-		lipgloss.NewStyle().Foreground(lipgloss.Color("#ff0000"))
+	t.Run("broadcasts a quitMsg whe 'q' is pressed", func(t *testing.T) {
 
-	return "\n" + errorRedStyle.Render(message) + "\n\n"
+		input := tea.Msg(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("q")})
+
+		_, cmd := model.Update(input)
+		assert.NotNil(t, cmd)
+
+		msg := cmd()
+
+		assert.IsType(t, quitMsg{}, msg)
+
+	})
+
+	t.Run("broadcasts a quitTickMsg after receiving onem and increments the tick count", func(t *testing.T) {
+
+		input := tea.Msg(quitTickMsg{})
+		newModel, cmd := model.Update(input)
+
+		assert.Equal(t, newModel.(ErrorModel).tickCount, 1)
+		assert.NotNil(t, cmd)
+
+		msg := cmd()
+		assert.IsType(t, quitTickMsg{}, msg)
+
+	})
+
+	t.Run("quits after 30 ticks", func(t *testing.T) {
+
+		model.tickCount = 29
+
+		_, cmd := model.Update(quitTickMsg{})
+		assert.NotNil(t, cmd)
+		msg := cmd()
+		assert.IsType(t, quitMsg{}, msg)
+
+	})
 
 }

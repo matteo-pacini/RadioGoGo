@@ -1,4 +1,4 @@
-package ui
+package models
 
 import (
 	"io"
@@ -16,7 +16,7 @@ func TestLoadingModel_Init(t *testing.T) {
 	t.Run("starts the spinner", func(t *testing.T) {
 
 		mockBrowser := mocks.MockRadioBrowserService{}
-		model := NewLoadingModel(&mockBrowser, "text")
+		model := NewLoadingModel(&mockBrowser, common.StationQueryAll, "text")
 
 		cmd := model.Init()
 		assert.NotNil(t, cmd)
@@ -47,7 +47,7 @@ func TestLoadingModel_Init(t *testing.T) {
 			},
 		}
 
-		model := NewLoadingModel(&mockBrowser, "text")
+		model := NewLoadingModel(&mockBrowser, common.StationQueryAll, "text")
 
 		cmd := model.Init()
 		assert.NotNil(t, cmd)
@@ -78,7 +78,7 @@ func TestLoadingModel_Init(t *testing.T) {
 			},
 		}
 
-		model := NewLoadingModel(&mockBrowser, "text")
+		model := NewLoadingModel(&mockBrowser, common.StationQueryAll, "text")
 
 		cmd := model.Init()
 		assert.NotNil(t, cmd)

@@ -17,7 +17,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-package ui
+package models
 
 import (
 	"radiogogo/api"
@@ -30,12 +30,13 @@ import (
 
 type LoadingModel struct {
 	spinnerModel spinner.Model
-	searchText   string
+	query        common.StationQuery
+	queryText    string
 
 	browser api.RadioBrowserService
 }
 
-func NewLoadingModel(browser api.RadioBrowserService, searchText string) LoadingModel {
+func NewLoadingModel(browser api.RadioBrowserService, query common.StationQuery, queryText string) LoadingModel {
 
 	s := spinner.New()
 	s.Spinner = spinner.Dot
@@ -43,14 +44,15 @@ func NewLoadingModel(browser api.RadioBrowserService, searchText string) Loading
 
 	return LoadingModel{
 		spinnerModel: s,
-		searchText:   searchText,
+		query:        query,
+		queryText:    queryText,
 		browser:      browser,
 	}
 
 }
 
 func (m LoadingModel) Init() tea.Cmd {
-	return tea.Batch(m.spinnerModel.Tick, searchStations(m.browser, m.searchText))
+	return tea.Batch(m.spinnerModel.Tick, searchStations(m.browser, m.query, m.queryText))
 }
 
 func (m LoadingModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -65,9 +67,9 @@ func (m LoadingModel) View() string {
 
 // Commands
 
-func searchStations(browser api.RadioBrowserService, query string) tea.Cmd {
+func searchStations(browser api.RadioBrowserService, query common.StationQuery, queryText string) tea.Cmd {
 	return func() tea.Msg {
-		stations, err := browser.GetStations(common.StationQueryByName, query, "votes", true, 0, 100, true)
+		stations, err := browser.GetStations(query, queryText, "votes", true, 0, 100, true)
 		if err != nil {
 			return switchToErrorModelMsg{err: err.Error()}
 		}

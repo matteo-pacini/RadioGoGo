@@ -22,14 +22,14 @@ package main
 import (
 	"fmt"
 	"os"
-	"radiogogo/ui"
+	"radiogogo/models"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
 
 func main() {
 
-	model, err := ui.NewDefaultModel()
+	model, err := models.NewDefaultModel()
 
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error initializing model: %v", err)

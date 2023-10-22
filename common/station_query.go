@@ -40,3 +40,37 @@ const (
 	StationQueryByTag              StationQuery = "bytag"              // Returns radio stations by tag.
 	StationQueryByTagExact         StationQuery = "bytagexact"         // Returns radio stations by exact tag.
 )
+
+func (m StationQuery) Render() string {
+	switch m {
+	case StationQueryByUuid:
+		return "By UUID"
+	case StationQueryByName:
+		return "By Name"
+	case StationQueryByNameExact:
+		return "By Exact Name"
+	case StationQueryByCodec:
+		return "By Codec"
+	case StationQueryByCodecExact:
+		return "By Exact Codec"
+	case StationQueryByCountry:
+		return "By Country"
+	case StationQueryByCountryExact:
+		return "By Exact Country"
+	case StationQueryByCountryCodeExact:
+		return "By Exact Country Code"
+	case StationQueryByState:
+		return "By State"
+	case StationQueryByStateExact:
+		return "By Exact State"
+	case StationQueryByLanguage:
+		return "By Language"
+	case StationQueryByLanguageExact:
+		return "By Exact Language"
+	case StationQueryByTag:
+		return "By Tag"
+	case StationQueryByTagExact:
+		return "By Exact Tag"
+	}
+	return "None"
+}

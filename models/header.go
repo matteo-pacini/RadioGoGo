@@ -1,4 +1,4 @@
-package ui
+package models
 
 import (
 	"fmt"

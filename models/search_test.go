@@ -1,6 +1,7 @@
-package ui
+package models
 
 import (
+	"radiogogo/common"
 	"testing"
 
 	"github.com/charmbracelet/bubbles/textarea"
@@ -54,7 +55,7 @@ func TestSearchModel_Init(t *testing.T) {
 
 		assert.True(t, found)
 
-		expectedCommands := []string{"q: quit", "enter: search"}
+		expectedCommands := []string{"q: quit", "tab: cycle focus", "enter: search"}
 
 		assert.Equal(t, expectedCommands, commands)
 
@@ -92,9 +93,56 @@ func TestSearchModel_Update(t *testing.T) {
 		msg := cmd()
 
 		assert.Equal(t, switchToLoadingModelMsg{
-			query: "fancy value",
+			query:     common.StationQueryByName,
+			queryText: "fancy value",
 		}, msg)
 
 	})
 
+	t.Run("cycles focused input when 'tab' is pressed and updates bottom bar", func(t *testing.T) {
+
+		model := NewSearchModel()
+
+		input := tea.KeyMsg{Type: tea.KeyTab}
+
+		newModel, cmd := model.Update(input)
+
+		assert.Equal(t, newModel.(SearchModel).inputModel.Focused(), false)
+		assert.Equal(t, newModel.(SearchModel).querySelector.Focused(), true)
+		assert.NotNil(t, cmd)
+
+		msg := cmd()
+		assert.IsType(t, bottomBarUpdateMsg{}, msg)
+
+		newModel, cmd = newModel.Update(input)
+
+		assert.Equal(t, newModel.(SearchModel).inputModel.Focused(), true)
+		assert.Equal(t, newModel.(SearchModel).querySelector.Focused(), false)
+
+		msg = cmd()
+		assert.IsType(t, bottomBarUpdateMsg{}, msg)
+
+	})
+
+}
+func TestUpdateCommandsForTextfieldFocus(t *testing.T) {
+	expectedCommands := []string{"q: quit", "tab: cycle focus", "enter: search"}
+
+	msg := updateCommandsForTextfieldFocus()
+
+	updateMsg, ok := msg.(bottomBarUpdateMsg)
+
+	assert.True(t, ok)
+	assert.Equal(t, expectedCommands, updateMsg.commands)
+}
+
+func TestUpdateCommandsForSelectorFocus(t *testing.T) {
+	expectedCommands := []string{"q: quit", "tab: cycle focus", "↑/↓: change filter"}
+
+	msg := updateCommandsForSelectorFocus()
+
+	updateMsg, ok := msg.(bottomBarUpdateMsg)
+
+	assert.True(t, ok)
+	assert.Equal(t, expectedCommands, updateMsg.commands)
 }

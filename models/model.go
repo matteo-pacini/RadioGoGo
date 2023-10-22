@@ -17,7 +17,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-package ui
+package models
 
 import (
 	"radiogogo/api"
@@ -46,7 +46,8 @@ type switchToErrorModelMsg struct {
 type switchToSearchModelMsg struct {
 }
 type switchToLoadingModelMsg struct {
-	query string
+	query     common.StationQuery
+	queryText string
 }
 type switchToStationsModelMsg struct {
 	stations []common.Station
@@ -150,7 +151,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.state = searchState
 		return m, m.searchModel.Init()
 	case switchToLoadingModelMsg:
-		m.loadingModel = NewLoadingModel(m.browser, msg.query)
+		m.loadingModel = NewLoadingModel(m.browser, msg.query, msg.queryText)
 		m.state = loadingState
 		return m, m.loadingModel.Init()
 	case switchToStationsModelMsg:

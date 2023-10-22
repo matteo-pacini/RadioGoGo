@@ -17,67 +17,52 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-package ui
+package models
 
 import (
-	"fmt"
-
-	"github.com/charmbracelet/bubbles/textinput"
-	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
-type SearchModel struct {
-	inputModel textinput.Model
-	width      int
-	height     int
-}
+func StyleBottomBar(commands []string) string {
 
-func NewSearchModel() SearchModel {
-	i := textinput.New()
-	i.Placeholder = "Name"
-	i.Width = 30
-	i.Focus()
-
-	return SearchModel{
-		inputModel: i,
-	}
-
-}
-
-func (m SearchModel) Init() tea.Cmd {
-	return tea.Batch(textinput.Blink, func() tea.Msg {
-		return bottomBarUpdateMsg{
-			commands: []string{"q: quit", "enter: search"},
-		}
-	})
-}
-
-func (m SearchModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch msg.String() {
-		case "q":
-			return m, quitCmd
-		case "enter":
-			return m, func() tea.Msg {
-				return switchToLoadingModelMsg{query: m.inputModel.Value()}
-			}
+	var bottomBar string
+	for i, command := range commands {
+		if i%2 == 0 {
+			bottomBar += lipgloss.NewStyle().
+				Foreground(lipgloss.Color("white")).
+				Background(lipgloss.Color("#5a4f9f")).
+				PaddingLeft(2).
+				PaddingRight(2).
+				Render(command)
+		} else {
+			bottomBar += lipgloss.NewStyle().
+				Foreground(lipgloss.Color("white")).
+				Background(lipgloss.Color("#8b77db")).
+				PaddingLeft(2).
+				PaddingRight(2).
+				Render(command)
 		}
 	}
+	return bottomBar
 
-	newInputModel, cmd := m.inputModel.Update(msg)
-	m.inputModel = newInputModel
-
-	return m, cmd
 }
 
-func (m SearchModel) View() string {
+func StyleSetPlaying(input string) string {
+	return lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#8b77db")).
+		Bold(true).
+		Render(input)
+}
 
-	v := fmt.Sprintf(
-		"\nSearch a radio by name\n\n%s",
-		m.inputModel.View(),
-	)
+func StyleSetSectionTitle(input string) string {
+	return lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#8b77db")).
+		Bold(true).
+		Render(input)
+}
 
-	return v
+func StyleSetError(input string) string {
+	return lipgloss.NewStyle().
+		Foreground(lipgloss.Color("red")).
+		Render(input)
 }
