@@ -5,10 +5,13 @@
 </div>
 <br>
 
-RadioGoGo is a CLI application developed in Go, enabling seamless access to a wide array of radio stations from around the world directly from your terminal.
+Tune into global radio vibes directly from your terminal! 
 
-Leveraging the streamlined [BubbleTea](https://github.com/charmbracelet/bubbletea) TUI (Terminal User Interface) and the expansive capabilities of [RadioBrowser API](http://www.radio-browser.info/), your desired stations are merely a keystroke away. 
+Crafted with love in Go, RadioGoGo marries the elegance of the [BubbleTea TUI](https://github.com/charmbracelet/bubbletea) with the expansive reach of [RadioBrowser API](http://www.radio-browser.info/). 
 
+Dive into a world of sounds with just a few keystrokes. 
+
+Let's Go 🚀!
 <img src="./screen1.png" alt="RadioGoGo Search View" width="500" height="320">
 <img src="./screen2.png" alt="RadioGoGo Station List View" width="500" height="320">
 
@@ -22,7 +25,6 @@ Leveraging the streamlined [BubbleTea](https://github.com/charmbracelet/bubblete
 ## 📋 Upcoming Features
 
 - Bookmark your favorite stations for easy access.
-- Refine your searches to find the perfect station.
 - Record your favorite broadcasts for later listening.
 - Integrated playback using `mpv`.
 
@@ -35,6 +37,9 @@ For seamless playback, ensure `ffplay` is installed:
 #### Windows:
 
 Download FFmpeg from the [official website](https://ffmpeg.org/download.html) and add it to your system's PATH.
+
+It can also be installed via [Chocolatey](https://chocolatey.org/) or [Scoop](https://scoop.sh/).
+
 
 #### Linux:
 
@@ -87,6 +92,14 @@ pkg_add ffmpeg
 doas pkg_add ffmpeg
 ```
 
+### Terminals for an optimal RadioGoGo experience:
+
+- **Windows:** For a smooth experience on Windows, consider using [Windows Terminal](https://aka.ms/terminal). It offers multiple tabs, a GPU-accelerated text rendering engine, and a rich set of customization options. If you're fond of UNIX-like environments, [WSL (Windows Subsystem for Linux)](https://docs.microsoft.com/en-us/windows/wsl/) combined with Windows Terminal can be a powerful duo.
+
+- **Linux:** On Linux, most modern terminals should work well with BubbleTea. However, [Alacritty](https://github.com/alacritty/alacritty), a GPU-accelerated terminal, and [Terminator](https://gnometerminator.blogspot.com/p/introduction.html), known for its flexibility, stand out as exceptional choices. Both offer great performance and customization options to enhance your TUI experience.
+
+- **macOS:** On macOS, while the default Terminal.app should work fine, you might want to explore [iTerm2](https://iterm2.com/) for its advanced features, superior performance, and extensive customization options. iTerm2's integration with macOS makes it a preferred choice for many developers.
+
 ### Installing via Go
 
 Ensure you have [Go](https://golang.org/dl/) installed (version 1.18 or later).
@@ -103,7 +116,7 @@ Find the appropriate binary for your OS, download it, and place it in your syste
 
 ## 🚀 Usage
 
-1. Launch RadioGoGo by executing the following command:
+Launch RadioGoGo by executing the following command:
 
 ```bash
 radiogogo
@@ -111,7 +124,16 @@ radiogogo
 
 ## ❤️ Contributing
 
-All contributions, big or small, are warmly welcomed. Whether it's a typo fix, new feature, or bug report, I appreciate your effort to make RadioGoGo even better!
+Hey there, fellow radio enthusiast! 
+
+First off, a big thanks for even considering contributing. 
+
+Every typo fix, bug report, or thought you share genuinely helps make RadioGoGo better. If you're eyeing to introduce a new feature, I'd love to hear about it! 
+
+Please kick off a discussion by creating an issue before diving into crafting a pull request. This way, we can ensure everyone's on the same frequency. 
+
+📻 Happy coding!
+
 
 ## ⚖️ License(s)
 
