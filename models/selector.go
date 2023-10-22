@@ -1,21 +1,23 @@
 package models
 
 import (
+	"fmt"
+
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-type SelectorRenderable interface {
+type StringRenderable interface {
 	Render() string
 }
 
-type SelectorModel[T SelectorRenderable] struct {
+type SelectorModel[T StringRenderable] struct {
 	title     string
 	items     []T
 	selection int
 	focus     bool
 }
 
-func NewSelectorModel[T SelectorRenderable](title string, items []T, initialSelection int) SelectorModel[T] {
+func NewSelectorModel[T StringRenderable](title string, items []T, initialSelection int) SelectorModel[T] {
 	return SelectorModel[T]{
 		title:     title,
 		items:     items,
@@ -80,9 +82,9 @@ func (m SelectorModel[T]) View() string {
 	for i, item := range m.items {
 		if i == m.selection {
 			if m.focus {
-				v += "> [*] "
+				v += fmt.Sprintf("> [%s] ", StyleSetSectionTitle("•"))
 			} else {
-				v += "  [*] "
+				v += fmt.Sprintf("  [%s] ", StyleSetSectionTitle("•"))
 			}
 		} else {
 			v += "  [ ] "

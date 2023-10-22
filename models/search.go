@@ -55,6 +55,10 @@ func NewSearchModel() SearchModel {
 			common.StationQueryByCountryCodeExact,
 			common.StationQueryByState,
 			common.StationQueryByStateExact,
+			common.StationQueryByLanguage,
+			common.StationQueryByLanguageExact,
+			common.StationQueryByTag,
+			common.StationQueryByTagExact,
 		},
 		0,
 	)
@@ -104,6 +108,9 @@ func (m SearchModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "q":
 			return m, quitCmd
 		case "enter":
+			if !m.inputModel.Focused() {
+				return m, nil
+			}
 			return m, func() tea.Msg {
 				return switchToLoadingModelMsg{
 					query:     m.querySelector.Selection(),
