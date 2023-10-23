@@ -60,6 +60,12 @@ sudo apt install ffmpeg
 sudo dnf install ffmpeg
 ```
 
+P.S. If you're using Fedora, you might need to enable the RPM Fusion repository first. You can do so by executing the following command:
+
+```bash
+sudo dnf install https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
+```
+
 ##### For pacman-based distros (like Arch):
 
 ```bash
@@ -102,7 +108,7 @@ doas pkg_add ffmpeg
 
 - **Linux:** On Linux, most modern terminals should work well with RadioGoGo. However, [Alacritty](https://github.com/alacritty/alacritty), a GPU-accelerated terminal, and [Terminator](https://gnometerminator.blogspot.com/p/introduction.html), known for its flexibility, stand out as exceptional choices. Both offer great performance and customization options to enhance your TUI experience.
 
-- **macOS:** On macOS, while the default Terminal.app should work fine, you might want to explore [iTerm2](https://iterm2.com/) for its advanced features, superior performance, and extensive customization options. iTerm2's integration with macOS makes it a preferred choice for many developers.
+- **macOS:** On macOS, while the default Terminal.app should work fine, you might want to explore [iTerm2](https://iterm2.com/) for its advanced features, superior performance, and extensive customization options. iTerm2's integration with macOS makes it a preferred choice for many users.
 
 ### Installing via Go
 
@@ -129,9 +135,19 @@ radiogogo
 ## 🤔 FAQ
 
 ### I selected a radio station but there's no audio. What's happening?
+Upon selecting a station, the duration to initiate playback can vary based on the stream's origin and its server location.
+In some cases, the playback is immediate, while in others, it might necessitate a brief buffering period. 
+It's analogous to the latency encountered with various online services – certain connections are swift, while others require a momentary lag. 
+If you don't experience instant audio, I recommend waiting a few seconds. 
+The broadcast is likely en route to your terminal.
 
-Upon selecting a station, the duration to initiate playback can vary based on the stream's origin and its server location. In some cases, the playback is immediate, while in others, it might necessitate a brief buffering period. It's analogous to the latency encountered with various online services – certain connections are swift, while others require a momentary lag. If you don't experience instant audio, we recommend waiting a few seconds. The broadcast is likely en route to your terminal.
+### Why do some stations not work at all?
+Due to the dynamic nature of radio stations, some might go offline or change their streaming endpoints. 
+Currently, RadioGoGo doesn't have a feature to report or hide these non-functioning stations. 
+However, I am actively aware of this challenge and am planning to introduce a feature in future releases to enhance this aspect of the user experience. 
 
+### How do I adjust the volume in RadioGoGo?
+Volume controls in RadioGoGo are set before initiating playback. This is because the volume level is passed as a command line argument to `ffplay`. As of now, once the playback has started, adjusting the volume within RadioGoGo isn't supported. To change the volume during an ongoing playback, you'd have to stop (`ctrl+k`) and restart the stream.
 
 ## ❤️ Contributing
 
