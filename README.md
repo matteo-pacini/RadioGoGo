@@ -26,11 +26,11 @@ Let's Go 🚀!
 ## 📋 Upcoming Features
 
 - Scroll indicator for the station list.
-- Report broken stations.
+- Report / hide broken stations.
 - Vote stations.
 - Bookmark your favorite stations for easy access.
 - Record your favorite broadcasts for later listening.
-- Integrated playback using `mpv`.
+- Alternative playback using `mpv`.
 
 ## ⚒️ Installation
 
@@ -100,7 +100,7 @@ doas pkg_add ffmpeg
 
 - **Windows:** For a smooth experience on Windows, consider using [Windows Terminal](https://aka.ms/terminal). It offers multiple tabs, a GPU-accelerated text rendering engine, and a rich set of customization options. If you're fond of UNIX-like environments, [WSL (Windows Subsystem for Linux)](https://docs.microsoft.com/en-us/windows/wsl/) combined with Windows Terminal can be a powerful duo.
 
-- **Linux:** On Linux, most modern terminals should work well with BubbleTea. However, [Alacritty](https://github.com/alacritty/alacritty), a GPU-accelerated terminal, and [Terminator](https://gnometerminator.blogspot.com/p/introduction.html), known for its flexibility, stand out as exceptional choices. Both offer great performance and customization options to enhance your TUI experience.
+- **Linux:** On Linux, most modern terminals should work well with RadioGoGo. However, [Alacritty](https://github.com/alacritty/alacritty), a GPU-accelerated terminal, and [Terminator](https://gnometerminator.blogspot.com/p/introduction.html), known for its flexibility, stand out as exceptional choices. Both offer great performance and customization options to enhance your TUI experience.
 
 - **macOS:** On macOS, while the default Terminal.app should work fine, you might want to explore [iTerm2](https://iterm2.com/) for its advanced features, superior performance, and extensive customization options. iTerm2's integration with macOS makes it a preferred choice for many developers.
 
