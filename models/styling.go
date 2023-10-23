@@ -61,6 +61,12 @@ func StyleSetSectionTitle(input string) string {
 		Render(input)
 }
 
+func StyleSetSecondary(input string) string {
+	return lipgloss.NewStyle().
+		Foreground(lipgloss.Color("240")).
+		Render(input)
+}
+
 func StyleSetError(input string) string {
 	return lipgloss.NewStyle().
 		Foreground(lipgloss.Color("red")).

@@ -25,6 +25,9 @@ Let's Go 🚀!
 
 ## 📋 Upcoming Features
 
+- Scroll indicator for the station list.
+- Report broken stations.
+- Vote stations.
 - Bookmark your favorite stations for easy access.
 - Record your favorite broadcasts for later listening.
 - Integrated playback using `mpv`.
@@ -122,6 +125,13 @@ Launch RadioGoGo by executing the following command:
 ```bash
 radiogogo
 ```
+
+## 🤔 FAQ
+
+### I selected a radio station but there's no audio. What's happening?
+
+Upon selecting a station, the duration to initiate playback can vary based on the stream's origin and its server location. In some cases, the playback is immediate, while in others, it might necessitate a brief buffering period. It's analogous to the latency encountered with various online services – certain connections are swift, while others require a momentary lag. If you don't experience instant audio, we recommend waiting a few seconds. The broadcast is likely en route to your terminal.
+
 
 ## ❤️ Contributing
 

@@ -150,10 +150,11 @@ func (m SearchModel) View() string {
 		PaddingLeft(2)
 
 	rightV := rightOfLogoStyle.Render(
-		fmt.Sprintf("\n%s\n\n%s\n\n%s\n\n",
+		fmt.Sprintf("\n%s\n\n%s\n\n%s\n%s",
 			StyleSetSectionTitle(fmt.Sprint("Search radio ", searchType)),
 			m.inputModel.View(),
 			m.querySelector.View(),
+			StyleSetSecondary(m.querySelector.Selection().ExampleString()),
 		))
 
 	leftV := fmt.Sprintf(
