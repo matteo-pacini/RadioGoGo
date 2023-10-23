@@ -256,6 +256,7 @@ func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	newStationsTable, cmd := m.stationsTable.Update(msg)
 	m.stationsTable = newStationsTable
+
 	cmds = append(cmds, cmd)
 
 	return m, tea.Batch(cmds...)
@@ -271,15 +272,19 @@ func (m StationsModel) View() string {
 		extraBar +=
 			m.currentStationSpinner.View() +
 				StyleSetPlaying("Listening to: "+m.currentStation.Name)
+	} else {
+		extraBar += StyleSetPlaying("It's quiet here, time to play something!")
 	}
 
-	v := "\n" + m.stationsTable.View() + "\n\n"
+	v := "\n" + m.stationsTable.View() + "\n"
 
-	vHeight := lipgloss.Height(v)
-
-	v += lipgloss.NewStyle().
-		PaddingTop(m.height - vHeight).
-		Render(extraBar)
+	v += extraBar
 
 	return v
+}
+
+func (m *StationsModel) SetWidthAndHeight(width int, height int) {
+	m.width = width
+	m.height = height
+	m.stationsTable.SetHeight(height - 4)
 }

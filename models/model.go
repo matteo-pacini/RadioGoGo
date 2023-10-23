@@ -128,13 +128,22 @@ func (m Model) Init() tea.Cmd {
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
-	var cmd tea.Cmd
-
 	// Top-level messages
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
+		childHeight := m.height - 2 // 2 = header height + bottom bar height
+		switch m.state {
+		case searchState:
+			m.searchModel.SetWidthAndHeight(m.width, childHeight)
+		case loadingState:
+			m.loadingModel.SetWidthAndHeight(m.width, childHeight)
+		case stationsState:
+			m.stationsModel.SetWidthAndHeight(m.width, childHeight)
+		case errorState:
+			m.errorModel.SetWidthAndHeight(m.width, childHeight)
+		}
 		return m, nil
 	case quitMsg:
 		return m, tea.Quit
@@ -145,21 +154,27 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// State transitions
 
+	childHeight := m.height - 2 // 2 = header height + bottom bar height
+
 	switch msg := msg.(type) {
 	case switchToSearchModelMsg:
 		m.searchModel = NewSearchModel()
+		m.searchModel.SetWidthAndHeight(m.width, childHeight)
 		m.state = searchState
 		return m, m.searchModel.Init()
 	case switchToLoadingModelMsg:
 		m.loadingModel = NewLoadingModel(m.browser, msg.query, msg.queryText)
+		m.loadingModel.SetWidthAndHeight(m.width, childHeight)
 		m.state = loadingState
 		return m, m.loadingModel.Init()
 	case switchToStationsModelMsg:
 		m.stationsModel = NewStationsModel(m.browser, m.playbackManager, msg.stations)
+		m.stationsModel.SetWidthAndHeight(m.width, childHeight)
 		m.state = stationsState
 		return m, m.stationsModel.Init()
 	case switchToErrorModelMsg:
 		m.errorModel = NewErrorModel(msg.err)
+		m.errorModel.SetWidthAndHeight(m.width, childHeight)
 		m.state = errorState
 		return m, m.errorModel.Init()
 	}
@@ -185,7 +200,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, cmd
 	}
 
-	return m, cmd
+	return m, nil
 }
 
 func (m Model) View() string {
@@ -194,22 +209,16 @@ func (m Model) View() string {
 
 	view = Header()
 
-	effectiveHeight := m.height - 2 // 2 = header height + bottom bar height
-
 	var currentView string
 
 	switch m.state {
 	case bootState:
 		currentView = "\nInitializing..."
 	case searchState:
-		m.searchModel.width = m.width
-		m.searchModel.height = effectiveHeight
 		currentView = m.searchModel.View()
 	case loadingState:
 		currentView = m.loadingModel.View()
 	case stationsState:
-		m.stationsModel.width = m.width
-		m.stationsModel.height = effectiveHeight
 		currentView = m.stationsModel.View()
 	case errorState:
 		currentView = m.errorModel.View()

@@ -32,6 +32,8 @@ type LoadingModel struct {
 	spinnerModel spinner.Model
 	query        common.StationQuery
 	queryText    string
+	width        int
+	height       int
 
 	browser api.RadioBrowserService
 }
@@ -75,4 +77,9 @@ func searchStations(browser api.RadioBrowserService, query common.StationQuery, 
 		}
 		return switchToStationsModelMsg{stations: stations}
 	}
+}
+
+func (m *LoadingModel) SetWidthAndHeight(width int, height int) {
+	m.width = width
+	m.height = height
 }

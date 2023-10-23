@@ -42,6 +42,8 @@ type ErrorModel struct {
 	message string
 
 	tickCount int
+	width     int
+	height    int
 }
 
 func NewErrorModel(err string) ErrorModel {
@@ -89,4 +91,9 @@ func (m ErrorModel) View() string {
 
 	return "\n" + errorRedStyle.Render(message) + "\n\n"
 
+}
+
+func (m *ErrorModel) SetWidthAndHeight(width int, height int) {
+	m.width = width
+	m.height = height
 }

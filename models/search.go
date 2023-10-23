@@ -166,3 +166,8 @@ func (m SearchModel) View() string {
 
 	return v
 }
+
+func (m *SearchModel) SetWidthAndHeight(width int, height int) {
+	m.width = width
+	m.height = height
+}
