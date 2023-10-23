@@ -115,7 +115,7 @@ doas pkg_add ffmpeg
 Ensure you have [Go](https://golang.org/dl/) installed (version 1.18 or later).
 
 ```bash
-go install github.com/Zi0P4tch0/RadioGoGo@latest
+go install github.com/zi0p4tch0/radiogogo@latest
 ```
 
 ### Downloading the Binary
