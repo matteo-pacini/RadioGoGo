@@ -42,7 +42,7 @@ func NewLoadingModel(browser api.RadioBrowserService, query common.StationQuery,
 
 	s := spinner.New()
 	s.Spinner = spinner.Dot
-	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
+	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color(secondaryColor))
 
 	return LoadingModel{
 		spinnerModel: s,

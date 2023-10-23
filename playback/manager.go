@@ -44,7 +44,7 @@ type PlaybackManagerServiceImpl struct {
 	nowPlaying *exec.Cmd
 }
 
-func NewDefaultPlaybackManager() *PlaybackManagerServiceImpl {
+func NewPlaybackManager() PlaybackManagerService {
 	return &PlaybackManagerServiceImpl{}
 }
 

@@ -80,93 +80,93 @@ func (m StationQuery) ExampleString() string {
 	case StationQueryByName:
 		return `
 Examples:
-- "BBC Radio" will return all stations with "BBC Radio" in their name
-- "Italia" will return all stations with "Italia" in their name
-- "Romance" will return all stations with "Romance" in their name
+- "BBC Radio" matches stations with "BBC Radio" in their name
+- "Italia" matches stations with "Italia" in their name
+- "Romance" matches stations with "Romance" in their name
 `
 	case StationQueryByNameExact:
 		return `
 Examples:
-- "BBC Radio 1" will return all stations with "BBC Radio 1" as their name
-- "Radio Italia" will return all stations with "Radio Italia" as their name
-- "Radio Romance" will return all stations with "Radio Romance" as their name
+- "BBC Radio 1" matches stations with "BBC Radio 1" as their name
+- "Radio Italia" matches stations with "Radio Italia" as their name
+- "Radio Romance" mtaches stations with "Radio Romance" as their name
 `
 	case StationQueryByCodec:
 		return `
 Examples:
-- "mp3" will return all stations with "mp3" in their codec
-- "aac" will return all stations with "aac" in their codec
-- "ogg" will return all stations with "ogg" in their codec
+- "mp3" matches stations with "mp3" in their codec
+- "aac" matches stations with "aac" in their codec
+- "ogg" matches stations with "ogg" in their codec
 `
 	case StationQueryByCodecExact:
 		return `
 Examples:
-- "mp3" will return all stations with "mp3" as their codec
-- "aac" will return all stations with "aac" as their codec
-- "ogg" will return all stations with "ogg" as their codec
+- "mp3" matches stations with "mp3" as their codec
+- "aac" matches stations with "aac" as their codec
+- "ogg" matches stations with "ogg" as their codec
 `
 	case StationQueryByCountry:
 		return `
 Examples:
-- "Italy" will return all stations with "Italy" in their country name.
-- "United" will return all stations with "United" in their country name.
-- "Republic" will return all stations with "Republic" in their country name.
+- "Italy" matches stations with "Italy" in their country name.
+- "United" matches stations with "United" in their country name.
+- "Republic" matches stations with "Republic" in their country name.
 `
 	case StationQueryByCountryExact:
 		return `
 Examples:
-- "Italy" will return all stations with "Italy" as their country
-- "United States" will return all stations with "United States" as their country
-- "United Kingdom" will return all stations with "United Kingdom" as their country
+- "Italy" matches stations with "Italy" as their country
+- "Spain" matches stations with "Spain" as their country
+- "Ireland" matches stations with "Ireland" as their country
 `
 	case StationQueryByCountryCodeExact:
 		return `
 Examples:
-- "IT" will return all stations with "IT" as their country code
-- "US" will return all stations with "US" as their country code
-- "UK" will return all stations with "UK" as their country code
+- "IT" matches stations with "IT" as their country code
+- "US" matches stations with "US" as their country code
+- "UK" matches stations with "UK" as their country code
 `
 	case StationQueryByState:
 		return `
 Examples:
-- "Lombardy" will return all stations with "Lombardy" in their state
-- "California" will return all stations with "California" in their state
-- "New York" will return all stations with "New York" in their state
+- "Lombardy" matches stations with "Lombardy" in their state
+- "California" matches stations with "California" in their state
+- "New York" matches stations with "New York" in their state
 `
 	case StationQueryByStateExact:
 		return `
 Examples:
-- "Lombardy" will return all stations with "Lombardy" as their state
-- "California" will return all stations with "California" as their state
-- "New York" will return all stations with "New York" as their state
+- "Lombardy" matches stations with "Lombardy" as their state
+- "California" matches stations with "California" as their state
+- "New York" matches stations with "New York" as their state
 `
 	case StationQueryByLanguage:
 		return `
 Examples:
-- "Italian" will return all stations with "Italian" in their language
-- "English" will return all stations with "English" in their language
-- "Spanish" will return all stations with "Spanish" in their language
+- "Italian" matches stations with "Italian" in their language
+- "English" matches stations with "English" in their language
+- "Spanish" matches stations with "Spanish" in their language
 `
 	case StationQueryByLanguageExact:
 		return `
 Examples:
-- "Italian" will return all stations with "Italian" as their language
-- "English" will return all stations with "English" as their language
-- "Spanish" will return all stations with "Spanish" as their language
+- "Italian" matches stations with "Italian" as their language
+- "English" matches stations with "English" as their language
+- "Spanish" matches stations with "Spanish" as their language
 `
 	case StationQueryByTag:
 		return `
 Examples:
-- "rock" will return all stations with "rock" in their tags
-- "jazz" will return all stations with "jazz" in their tags
-- "pop" will return all stations with "pop" in their tags
+- "rock" matches stations with "rock" in their tags
+- "jazz" matches stations with "jazz" in their tags
+- "pop" matches stations with "pop" in their tags
 `
 	case StationQueryByTagExact:
 		return `
 Examples:
-- "rock" will return all stations with "rock" as their tags
-- "jazz" will return all stations with "jazz" as their tags
-- "pop" will return all stations with "pop" as their tags
+- "rock" matches stations with "rock" as their tags
+- "jazz" matches stations with "jazz" as their tags
+- "pop" matches stations with "pop" as their tags
 `
 	}
 	return ""

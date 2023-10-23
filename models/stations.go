@@ -22,6 +22,7 @@ package models
 import (
 	"fmt"
 	"radiogogo/api"
+	"radiogogo/assets"
 	"radiogogo/common"
 	"radiogogo/playback"
 	"time"
@@ -93,12 +94,12 @@ func newStationsTableModel(stations []common.Station) table.Model {
 	s := table.DefaultStyles()
 	s.Header = s.Header.
 		BorderStyle(lipgloss.NormalBorder()).
-		BorderForeground(lipgloss.Color("240")).
+		BorderForeground(lipgloss.Color("white")).
 		BorderBottom(true).
 		Bold(false)
 	s.Selected = s.Selected.
-		Foreground(lipgloss.Color("#ffffff")).
-		Background(lipgloss.Color("#5a4f9f")).
+		Foreground(lipgloss.Color("white")).
+		Background(lipgloss.Color(primaryColor)).
 		Bold(false)
 	t.SetStyles(s)
 
@@ -271,14 +272,22 @@ func (m StationsModel) View() string {
 	} else if m.playbackManager.IsPlaying() {
 		extraBar +=
 			m.currentStationSpinner.View() +
-				StyleSetPlaying("Listening to: "+m.currentStation.Name)
+				StyleSetForegroundSecondary("Listening to: "+m.currentStation.Name, true)
 	} else {
-		extraBar += StyleSetPlaying("It's quiet here, time to play something!")
+		extraBar += StyleSetForegroundPrimary("It's quiet here, time to play something!", true)
 	}
 
-	v := "\n" + m.stationsTable.View() + "\n"
-
-	v += extraBar
+	var v string
+	if len(m.stationsTable.Rows()) == 0 {
+		v = fmt.Sprintf(
+			"\n%s\n\n%s\n",
+			assets.NoStations,
+			StyleSetForegroundSecondary("No stations found, try another search!", true),
+		)
+	} else {
+		v = "\n" + m.stationsTable.View() + "\n"
+		v += extraBar
+	}
 
 	return v
 }

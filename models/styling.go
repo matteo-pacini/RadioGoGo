@@ -23,6 +23,13 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+const (
+	primaryColor   = "#5a4f9f"
+	secondaryColor = "#8b77db"
+	tertiaryColor  = "#4e4e4e"
+	errorColor     = "#ff0000"
+)
+
 func StyleBottomBar(commands []string) string {
 
 	var bottomBar string
@@ -30,14 +37,14 @@ func StyleBottomBar(commands []string) string {
 		if i%2 == 0 {
 			bottomBar += lipgloss.NewStyle().
 				Foreground(lipgloss.Color("white")).
-				Background(lipgloss.Color("#5a4f9f")).
+				Background(lipgloss.Color(primaryColor)).
 				PaddingLeft(2).
 				PaddingRight(2).
 				Render(command)
 		} else {
 			bottomBar += lipgloss.NewStyle().
 				Foreground(lipgloss.Color("white")).
-				Background(lipgloss.Color("#8b77db")).
+				Background(lipgloss.Color(secondaryColor)).
 				PaddingLeft(2).
 				PaddingRight(2).
 				Render(command)
@@ -47,28 +54,29 @@ func StyleBottomBar(commands []string) string {
 
 }
 
-func StyleSetPlaying(input string) string {
+func StyleSetForegroundPrimary(input string, bold bool) string {
 	return lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#8b77db")).
-		Bold(true).
+		Foreground(lipgloss.Color(primaryColor)).
+		Bold(bold).
 		Render(input)
 }
 
-func StyleSetSectionTitle(input string) string {
+func StyleSetForegroundSecondary(input string, bold bool) string {
 	return lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#8b77db")).
-		Bold(true).
+		Foreground(lipgloss.Color(secondaryColor)).
+		Bold(bold).
 		Render(input)
 }
 
-func StyleSetSecondary(input string) string {
+func StyleSetForegroundTertiary(input string) string {
 	return lipgloss.NewStyle().
-		Foreground(lipgloss.Color("240")).
+		Foreground(lipgloss.Color(tertiaryColor)).
 		Render(input)
 }
 
 func StyleSetError(input string) string {
 	return lipgloss.NewStyle().
-		Foreground(lipgloss.Color("red")).
+		Foreground(lipgloss.Color(errorColor)).
+		Bold(true).
 		Render(input)
 }

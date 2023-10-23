@@ -105,7 +105,7 @@ func NewDefaultModel() (Model, error) {
 		return Model{}, err
 	}
 
-	playbackManager := playback.NewDefaultPlaybackManager()
+	playbackManager := playback.NewPlaybackManager()
 
 	return NewModel(browser, playbackManager), nil
 
