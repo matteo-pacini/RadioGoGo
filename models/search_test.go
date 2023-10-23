@@ -120,6 +120,19 @@ func TestSearchModel_Update(t *testing.T) {
 
 	})
 
+	t.Run("ignores 'enter' when is not in focus", func(t *testing.T) {
+
+		model := NewSearchModel()
+		model.inputModel.SetValue("fancy value")
+		model.inputModel.Blur()
+
+		input := tea.KeyMsg{Type: tea.KeyEnter}
+
+		_, cmd := model.Update(input)
+		assert.Nil(t, cmd)
+
+	})
+
 	t.Run("cycles focused input when 'tab' is pressed and updates bottom bar", func(t *testing.T) {
 
 		model := NewSearchModel()

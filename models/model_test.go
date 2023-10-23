@@ -97,6 +97,82 @@ func TestModel_Update(t *testing.T) {
 
 	})
 
+	t.Run("propagates adjusted terminal size changes to SearchModel if active", func(t *testing.T) {
+
+		browser := mocks.MockRadioBrowserService{}
+		playbackManager := mocks.MockPlaybackManagerService{}
+
+		model := NewModel(&browser, &playbackManager)
+		model.state = searchState
+
+		msg := tea.WindowSizeMsg{Width: 100, Height: 100}
+
+		newModel, cmd := model.Update(tea.Msg(msg))
+
+		assert.Equal(t, 100, newModel.(Model).searchModel.width)
+		assert.Equal(t, 98 /* -2 for top and bottom bars */, newModel.(Model).searchModel.height)
+
+		assert.Nil(t, cmd)
+
+	})
+
+	t.Run("propagates adjusted terminal size changes to ErrorModel if active", func(t *testing.T) {
+
+		browser := mocks.MockRadioBrowserService{}
+		playbackManager := mocks.MockPlaybackManagerService{}
+
+		model := NewModel(&browser, &playbackManager)
+		model.state = errorState
+
+		msg := tea.WindowSizeMsg{Width: 100, Height: 100}
+
+		newModel, cmd := model.Update(tea.Msg(msg))
+
+		assert.Equal(t, 100, newModel.(Model).errorModel.width)
+		assert.Equal(t, 98 /* -2 for top and bottom bars */, newModel.(Model).errorModel.height)
+
+		assert.Nil(t, cmd)
+
+	})
+
+	t.Run("propagates adjusted terminal size changes to LoadingModel if active", func(t *testing.T) {
+
+		browser := mocks.MockRadioBrowserService{}
+		playbackManager := mocks.MockPlaybackManagerService{}
+
+		model := NewModel(&browser, &playbackManager)
+		model.state = loadingState
+
+		msg := tea.WindowSizeMsg{Width: 100, Height: 100}
+
+		newModel, cmd := model.Update(tea.Msg(msg))
+
+		assert.Equal(t, 100, newModel.(Model).loadingModel.width)
+		assert.Equal(t, 98 /* -2 for top and bottom bars */, newModel.(Model).loadingModel.height)
+
+		assert.Nil(t, cmd)
+
+	})
+
+	t.Run("propagates adjusted terminal size changes to StationsModel if active", func(t *testing.T) {
+
+		browser := mocks.MockRadioBrowserService{}
+		playbackManager := mocks.MockPlaybackManagerService{}
+
+		model := NewModel(&browser, &playbackManager)
+		model.state = stationsState
+
+		msg := tea.WindowSizeMsg{Width: 100, Height: 100}
+
+		newModel, cmd := model.Update(tea.Msg(msg))
+
+		assert.Equal(t, 100, newModel.(Model).stationsModel.width)
+		assert.Equal(t, 98 /* -2 for top and bottom bars */, newModel.(Model).stationsModel.height)
+
+		assert.Nil(t, cmd)
+
+	})
+
 	t.Run("broadcasts a tea.QuitMsg command if a quitMsg is received", func(t *testing.T) {
 
 		browser := mocks.MockRadioBrowserService{}

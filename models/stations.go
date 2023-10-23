@@ -242,6 +242,9 @@ func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			return m, nil
 		case "enter":
+			if len(m.stations) == 0 {
+				return m, nil
+			}
 			station := m.stations[m.stationsTable.Cursor()]
 			return m, playStationCmd(m.playbackManager, station, m.volume)
 		}
@@ -278,7 +281,7 @@ func (m StationsModel) View() string {
 	}
 
 	var v string
-	if len(m.stationsTable.Rows()) == 0 {
+	if len(m.stations) == 0 {
 		v = fmt.Sprintf(
 			"\n%s\n\n%s\n",
 			assets.NoStations,

@@ -20,8 +20,13 @@
 package models
 
 import (
+	"fmt"
+	"radiogogo/data"
+
 	"github.com/charmbracelet/lipgloss"
 )
+
+// Header
 
 const (
 	primaryColor   = "#5a4f9f"
@@ -29,6 +34,28 @@ const (
 	tertiaryColor  = "#4e4e4e"
 	errorColor     = "#ff0000"
 )
+
+// Header returns a string containing the styled header and version of the application.
+func Header() string {
+	headerStyle := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("white")).
+		Background(lipgloss.Color(primaryColor)).
+		PaddingLeft(2).
+		PaddingRight(2)
+
+	versionStyle := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("white")).
+		Background(lipgloss.Color(secondaryColor)).
+		PaddingLeft(2).
+		PaddingRight(2)
+
+	header := headerStyle.Render("radiogogo")
+	version := versionStyle.Render(fmt.Sprintf("v%s", data.Version))
+
+	return header + version + "\n"
+}
+
+// Styles
 
 func StyleBottomBar(commands []string) string {
 
