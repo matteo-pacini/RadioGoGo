@@ -20,8 +20,9 @@
 package models
 
 import (
-	"radiogogo/mocks"
 	"testing"
+
+	"github.com/zi0p4tch0/radiogogo/mocks"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/stretchr/testify/assert"

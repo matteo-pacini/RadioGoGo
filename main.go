@@ -22,7 +22,8 @@ package main
 import (
 	"fmt"
 	"os"
-	"radiogogo/models"
+
+	"github.com/zi0p4tch0/radiogogo/models"
 
 	tea "github.com/charmbracelet/bubbletea"
 )

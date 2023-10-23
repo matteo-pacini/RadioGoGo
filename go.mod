@@ -1,4 +1,4 @@
-module radiogogo
+module github.com/zi0p4tch0/radiogogo
 
 go 1.18
 

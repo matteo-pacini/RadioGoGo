@@ -24,10 +24,11 @@ import (
 	"errors"
 	"io"
 	"net/http"
-	"radiogogo/common"
-	"radiogogo/data"
-	"radiogogo/mocks"
 	"testing"
+
+	"github.com/zi0p4tch0/radiogogo/common"
+	"github.com/zi0p4tch0/radiogogo/data"
+	"github.com/zi0p4tch0/radiogogo/mocks"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"

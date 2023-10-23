@@ -21,9 +21,10 @@ package models
 
 import (
 	"fmt"
-	"radiogogo/assets"
-	"radiogogo/common"
 	"strings"
+
+	"github.com/zi0p4tch0/radiogogo/assets"
+	"github.com/zi0p4tch0/radiogogo/common"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"

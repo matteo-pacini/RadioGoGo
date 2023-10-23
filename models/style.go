@@ -21,7 +21,8 @@ package models
 
 import (
 	"fmt"
-	"radiogogo/data"
+
+	"github.com/zi0p4tch0/radiogogo/data"
 
 	"github.com/charmbracelet/lipgloss"
 )

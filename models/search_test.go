@@ -20,8 +20,9 @@
 package models
 
 import (
-	"radiogogo/common"
 	"testing"
+
+	"github.com/zi0p4tch0/radiogogo/common"
 
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"

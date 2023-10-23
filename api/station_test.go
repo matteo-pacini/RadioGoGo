@@ -21,8 +21,9 @@ package api
 
 import (
 	"encoding/json"
-	"radiogogo/common"
 	"testing"
+
+	"github.com/zi0p4tch0/radiogogo/common"
 
 	"github.com/stretchr/testify/assert"
 )

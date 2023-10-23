@@ -21,9 +21,11 @@ package models
 
 import (
 	"io"
-	"radiogogo/common"
-	"radiogogo/mocks"
 	"testing"
+
+	"github.com/zi0p4tch0/radiogogo/common"
+
+	"github.com/zi0p4tch0/radiogogo/mocks"
 
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"

@@ -22,7 +22,8 @@ package playback
 import (
 	"fmt"
 	"os/exec"
-	"radiogogo/common"
+
+	"github.com/zi0p4tch0/radiogogo/common"
 )
 
 // PlaybackManagerService is an interface that defines methods for managing playback of a radio station.

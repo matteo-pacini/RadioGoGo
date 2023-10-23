@@ -25,8 +25,9 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"radiogogo/common"
-	"radiogogo/data"
+
+	"github.com/zi0p4tch0/radiogogo/common"
+	"github.com/zi0p4tch0/radiogogo/data"
 )
 
 type RadioBrowserService interface {

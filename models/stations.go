@@ -21,11 +21,12 @@ package models
 
 import (
 	"fmt"
-	"radiogogo/api"
-	"radiogogo/assets"
-	"radiogogo/common"
-	"radiogogo/playback"
 	"time"
+
+	"github.com/zi0p4tch0/radiogogo/api"
+	"github.com/zi0p4tch0/radiogogo/assets"
+	"github.com/zi0p4tch0/radiogogo/common"
+	"github.com/zi0p4tch0/radiogogo/playback"
 
 	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/table"

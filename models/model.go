@@ -20,9 +20,9 @@
 package models
 
 import (
-	"radiogogo/api"
-	"radiogogo/common"
-	"radiogogo/playback"
+	"github.com/zi0p4tch0/radiogogo/api"
+	"github.com/zi0p4tch0/radiogogo/common"
+	"github.com/zi0p4tch0/radiogogo/playback"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"

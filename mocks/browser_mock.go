@@ -19,7 +19,7 @@
 
 package mocks
 
-import "radiogogo/common"
+import "github.com/zi0p4tch0/radiogogo/common"
 
 type MockRadioBrowserService struct {
 	GetStationsFunc func(
