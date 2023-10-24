@@ -114,9 +114,29 @@ doas pkg_add ffmpeg
 
 Ensure you have [Go](https://golang.org/dl/) installed (version 1.18 or later).
 
+To install RadioGoGo:
+
 ```bash
 go install github.com/zi0p4tch0/radiogogo@latest
 ```
+
+#### For Linux/macOS/\*BSD:
+
+To make sure `radiogogo` is available in your terminal, you might need to add the Go binary path to your system's PATH:
+
+```bash
+export PATH=$PATH:$(go env GOPATH)/bin
+```
+
+#### For Windows:
+
+After installation, you might need to add the Go binary path to your system's PATH to run `radiogogo` from the Command Prompt. You can do this manually through the System Properties → Environment Variables, or run the following in Command Prompt:
+
+```bash
+setx PATH "%PATH%;%USERPROFILE%\go\bin"
+```
+
+Now, you can launch `radiogogo` directly from your terminal or Command Prompt.
 
 ### Downloading the Binary
 
