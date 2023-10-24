@@ -22,6 +22,7 @@ package playback
 import (
 	"fmt"
 	"os/exec"
+	"runtime"
 
 	"github.com/zi0p4tch0/radiogogo/common"
 )
@@ -74,11 +75,20 @@ func (d *PlaybackManagerServiceImpl) PlayStation(station common.Station, volume 
 
 func (d *PlaybackManagerServiceImpl) StopStation() error {
 	if d.nowPlaying != nil {
-		err := d.nowPlaying.Process.Kill()
-		if err != nil {
-			return err
+		if runtime.GOOS == "windows" {
+			// On Windows, use taskkill to ensure all child processes are also killed.
+			killCmd := exec.Command("taskkill", "/T", "/F", "/PID", fmt.Sprintf("%d", d.nowPlaying.Process.Pid))
+			if err := killCmd.Run(); err != nil {
+				return err
+			}
+		} else {
+			// On other platforms, just use the normal Kill method.
+			if err := d.nowPlaying.Process.Kill(); err != nil {
+				return err
+			}
 		}
-		_, err = d.nowPlaying.Process.Wait()
+
+		_, err := d.nowPlaying.Process.Wait()
 		if err != nil {
 			return err
 		}
