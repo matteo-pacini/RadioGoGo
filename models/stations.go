@@ -102,6 +102,8 @@ func newStationsTableModel(theme Theme, stations []common.Station) table.Model {
 		BorderForeground(lipgloss.Color(theme.TextColor())).
 		BorderBottom(true).
 		Bold(false)
+	s.Cell = s.Cell.
+		Foreground(lipgloss.Color(theme.TextColor()))
 	s.Selected = s.Selected.
 		Foreground(lipgloss.Color(theme.TextColor())).
 		Background(lipgloss.Color(theme.PrimaryColor())).
