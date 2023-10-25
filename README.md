@@ -189,14 +189,6 @@ OpenBSD:
 doas pkg_add mpv
 ```
 
-### Terminals for an optimal RadioGoGo experience:
-
-- **Windows:** For a smooth experience on Windows, consider using [Windows Terminal](https://aka.ms/terminal). It offers multiple tabs, a GPU-accelerated text rendering engine, and a rich set of customization options. If you're fond of UNIX-like environments, [WSL (Windows Subsystem for Linux)](https://docs.microsoft.com/en-us/windows/wsl/) combined with Windows Terminal can be a powerful duo.
-
-- **Linux:** On Linux, most modern terminals should work well with RadioGoGo. However, [Alacritty](https://github.com/alacritty/alacritty), a GPU-accelerated terminal, and [Terminator](https://gnometerminator.blogspot.com/p/introduction.html), known for its flexibility, stand out as exceptional choices. Both offer great performance and customization options to enhance your TUI experience.
-
-- **macOS:** On macOS, while the default Terminal.app should work fine, you might want to explore [iTerm2](https://iterm2.com/) for its advanced features, superior performance, and extensive customization options. iTerm2's integration with macOS makes it a preferred choice for many users.
-
 ### Installing via Go
 
 Ensure you have [Go](https://golang.org/dl/) installed (version 1.18 or later).
@@ -238,6 +230,14 @@ Launch RadioGoGo by executing the following command:
 ```bash
 radiogogo
 ```
+
+### Terminals for an optimal RadioGoGo experience:
+
+- **Windows:** For a smooth experience on Windows, consider using [Windows Terminal](https://aka.ms/terminal). It offers multiple tabs, a GPU-accelerated text rendering engine, and a rich set of customization options. If you're fond of UNIX-like environments, [WSL (Windows Subsystem for Linux)](https://docs.microsoft.com/en-us/windows/wsl/) combined with Windows Terminal can be a powerful duo.
+
+- **Linux:** On Linux, most modern terminals should work well with RadioGoGo. However, [Alacritty](https://github.com/alacritty/alacritty), a GPU-accelerated terminal, and [Terminator](https://gnometerminator.blogspot.com/p/introduction.html), known for its flexibility, stand out as exceptional choices. Both offer great performance and customization options to enhance your TUI experience.
+
+- **macOS:** On macOS, while the default Terminal.app should work fine, you might want to explore [iTerm2](https://iterm2.com/) for its advanced features, superior performance, and extensive customization options. iTerm2's integration with macOS makes it a preferred choice for many users.
 
 ## Configuration
 

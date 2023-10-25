@@ -156,8 +156,6 @@ func (radioBrowser *RadioBrowserImpl) GetStations(
 
 func (radioBrowser *RadioBrowserImpl) ClickStation(station common.Station) (common.ClickStationResponse, error) {
 
-	// POST json/url/stationuuid
-
 	url := radioBrowser.baseUrl.JoinPath("/url/" + station.StationUuid.String())
 
 	headers := make(map[string]string)
