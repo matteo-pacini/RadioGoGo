@@ -74,7 +74,7 @@ func checkIfPlaybackIsPossibleCmd(playbackManager playback.PlaybackManagerServic
 	return func() tea.Msg {
 		if !playbackManager.IsAvailable() {
 			return switchToErrorModelMsg{
-				err: `RadioGoGo requires "ffplay" (part of "ffmpeg") to be installed and available in your PATH.`,
+				err: playbackManager.NotAvailableErrorString(),
 			}
 		}
 		return switchToSearchModelMsg{}
@@ -110,7 +110,12 @@ func NewDefaultModel(config config.Config) (Model, error) {
 		return Model{}, err
 	}
 
-	playbackManager := playback.NewPlaybackManager()
+	var playbackManager playback.PlaybackManagerService
+	if config.PlaybackEngine == playback.FFPlay {
+		playbackManager = playback.NewFFPlaybackManager()
+	} else {
+		playbackManager = playback.NewMPVbackManager()
+	}
 
 	return NewModel(config, browser, playbackManager), nil
 
@@ -214,7 +219,7 @@ func (m Model) View() string {
 
 	var view string
 
-	view = m.theme.Header()
+	view = m.theme.Header(m.playbackManager)
 
 	var currentView string
 

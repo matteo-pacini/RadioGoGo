@@ -20,17 +20,17 @@
 package playback
 
 import (
-	"fmt"
-	"os/exec"
-	"runtime"
-
 	"github.com/zi0p4tch0/radiogogo/common"
 )
 
 // PlaybackManagerService is an interface that defines methods for managing playback of a radio station.
 type PlaybackManagerService interface {
+	// Name returns the name of the playback manager.
+	Name() string
 	// IsAvailable returns true if the playback manager is available for use.
 	IsAvailable() bool
+	// NotAvailableErrorString returns a string that describes why the playback manager is not available.
+	NotAvailableErrorString() string
 	// IsPlaying returns true if a radio station is currently being played.
 	IsPlaying() bool
 	// PlayStation starts playing the specified radio station at the given volume.
@@ -39,60 +39,4 @@ type PlaybackManagerService interface {
 	// StopStation stops the currently playing radio station.
 	// If no radio station is being played, this method does nothing.
 	StopStation() error
-}
-
-// PlaybackManagerServiceImpl is a PlaybackManager that uses ffplay to play radio stations.
-type PlaybackManagerServiceImpl struct {
-	nowPlaying *exec.Cmd
-}
-
-func NewPlaybackManager() PlaybackManagerService {
-	return &PlaybackManagerServiceImpl{}
-}
-
-func (d PlaybackManagerServiceImpl) IsPlaying() bool {
-	return d.nowPlaying != nil
-}
-
-func (d PlaybackManagerServiceImpl) IsAvailable() bool {
-	_, err := exec.LookPath("ffplay")
-	return err == nil
-}
-
-func (d *PlaybackManagerServiceImpl) PlayStation(station common.Station, volume int) error {
-	err := d.StopStation()
-	if err != nil {
-		return err
-	}
-	cmd := exec.Command("ffplay", "-nodisp", "-volume", fmt.Sprintf("%d", volume), station.Url.URL.String())
-	err = cmd.Start()
-	if err != nil {
-		return err
-	}
-	d.nowPlaying = cmd
-	return nil
-}
-
-func (d *PlaybackManagerServiceImpl) StopStation() error {
-	if d.nowPlaying != nil {
-		if runtime.GOOS == "windows" {
-			// On Windows, use taskkill to ensure all child processes are also killed.
-			killCmd := exec.Command("taskkill", "/T", "/F", "/PID", fmt.Sprintf("%d", d.nowPlaying.Process.Pid))
-			if err := killCmd.Run(); err != nil {
-				return err
-			}
-		} else {
-			// On other platforms, just use the normal Kill method.
-			if err := d.nowPlaying.Process.Kill(); err != nil {
-				return err
-			}
-		}
-
-		_, err := d.nowPlaying.Process.Wait()
-		if err != nil {
-			return err
-		}
-		d.nowPlaying = nil
-	}
-	return nil
 }

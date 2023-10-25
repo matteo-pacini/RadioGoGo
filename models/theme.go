@@ -24,6 +24,7 @@ import (
 
 	"github.com/zi0p4tch0/radiogogo/config"
 	"github.com/zi0p4tch0/radiogogo/data"
+	"github.com/zi0p4tch0/radiogogo/playback"
 
 	"github.com/charmbracelet/lipgloss"
 )
@@ -59,7 +60,7 @@ func (t Theme) ErrorColor() string {
 }
 
 // Header returns a string containing the styled header and version of the application.
-func (t Theme) Header() string {
+func (t Theme) Header(playbackManager playback.PlaybackManagerService) string {
 	headerStyle := lipgloss.NewStyle().
 		Foreground(lipgloss.Color(t.TextColor())).
 		Background(lipgloss.Color(t.PrimaryColor())).
@@ -74,8 +75,9 @@ func (t Theme) Header() string {
 
 	header := headerStyle.Render("radiogogo")
 	version := versionStyle.Render(fmt.Sprintf("v%s", data.Version))
+	engine := headerStyle.Render("Playback engine: " + playbackManager.Name())
 
-	return header + version + "\n"
+	return header + version + engine + "\n"
 }
 
 // StyleBottomBar returns a string representing the styled bottom bar of the given Theme.

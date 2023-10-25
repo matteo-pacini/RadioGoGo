@@ -22,14 +22,24 @@ package mocks
 import "github.com/zi0p4tch0/radiogogo/common"
 
 type MockPlaybackManagerService struct {
-	IsAvailableResult bool
-	IsPlayingResult   bool
-	PlayStationFunc   func(station common.Station, volume int) error
-	StopStationFunc   func() error
+	NameResult                    string
+	IsAvailableResult             bool
+	NotAvailableErrorStringResult string
+	IsPlayingResult               bool
+	PlayStationFunc               func(station common.Station, volume int) error
+	StopStationFunc               func() error
 }
 
 func (m *MockPlaybackManagerService) IsAvailable() bool {
 	return m.IsAvailableResult
+}
+
+func (m *MockPlaybackManagerService) Name() string {
+	return m.NameResult
+}
+
+func (m *MockPlaybackManagerService) NotAvailableErrorString() string {
+	return m.NotAvailableErrorStringResult
 }
 
 func (m *MockPlaybackManagerService) IsPlaying() bool {

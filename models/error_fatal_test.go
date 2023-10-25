@@ -46,7 +46,7 @@ func TestErrorModel_Update(t *testing.T) {
 
 	model := NewErrorModel(Theme{}, "this is an error")
 
-	t.Run("broadcasts a quitMsg whe 'q' is pressed", func(t *testing.T) {
+	t.Run("broadcasts a quitMsg when 'q' is pressed", func(t *testing.T) {
 
 		input := tea.Msg(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("q")})
 

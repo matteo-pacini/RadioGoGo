@@ -23,11 +23,13 @@ import (
 	"errors"
 	"os"
 
+	"github.com/zi0p4tch0/radiogogo/playback"
 	"gopkg.in/yaml.v3"
 )
 
 type Config struct {
-	Theme struct {
+	PlaybackEngine playback.PlaybackEngineType `yaml:"playbackEngine"`
+	Theme          struct {
 		TextColor      string `yaml:"textColor"`
 		PrimaryColor   string `yaml:"primaryColor"`
 		SecondaryColor string `yaml:"secondaryColor"`
@@ -39,6 +41,7 @@ type Config struct {
 // NewDefaultConfig returns a Config struct with default values for RadioGoGo.
 func NewDefaultConfig() Config {
 	return Config{
+		PlaybackEngine: playback.FFPlay,
 		Theme: struct {
 			TextColor      string `yaml:"textColor"`
 			PrimaryColor   string `yaml:"primaryColor"`

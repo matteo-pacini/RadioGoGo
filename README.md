@@ -21,7 +21,7 @@ Let's Go 🚀!
 - Sleek and intuitive TUI that's a joy to navigate.
 - Search, browse, and play radio stations from a vast global database.
 - Enjoy cross-platform compatibility, because radio waves know no bounds.
-- Integrated playback using `ffplay`.
+- Integrated playback using either `ffplay` or `mpv`. Customize your playback preference in the configuration.
 
 ## 📋 Upcoming Features
 
@@ -30,76 +30,163 @@ Let's Go 🚀!
 - Vote stations.
 - Bookmark your favorite stations for easy access.
 - Record your favorite broadcasts for later listening.
-- Alternative playback using `mpv`.
 
 ## ⚒️ Installation
 
-### Dependencies: Installing FFmpeg
+### Dependencies: 
 
-For seamless playback, ensure `ffplay` is installed:
+For seamless playback, ensure you have either `ffplay` or `mpv` installed:
 
-#### Windows:
+#### FFmpeg
 
-Download FFmpeg from the [official website](https://ffmpeg.org/download.html) and add it to your system's PATH.
+##### Windows:
 
-It can also be installed via [Chocolatey](https://chocolatey.org/) or [Scoop](https://scoop.sh/).
+Download FFmpeg from the [official website](https://ffmpeg.org/download.html) and add it to your system's PATH. For those unfamiliar with adding to the PATH, you might want to consult a guide or search for instructions specific to your version of Windows.
 
+It can be installed via [Chocolatey](https://chocolatey.org/):
 
-#### Linux:
+```
+choco install ffmpeg
+```
 
-##### For apt-based distros (like Ubuntu and Debian):
+Or [Scoop](https://scoop.sh/):
 
-```bash
+```
+scoop install ffmpeg
+```
+
+##### Linux:
+
+For apt-based distros (like Ubuntu and Debian):
+
+```
 sudo apt update
 sudo apt install ffmpeg
 ```
 
-##### For dnf-based distros (like Fedora):
+For users of dnf-based distros such as Fedora, you may need to enable the RPM Fusion repository first before installing FFmpeg:
 
-```bash
-sudo dnf install ffmpeg
 ```
-
-P.S. If you're using Fedora, you might need to enable the RPM Fusion repository first. You can do so by executing the following command:
-
-```bash
 sudo dnf install https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
 ```
 
-##### For pacman-based distros (like Arch):
+And then:
 
-```bash
+```
+sudo dnf install ffmpeg
+```
+
+For pacman-based distros, such as Arch, you can install FFmpeg using the following command:
+
+```
 sudo pacman -S ffmpeg
 ```
 
-##### For Gentoo:
+For Gentoo:
 
-```bash
+```
 emerge --ask --quiet --verbose media-video/ffmpeg
 ```
 
-#### macOS:
+##### macOS:
 
-```bash
+For macOS users with Homebrew installed, you can use the following command:
+
+```
 brew install ffmpeg
 ```
 
-#### FreeBSD:
+##### \*BSD:
 
-```bash
+FreeBSD:
+
+```
 pkg install ffmpeg
 ```
 
-#### NetBSD:
+NetBSD:
 
-```bash
+```
 pkg_add ffmpeg
 ```
 
-#### OpenBSD:
+OpenBSD:
 
-```bash
+```
 doas pkg_add ffmpeg
+```
+
+#### mpv
+
+##### Windows:
+
+Download mpv from the [official website](https://mpv.io/installation/) or consider using a package manager.
+
+It can be installed via [Chocolatey](https://chocolatey.org/):
+
+```
+choco install mpv
+```
+
+Or [Scoop](https://scoop.sh/):
+
+```
+scoop install mpv
+```
+
+##### Linux:
+
+For apt-based distros (like Ubuntu and Debian):
+
+```
+sudo apt update
+sudo apt install mpv
+```
+
+For dnf-based distros (like Fedora):
+
+```
+sudo dnf install mpv
+```
+
+For pacman-based distros (like Arch):
+
+```
+sudo pacman -S mpv
+```
+
+For Gentoo:
+
+```
+emerge --ask --quiet --verbose mpv
+```
+
+##### macOS:
+
+For macOS users with Homebrew installed:
+
+```
+brew install mpv
+```
+
+##### \*BSD:
+
+FreeBSD:
+
+```
+pkg install mpv
+```
+
+NetBSD:
+
+```
+pkg_add mpv
+```
+
+OpenBSD:
+
+```
+doas pkg_add mpv
 ```
 
 ### Terminals for an optimal RadioGoGo experience:
@@ -152,15 +239,28 @@ Launch RadioGoGo by executing the following command:
 radiogogo
 ```
 
-## 🎨 Customizing App Theme
-
-Personalize the look of RadioGoGo to match your style! 
-
-The application supports theme customization, which allows you to change various color attributes to give the TUI a fresh appearance.
+## Configuration
 
 **Config File Location:**
 - **Windows:** `%LOCALAPPDATA%\radiogogo\config.yaml`
 - **Other Platforms:** `~/.config/radiogogo/config.yaml`
+
+It gets created automatically when you launch the app for the first time.
+
+### Playback Engine
+
+By default, RadioGoGo uses `ffplay` for playback. If you wish to use `mpv` instead, adjust the `playbackEngine` configuration.
+
+```yaml
+playbackEngine: "mpv" # or "ffplay"
+```
+
+
+### 🎨 Customizing App Theme
+
+Personalize the look of RadioGoGo to match your style! 
+
+The application supports theme customization, which allows you to change various color attributes to give the TUI a fresh appearance.
 
 The configuration file is automatically created when the app is launched for the first time if it doesn't already exist.
 
@@ -208,6 +308,10 @@ However, I am actively aware of this challenge and am planning to introduce a fe
 
 ### How do I adjust the volume in RadioGoGo?
 Volume controls in RadioGoGo are set before initiating playback. This is because the volume level is passed as a command line argument to `ffplay`. As of now, once the playback has started, adjusting the volume within RadioGoGo isn't supported. To change the volume during an ongoing playback, you'd have to stop (`ctrl+k`) and restart the stream.
+
+## Who is talking about RadioGoGo?
+
+- Mentioned on [Golang Weekly Issue 481](https://golangweekly.com/issues/481)!
 
 ## ❤️ Contributing
 
