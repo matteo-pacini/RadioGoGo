@@ -22,31 +22,53 @@ package models
 import (
 	"fmt"
 
+	"github.com/zi0p4tch0/radiogogo/config"
 	"github.com/zi0p4tch0/radiogogo/data"
 
 	"github.com/charmbracelet/lipgloss"
 )
 
-// Header
+// Theme represents a style configuration for the application.
+type Theme struct {
+	config config.Config
+}
 
-const (
-	primaryColor   = "#5a4f9f"
-	secondaryColor = "#8b77db"
-	tertiaryColor  = "#4e4e4e"
-	errorColor     = "#ff0000"
-)
+// PrimaryColor returns the primary color of the given theme.
+func (t Theme) PrimaryColor() string {
+	return t.config.Theme.PrimaryColor
+}
+
+// SecondaryColor returns the secondary color of the given theme.
+func (t Theme) SecondaryColor() string {
+	return t.config.Theme.SecondaryColor
+}
+
+// TertiaryColor returns the tertiary color of the given theme.
+func (t Theme) TertiaryColor() string {
+	return t.config.Theme.TertiaryColor
+}
+
+// TextColor returns the text color for the given theme.
+func (t Theme) TextColor() string {
+	return t.config.Theme.TextColor
+}
+
+// ErrorColor returns the error color for the given theme.
+func (t Theme) ErrorColor() string {
+	return t.config.Theme.ErrorColor
+}
 
 // Header returns a string containing the styled header and version of the application.
-func Header() string {
+func (t Theme) Header() string {
 	headerStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("white")).
-		Background(lipgloss.Color(primaryColor)).
+		Foreground(lipgloss.Color(t.TextColor())).
+		Background(lipgloss.Color(t.PrimaryColor())).
 		PaddingLeft(2).
 		PaddingRight(2)
 
 	versionStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("white")).
-		Background(lipgloss.Color(secondaryColor)).
+		Foreground(lipgloss.Color(t.TextColor())).
+		Background(lipgloss.Color(t.SecondaryColor())).
 		PaddingLeft(2).
 		PaddingRight(2)
 
@@ -56,23 +78,27 @@ func Header() string {
 	return header + version + "\n"
 }
 
-// Styles
-
-func StyleBottomBar(commands []string) string {
+// StyleBottomBar returns a string representing the styled bottom bar of the given Theme.
+// It takes a slice of strings representing the commands to be displayed in the bottom bar.
+// The function iterates over the commands and applies a different style to each one based on its index.
+// If the index is even, the command is styled with the primary color of the Theme as background.
+// If the index is odd, the command is styled with the secondary color of the Theme as background.
+// The styled commands are concatenated into a single string and returned.
+func (t Theme) StyleBottomBar(commands []string) string {
 
 	var bottomBar string
 	for i, command := range commands {
 		if i%2 == 0 {
 			bottomBar += lipgloss.NewStyle().
-				Foreground(lipgloss.Color("white")).
-				Background(lipgloss.Color(primaryColor)).
+				Foreground(lipgloss.Color(t.TextColor())).
+				Background(lipgloss.Color(t.PrimaryColor())).
 				PaddingLeft(2).
 				PaddingRight(2).
 				Render(command)
 		} else {
 			bottomBar += lipgloss.NewStyle().
-				Foreground(lipgloss.Color("white")).
-				Background(lipgloss.Color(secondaryColor)).
+				Foreground(lipgloss.Color(t.TextColor())).
+				Background(lipgloss.Color(t.SecondaryColor())).
 				PaddingLeft(2).
 				PaddingRight(2).
 				Render(command)
@@ -82,29 +108,42 @@ func StyleBottomBar(commands []string) string {
 
 }
 
-func StyleSetForegroundPrimary(input string, bold bool) string {
+// StyleSetForegroundText returns a string with the input text styled with the text color of the Theme.
+func (t Theme) StyleSetForegroundText(input string) string {
 	return lipgloss.NewStyle().
-		Foreground(lipgloss.Color(primaryColor)).
+		Foreground(lipgloss.Color(t.TextColor())).
+		Render(input)
+}
+
+// StyleSetForegroundPrimary returns a string with the input text styled with the primary color of the Theme.
+// If the bold parameter is true, the text is also styled as bold.
+func (t Theme) StyleSetForegroundPrimary(input string, bold bool) string {
+	return lipgloss.NewStyle().
+		Foreground(lipgloss.Color(t.PrimaryColor())).
 		Bold(bold).
 		Render(input)
 }
 
-func StyleSetForegroundSecondary(input string, bold bool) string {
+// StyleSetForegroundSecondary returns a string with the input text styled with the secondary color of the Theme.
+// If the bold parameter is true, the text is also styled as bold.
+func (t Theme) StyleSetForegroundSecondary(input string, bold bool) string {
 	return lipgloss.NewStyle().
-		Foreground(lipgloss.Color(secondaryColor)).
+		Foreground(lipgloss.Color(t.SecondaryColor())).
 		Bold(bold).
 		Render(input)
 }
 
-func StyleSetForegroundTertiary(input string) string {
+// StyleSetForegroundTertiary returns a string with the input text styled with the tertiary color of the Theme.
+func (t Theme) StyleSetForegroundTertiary(input string) string {
 	return lipgloss.NewStyle().
-		Foreground(lipgloss.Color(tertiaryColor)).
+		Foreground(lipgloss.Color(t.TertiaryColor())).
 		Render(input)
 }
 
-func StyleSetError(input string) string {
+// StyleSetForegroundError returns a string with the input text styled with the error color of the Theme.
+func (t Theme) StyleSetForegroundError(input string) string {
 	return lipgloss.NewStyle().
-		Foreground(lipgloss.Color(errorColor)).
+		Foreground(lipgloss.Color(t.ErrorColor())).
 		Bold(true).
 		Render(input)
 }

@@ -22,6 +22,7 @@ package models
 import (
 	"github.com/zi0p4tch0/radiogogo/api"
 	"github.com/zi0p4tch0/radiogogo/common"
+	"github.com/zi0p4tch0/radiogogo/config"
 	"github.com/zi0p4tch0/radiogogo/playback"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -83,6 +84,10 @@ func checkIfPlaybackIsPossibleCmd(playbackManager playback.PlaybackManagerServic
 // Model
 
 type Model struct {
+
+	// Theme
+	theme Theme
+
 	// Models
 	state             modelState
 	searchModel       SearchModel
@@ -98,7 +103,7 @@ type Model struct {
 	playbackManager playback.PlaybackManagerService
 }
 
-func NewDefaultModel() (Model, error) {
+func NewDefaultModel(config config.Config) (Model, error) {
 
 	browser, err := api.NewRadioBrowser()
 	if err != nil {
@@ -107,15 +112,17 @@ func NewDefaultModel() (Model, error) {
 
 	playbackManager := playback.NewPlaybackManager()
 
-	return NewModel(browser, playbackManager), nil
+	return NewModel(config, browser, playbackManager), nil
 
 }
 
 func NewModel(
+	config config.Config,
 	browser api.RadioBrowserService,
 	playbackManager playback.PlaybackManagerService,
 ) Model {
 	return Model{
+		theme:           Theme{config: config},
 		state:           bootState,
 		browser:         browser,
 		playbackManager: playbackManager,
@@ -158,22 +165,22 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case switchToSearchModelMsg:
-		m.searchModel = NewSearchModel()
+		m.searchModel = NewSearchModel(m.theme)
 		m.searchModel.SetWidthAndHeight(m.width, childHeight)
 		m.state = searchState
 		return m, m.searchModel.Init()
 	case switchToLoadingModelMsg:
-		m.loadingModel = NewLoadingModel(m.browser, msg.query, msg.queryText)
+		m.loadingModel = NewLoadingModel(m.theme, m.browser, msg.query, msg.queryText)
 		m.loadingModel.SetWidthAndHeight(m.width, childHeight)
 		m.state = loadingState
 		return m, m.loadingModel.Init()
 	case switchToStationsModelMsg:
-		m.stationsModel = NewStationsModel(m.browser, m.playbackManager, msg.stations)
+		m.stationsModel = NewStationsModel(m.theme, m.browser, m.playbackManager, msg.stations)
 		m.stationsModel.SetWidthAndHeight(m.width, childHeight)
 		m.state = stationsState
 		return m, m.stationsModel.Init()
 	case switchToErrorModelMsg:
-		m.errorModel = NewErrorModel(msg.err)
+		m.errorModel = NewErrorModel(m.theme, msg.err)
 		m.errorModel.SetWidthAndHeight(m.width, childHeight)
 		m.state = errorState
 		return m, m.errorModel.Init()
@@ -207,7 +214,7 @@ func (m Model) View() string {
 
 	var view string
 
-	view = Header()
+	view = m.theme.Header()
 
 	var currentView string
 
@@ -238,7 +245,7 @@ func (m Model) View() string {
 
 	// Render bottom bar
 
-	view += StyleBottomBar(m.bottomBarCommands)
+	view += m.theme.StyleBottomBar(m.bottomBarCommands)
 
 	return view
 }

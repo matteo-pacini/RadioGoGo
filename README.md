@@ -152,6 +152,46 @@ Launch RadioGoGo by executing the following command:
 radiogogo
 ```
 
+## 🎨 Customizing App Theme
+
+Personalize the look of RadioGoGo to match your style! 
+
+The application supports theme customization, which allows you to change various color attributes to give the TUI a fresh appearance.
+
+**Config File Location:**
+- **Windows:** `%LOCALAPPDATA%\radiogogo\config.yaml`
+- **Other Platforms:** `~/.config/radiogogo/config.yaml`
+
+The configuration file is automatically created when the app is launched for the first time if it doesn't already exist.
+
+**Default Theme Configuration:**
+```yaml
+theme:
+    textColor: '#ffffff'
+    primaryColor: '#5a4f9f'
+    secondaryColor: '#8b77db'
+    tertiaryColor: '#4e4e4e'
+    errorColor: '#ff0000'
+```
+
+Adjust the color values in the configuration to your liking and relaunch the app to see the changes take effect.
+
+Here's another theme configuration to give you an idea of how you can customize the app's appearance:
+
+```yaml
+theme:
+    textColor: '#f0e6e6'
+    primaryColor: '#c41230'
+    secondaryColor: '#e4414f'
+    tertiaryColor: '#f58b8d'
+    errorColor: '#ff0000'
+```
+
+How it looks:
+
+<img src="./screen3.png" alt="RadioGoGo Search View" width="500" height="320">
+<img src="./screen4.png" alt="RadioGoGo Station List View" width="500" height="320">
+
 ## 🤔 FAQ
 
 ### I selected a radio station but there's no audio. What's happening?

@@ -29,6 +29,8 @@ import (
 )
 
 type LoadingModel struct {
+	theme Theme
+
 	spinnerModel spinner.Model
 	query        common.StationQuery
 	queryText    string
@@ -38,13 +40,19 @@ type LoadingModel struct {
 	browser api.RadioBrowserService
 }
 
-func NewLoadingModel(browser api.RadioBrowserService, query common.StationQuery, queryText string) LoadingModel {
+func NewLoadingModel(
+	theme Theme,
+	browser api.RadioBrowserService,
+	query common.StationQuery,
+	queryText string,
+) LoadingModel {
 
 	s := spinner.New()
 	s.Spinner = spinner.Dot
-	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color(secondaryColor))
+	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color(theme.SecondaryColor()))
 
 	return LoadingModel{
+		theme:        theme,
 		spinnerModel: s,
 		query:        query,
 		queryText:    queryText,

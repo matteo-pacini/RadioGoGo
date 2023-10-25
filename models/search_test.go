@@ -33,7 +33,7 @@ func TestSearchModel_Init(t *testing.T) {
 
 	t.Run("starts blinking the input field cursor", func(t *testing.T) {
 
-		model := NewSearchModel()
+		model := NewSearchModel(Theme{})
 
 		cmd := model.Init()
 		assert.NotNil(t, cmd)
@@ -55,7 +55,7 @@ func TestSearchModel_Init(t *testing.T) {
 
 	t.Run("broadcasts a bottomBarUpdateMsg", func(t *testing.T) {
 
-		model := NewSearchModel()
+		model := NewSearchModel(Theme{})
 
 		cmd := model.Init()
 		assert.NotNil(t, cmd)
@@ -87,7 +87,7 @@ func TestSearchModel_Update(t *testing.T) {
 
 	t.Run("does not broadcast quitMsg when 'q' is pressed and textarea is focused", func(t *testing.T) {
 
-		model := NewSearchModel()
+		model := NewSearchModel(Theme{})
 
 		model.inputModel.Focus()
 		model.querySelector.Blur()
@@ -105,7 +105,7 @@ func TestSearchModel_Update(t *testing.T) {
 
 	t.Run("broadcasts a quitMsg when 'q' is pressed and textarea is not focused", func(t *testing.T) {
 
-		model := NewSearchModel()
+		model := NewSearchModel(Theme{})
 
 		model.inputModel.Blur()
 		model.querySelector.Focus()
@@ -123,7 +123,7 @@ func TestSearchModel_Update(t *testing.T) {
 
 	t.Run("broadcasts a switchToLoadingModelMsg when 'enter' is pressed, propagating text area value", func(t *testing.T) {
 
-		model := NewSearchModel()
+		model := NewSearchModel(Theme{})
 		model.inputModel.SetValue("fancy value")
 
 		input := tea.KeyMsg{Type: tea.KeyEnter}
@@ -142,7 +142,7 @@ func TestSearchModel_Update(t *testing.T) {
 
 	t.Run("ignores 'enter' when is not in focus", func(t *testing.T) {
 
-		model := NewSearchModel()
+		model := NewSearchModel(Theme{})
 		model.inputModel.SetValue("fancy value")
 		model.inputModel.Blur()
 
@@ -155,7 +155,7 @@ func TestSearchModel_Update(t *testing.T) {
 
 	t.Run("cycles focused input when 'tab' is pressed and updates bottom bar", func(t *testing.T) {
 
-		model := NewSearchModel()
+		model := NewSearchModel(Theme{})
 
 		input := tea.KeyMsg{Type: tea.KeyTab}
 

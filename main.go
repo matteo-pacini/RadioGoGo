@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/zi0p4tch0/radiogogo/config"
 	"github.com/zi0p4tch0/radiogogo/models"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -30,17 +31,30 @@ import (
 
 func main() {
 
-	model, err := models.NewDefaultModel()
+	// Create config
+
+	cfg := config.NewDefaultConfig()
+	err := cfg.LoadOrCreateNew()
 
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error initializing model: %v", err)
+		fmt.Fprintf(os.Stderr, "Error loading config: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Using default config\n")
+		cfg = config.NewDefaultConfig()
+	}
+
+	// Create model
+
+	model, err := models.NewDefaultModel(cfg)
+
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error initializing model: %v\n", err)
 		os.Exit(1)
 	}
 
 	p := tea.NewProgram(model, tea.WithAltScreen())
 
 	if _, err := p.Run(); err != nil {
-		fmt.Fprintf(os.Stderr, "Error starting program: %v", err)
+		fmt.Fprintf(os.Stderr, "Error starting program: %v\n", err)
 		os.Exit(1)
 	}
 

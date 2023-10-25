@@ -28,7 +28,7 @@ import (
 
 func TestErrorModel_Init(t *testing.T) {
 
-	model := NewErrorModel("this is an error")
+	model := NewErrorModel(Theme{}, "this is an error")
 
 	t.Run("broadcasts a quitTickMsg", func(t *testing.T) {
 
@@ -44,7 +44,7 @@ func TestErrorModel_Init(t *testing.T) {
 
 func TestErrorModel_Update(t *testing.T) {
 
-	model := NewErrorModel("this is an error")
+	model := NewErrorModel(Theme{}, "this is an error")
 
 	t.Run("broadcasts a quitMsg whe 'q' is pressed", func(t *testing.T) {
 

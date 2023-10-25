@@ -37,7 +37,7 @@ func TestLoadingModel_Init(t *testing.T) {
 	t.Run("starts the spinner", func(t *testing.T) {
 
 		mockBrowser := mocks.MockRadioBrowserService{}
-		model := NewLoadingModel(&mockBrowser, common.StationQueryAll, "text")
+		model := NewLoadingModel(Theme{}, &mockBrowser, common.StationQueryAll, "text")
 
 		cmd := model.Init()
 		assert.NotNil(t, cmd)
@@ -68,7 +68,7 @@ func TestLoadingModel_Init(t *testing.T) {
 			},
 		}
 
-		model := NewLoadingModel(&mockBrowser, common.StationQueryAll, "text")
+		model := NewLoadingModel(Theme{}, &mockBrowser, common.StationQueryAll, "text")
 
 		cmd := model.Init()
 		assert.NotNil(t, cmd)
@@ -99,7 +99,7 @@ func TestLoadingModel_Init(t *testing.T) {
 			},
 		}
 
-		model := NewLoadingModel(&mockBrowser, common.StationQueryAll, "text")
+		model := NewLoadingModel(Theme{}, &mockBrowser, common.StationQueryAll, "text")
 
 		cmd := model.Init()
 		assert.NotNil(t, cmd)

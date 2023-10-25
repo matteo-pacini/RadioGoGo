@@ -24,7 +24,6 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 )
 
 const (
@@ -39,6 +38,8 @@ type quitTickMsg struct{}
 // Model
 
 type ErrorModel struct {
+	theme Theme
+
 	message string
 
 	tickCount int
@@ -46,9 +47,10 @@ type ErrorModel struct {
 	height    int
 }
 
-func NewErrorModel(err string) ErrorModel {
+func NewErrorModel(theme Theme, err string) ErrorModel {
 
 	return ErrorModel{
+		theme:   theme,
 		message: err,
 	}
 
@@ -86,10 +88,7 @@ func (m ErrorModel) View() string {
 
 	message := fmt.Sprintf("%s\n\nQuitting in %d seconds (or press \"q\" to exit now)...", m.message, quitTicks-m.tickCount)
 
-	errorRedStyle :=
-		lipgloss.NewStyle().Foreground(lipgloss.Color("#ff0000"))
-
-	return "\n" + errorRedStyle.Render(message) + "\n\n"
+	return "\n" + m.theme.StyleSetForegroundError(message) + "\n\n"
 
 }
 

@@ -30,14 +30,16 @@ type StringRenderable interface {
 }
 
 type SelectorModel[T StringRenderable] struct {
+	theme     Theme
 	title     string
 	items     []T
 	selection int
 	focus     bool
 }
 
-func NewSelectorModel[T StringRenderable](title string, items []T, initialSelection int) SelectorModel[T] {
+func NewSelectorModel[T StringRenderable](theme Theme, title string, items []T, initialSelection int) SelectorModel[T] {
 	return SelectorModel[T]{
+		theme:     theme,
 		title:     title,
 		items:     items,
 		selection: initialSelection,
@@ -96,19 +98,29 @@ func (m SelectorModel[T]) Update(msg tea.Msg) (SelectorModel[T], tea.Cmd) {
 
 func (m SelectorModel[T]) View() string {
 
-	v := StyleSetForegroundSecondary(m.title, true) + "\n\n"
+	v := m.theme.StyleSetForegroundSecondary(m.title, true) + "\n\n"
 
 	for i, item := range m.items {
 		if i == m.selection {
 			if m.focus {
-				v += fmt.Sprintf("> [%s] ", StyleSetForegroundSecondary("•", false))
+				v += fmt.Sprintf(
+					"%s%s%s ",
+					m.theme.StyleSetForegroundText("> ["),
+					m.theme.StyleSetForegroundSecondary("•", false),
+					m.theme.StyleSetForegroundText("]"),
+				)
 			} else {
-				v += fmt.Sprintf("  [%s] ", StyleSetForegroundSecondary("•", false))
+				v += fmt.Sprintf(
+					"%s%s%s ",
+					m.theme.StyleSetForegroundText("  ["),
+					m.theme.StyleSetForegroundSecondary("•", false),
+					m.theme.StyleSetForegroundText("]"),
+				)
 			}
 		} else {
-			v += "  [ ] "
+			v += m.theme.StyleSetForegroundText("  [ ] ")
 		}
-		v += item.Render()
+		v += m.theme.StyleSetForegroundText(item.Render())
 		v += "\n"
 	}
 
