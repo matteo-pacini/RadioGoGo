@@ -71,3 +71,19 @@ func (d *MPVPlaybackManager) StopStation() error {
 	}
 	return nil
 }
+
+func (d MPVPlaybackManager) VolumeMin() int {
+	return 0
+}
+
+func (d MPVPlaybackManager) VolumeDefault() int {
+	return 100
+}
+
+func (d MPVPlaybackManager) VolumeMax() int {
+	return 200
+}
+
+func (d MPVPlaybackManager) VolumeIsPercentage() bool {
+	return true
+}

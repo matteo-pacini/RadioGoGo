@@ -34,10 +34,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-const (
-	defaultVolume = 80
-)
-
 type StationsModel struct {
 	theme Theme
 
@@ -65,7 +61,7 @@ func NewStationsModel(
 		theme:           theme,
 		stations:        stations,
 		stationsTable:   newStationsTableModel(theme, stations),
-		volume:          defaultVolume,
+		volume:          playbackManager.VolumeDefault(),
 		browser:         browser,
 		playbackManager: playbackManager,
 	}
@@ -163,7 +159,7 @@ func notifyRadioBrowserCmd(browser api.RadioBrowserService, station common.Stati
 	}
 }
 
-func updateCommandsCmd(isPlaying bool, volume int) tea.Cmd {
+func updateCommandsCmd(isPlaying bool, volume int, volumeIsPercentage bool) tea.Cmd {
 	return func() tea.Msg {
 
 		commands := []string{"q: quit", "s: search", "enter: play", "↑/↓: move"}
@@ -171,7 +167,13 @@ func updateCommandsCmd(isPlaying bool, volume int) tea.Cmd {
 		if isPlaying {
 			commands = append(commands, "ctrl+k: stop")
 		} else {
-			commands = append(commands, "9/0: vol down/up", "vol: "+fmt.Sprintf("%d", volume))
+
+			volume := fmt.Sprintf("%d", volume)
+			if volumeIsPercentage {
+				volume += "%"
+			}
+
+			commands = append(commands, "9/0: vol down/up", "vol: "+volume)
 		}
 
 		return bottomBarUpdateMsg{
@@ -183,7 +185,7 @@ func updateCommandsCmd(isPlaying bool, volume int) tea.Cmd {
 // Model
 
 func (m StationsModel) Init() tea.Cmd {
-	return updateCommandsCmd(false, m.volume)
+	return updateCommandsCmd(false, m.volume, m.playbackManager.VolumeIsPercentage())
 }
 
 func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -197,12 +199,12 @@ func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, tea.Batch(
 			m.currentStationSpinner.Tick,
 			notifyRadioBrowserCmd(m.browser, m.currentStation),
-			updateCommandsCmd(true, m.volume),
+			updateCommandsCmd(true, m.volume, m.playbackManager.VolumeIsPercentage()),
 		)
 	case playbackStoppedMsg:
 		m.currentStation = common.Station{}
 		m.currentStationSpinner = spinner.Model{}
-		return m, updateCommandsCmd(false, m.volume)
+		return m, updateCommandsCmd(false, m.volume, m.playbackManager.VolumeIsPercentage())
 	case nonFatalError:
 		var cmds []tea.Cmd
 		if msg.stopPlayback {
@@ -237,15 +239,15 @@ func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				},
 			)
 		case "9":
-			if m.volume > 0 && !m.playbackManager.IsPlaying() {
+			if m.volume > m.playbackManager.VolumeMin() && !m.playbackManager.IsPlaying() {
 				m.volume -= 10
-				return m, updateCommandsCmd(false, m.volume)
+				return m, updateCommandsCmd(false, m.volume, m.playbackManager.VolumeIsPercentage())
 			}
 			return m, nil
 		case "0":
-			if m.volume < 100 && !m.playbackManager.IsPlaying() {
+			if m.volume < m.playbackManager.VolumeMax() && !m.playbackManager.IsPlaying() {
 				m.volume += 10
-				return m, updateCommandsCmd(false, m.volume)
+				return m, updateCommandsCmd(false, m.volume, m.playbackManager.VolumeIsPercentage())
 			}
 			return m, nil
 		case "enter":

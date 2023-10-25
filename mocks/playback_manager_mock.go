@@ -28,6 +28,10 @@ type MockPlaybackManagerService struct {
 	IsPlayingResult               bool
 	PlayStationFunc               func(station common.Station, volume int) error
 	StopStationFunc               func() error
+	VolumeMinResult               int
+	VolumeDefaultResult           int
+	VolumeMaxResult               int
+	VolumeIsPercentageResult      bool
 }
 
 func (m *MockPlaybackManagerService) IsAvailable() bool {
@@ -52,4 +56,20 @@ func (m *MockPlaybackManagerService) PlayStation(station common.Station, volume 
 
 func (m *MockPlaybackManagerService) StopStation() error {
 	return m.StopStationFunc()
+}
+
+func (m *MockPlaybackManagerService) VolumeMin() int {
+	return m.VolumeMinResult
+}
+
+func (m *MockPlaybackManagerService) VolumeDefault() int {
+	return m.VolumeDefaultResult
+}
+
+func (m *MockPlaybackManagerService) VolumeMax() int {
+	return m.VolumeMaxResult
+}
+
+func (m *MockPlaybackManagerService) VolumeIsPercentage() bool {
+	return m.VolumeIsPercentageResult
 }

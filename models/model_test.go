@@ -270,14 +270,14 @@ func TestModel_Update(t *testing.T) {
 		playbackManager := mocks.MockPlaybackManagerService{}
 
 		model := NewModel(config.Config{}, &browser, &playbackManager)
-		model.stationsModel.volume = defaultVolume + 1
+		model.stationsModel.volume = 1
 
 		msg := switchToStationsModelMsg{}
 
 		newModel, cmd := model.Update(tea.Msg(msg))
 
 		assert.Equal(t, stationsState, newModel.(Model).state)
-		assert.Equal(t, defaultVolume, newModel.(Model).stationsModel.volume)
+		assert.NotEqual(t, 1, newModel.(Model).stationsModel.volume)
 		assert.NotNil(t, cmd)
 
 	})

@@ -39,4 +39,12 @@ type PlaybackManagerService interface {
 	// StopStation stops the currently playing radio station.
 	// If no radio station is being played, this method does nothing.
 	StopStation() error
+	// VolumeMin returns the minimum volume level.
+	VolumeMin() int
+	// VolumeDefault returns the default volume level.
+	VolumeDefault() int
+	// VolumeMax returns the maximum volume level.
+	VolumeMax() int
+	// VolumeIsPercentage returns true if the volume is represented as a percentage.
+	VolumeIsPercentage() bool
 }

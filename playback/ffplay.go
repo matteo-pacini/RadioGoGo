@@ -71,3 +71,19 @@ func (d *FFPlayPlaybackManager) StopStation() error {
 	}
 	return nil
 }
+
+func (d FFPlayPlaybackManager) VolumeMin() int {
+	return 0
+}
+
+func (d FFPlayPlaybackManager) VolumeDefault() int {
+	return 80
+}
+
+func (d FFPlayPlaybackManager) VolumeMax() int {
+	return 100
+}
+
+func (d FFPlayPlaybackManager) VolumeIsPercentage() bool {
+	return false
+}
