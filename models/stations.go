@@ -31,7 +31,6 @@ import (
 	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 )
 
 type StationsModel struct {
@@ -92,19 +91,7 @@ func newStationsTableModel(theme Theme, stations []common.Station) table.Model {
 		table.WithFocused(true),
 	)
 
-	s := table.DefaultStyles()
-	s.Header = s.Header.
-		BorderStyle(lipgloss.NormalBorder()).
-		BorderForeground(lipgloss.Color(theme.TextColor())).
-		BorderBottom(true).
-		Bold(false)
-	s.Cell = s.Cell.
-		Foreground(lipgloss.Color(theme.TextColor()))
-	s.Selected = s.Selected.
-		Foreground(lipgloss.Color(theme.TextColor())).
-		Background(lipgloss.Color(theme.PrimaryColor())).
-		Bold(false)
-	t.SetStyles(s)
+	t.SetStyles(theme.StationsTableStyle)
 
 	return t
 
@@ -195,7 +182,7 @@ func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.currentStation = msg.station
 		m.currentStationSpinner = spinner.New()
 		m.currentStationSpinner.Spinner = spinner.Dot
-		m.currentStationSpinner.Style = lipgloss.NewStyle().Foreground(lipgloss.Color(m.theme.PrimaryColor()))
+		m.currentStationSpinner.Style = m.theme.PrimaryText
 		return m, tea.Batch(
 			m.currentStationSpinner.Tick,
 			notifyRadioBrowserCmd(m.browser, m.currentStation),
@@ -280,13 +267,13 @@ func (m StationsModel) View() string {
 	extraBar := ""
 
 	if m.err != "" {
-		extraBar += m.theme.StyleSetForegroundError(m.err)
+		extraBar += m.theme.ErrorText.Render(m.err)
 	} else if m.playbackManager.IsPlaying() {
 		extraBar +=
 			m.currentStationSpinner.View() +
-				m.theme.StyleSetForegroundSecondary("Listening to: "+m.currentStation.Name, true)
+				m.theme.SecondaryText.Bold(true).Render("Listening to: "+m.currentStation.Name)
 	} else {
-		extraBar += m.theme.StyleSetForegroundPrimary("It's quiet here, time to play something!", true)
+		extraBar += m.theme.PrimaryText.Bold(true).Render("It's quiet here, time to play something!")
 	}
 
 	var v string
@@ -294,7 +281,7 @@ func (m StationsModel) View() string {
 		v = fmt.Sprintf(
 			"\n%s\n\n%s\n",
 			assets.NoStations,
-			m.theme.StyleSetForegroundSecondary("No stations found, try another search!", true),
+			m.theme.SecondaryText.Bold(true).Render("No stations found, try another search!"),
 		)
 	} else {
 		v = "\n" + m.stationsTable.View() + "\n"

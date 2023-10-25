@@ -21,78 +21,39 @@ package models
 
 import (
 	"fmt"
-	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/zi0p4tch0/radiogogo/data"
+	"github.com/zi0p4tch0/radiogogo/playback"
 )
 
-const (
-	// How many ticks (one tick per second) to wait before quitting
-	quitTicks = 30
-)
-
-// Messages
-
-type quitTickMsg struct{}
-
-// Model
-
-type ErrorModel struct {
+type HeaderModel struct {
 	theme Theme
 
-	message string
-
-	tickCount int
-	width     int
-	height    int
+	playbackManager playback.PlaybackManagerService
 }
 
-func NewErrorModel(theme Theme, err string) ErrorModel {
-
-	return ErrorModel{
-		theme:   theme,
-		message: err,
+func NewHeaderModel(theme Theme, playbackManager playback.PlaybackManagerService) HeaderModel {
+	return HeaderModel{
+		theme:           theme,
+		playbackManager: playbackManager,
 	}
-
 }
 
-func (m ErrorModel) Init() tea.Cmd {
-	return tea.Tick(time.Second, func(t time.Time) tea.Msg {
-		return quitTickMsg{}
-	})
+func (m HeaderModel) Init() tea.Cmd {
+	return nil
 }
 
-func (m ErrorModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch msg.String() {
-		case "q":
-			return m, quitCmd
-		}
-	case quitTickMsg:
-		m.tickCount++
-		if m.tickCount >= quitTicks {
-			return m, quitCmd
-		}
-		return m, tea.Tick(time.Second, func(t time.Time) tea.Msg {
-			return quitTickMsg{}
-		})
-	}
-
+func (m HeaderModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
-
 }
 
-func (m ErrorModel) View() string {
+func (m HeaderModel) View() string {
 
-	message := fmt.Sprintf("%s\n\nQuitting in %d seconds (or press \"q\" to exit now)...", m.message, quitTicks-m.tickCount)
+	header := m.theme.PrimaryBlock.Render("radiogogo")
+	version := m.theme.SecondaryBlock.Render(fmt.Sprintf("v%s", data.Version))
+	engine := m.theme.PrimaryBlock.Render("Playback engine: " + m.playbackManager.Name())
 
-	return "\n" + m.theme.ErrorText.Render(message) + "\n\n"
+	return header + version + engine + "\n"
 
-}
-
-func (m *ErrorModel) SetWidthAndHeight(width int, height int) {
-	m.width = width
-	m.height = height
 }

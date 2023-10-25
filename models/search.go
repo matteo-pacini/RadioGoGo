@@ -43,8 +43,8 @@ func NewSearchModel(theme Theme) SearchModel {
 	i := textinput.New()
 	i.Placeholder = "Name"
 	i.Width = 30
-	i.TextStyle = lipgloss.NewStyle().Foreground(lipgloss.Color(theme.TextColor()))
-	i.PlaceholderStyle = lipgloss.NewStyle().Foreground(lipgloss.Color(theme.TertiaryColor()))
+	i.TextStyle = theme.Text
+	i.PlaceholderStyle = theme.TertiaryText
 	i.Focus()
 
 	selector := NewSelectorModel[common.StationQuery](
@@ -157,10 +157,10 @@ func (m SearchModel) View() string {
 
 	rightV := rightOfLogoStyle.Render(
 		fmt.Sprintf("\n%s\n\n%s\n\n%s\n%s",
-			m.theme.StyleSetForegroundSecondary(fmt.Sprint("Search radio ", searchType), true),
+			m.theme.SecondaryText.Render(fmt.Sprint("Search radio ", searchType)),
 			m.inputModel.View(),
 			m.querySelector.View(),
-			m.theme.StyleSetForegroundTertiary(m.querySelector.Selection().ExampleString()),
+			m.theme.TertiaryText.Render(m.querySelector.Selection().ExampleString()),
 		))
 
 	leftV := fmt.Sprintf(

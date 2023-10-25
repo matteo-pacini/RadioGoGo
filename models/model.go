@@ -89,7 +89,7 @@ type Model struct {
 	theme Theme
 
 	// Models
-	state             modelState
+	headerModel       HeaderModel
 	searchModel       SearchModel
 	errorModel        ErrorModel
 	loadingModel      LoadingModel
@@ -97,6 +97,7 @@ type Model struct {
 	bottomBarCommands []string
 
 	// State
+	state           modelState
 	width           int
 	height          int
 	browser         api.RadioBrowserService
@@ -126,8 +127,12 @@ func NewModel(
 	browser api.RadioBrowserService,
 	playbackManager playback.PlaybackManagerService,
 ) Model {
+
+	theme := NewTheme(config)
+
 	return Model{
-		theme:           Theme{config: config},
+		theme:           theme,
+		headerModel:     NewHeaderModel(theme, playbackManager),
 		state:           bootState,
 		browser:         browser,
 		playbackManager: playbackManager,
@@ -219,7 +224,7 @@ func (m Model) View() string {
 
 	var view string
 
-	view = m.theme.Header(m.playbackManager)
+	view = m.headerModel.View()
 
 	var currentView string
 

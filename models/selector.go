@@ -98,29 +98,29 @@ func (m SelectorModel[T]) Update(msg tea.Msg) (SelectorModel[T], tea.Cmd) {
 
 func (m SelectorModel[T]) View() string {
 
-	v := m.theme.StyleSetForegroundSecondary(m.title, true) + "\n\n"
+	v := m.theme.SecondaryText.Bold(true).Render(m.title) + "\n\n"
 
 	for i, item := range m.items {
 		if i == m.selection {
 			if m.focus {
 				v += fmt.Sprintf(
 					"%s%s%s ",
-					m.theme.StyleSetForegroundText("> ["),
-					m.theme.StyleSetForegroundSecondary("•", false),
-					m.theme.StyleSetForegroundText("]"),
+					m.theme.Text.Render("> ["),
+					m.theme.SecondaryText.Render("•"),
+					m.theme.Text.Render("]"),
 				)
 			} else {
 				v += fmt.Sprintf(
 					"%s%s%s ",
-					m.theme.StyleSetForegroundText("  ["),
-					m.theme.StyleSetForegroundSecondary("•", false),
-					m.theme.StyleSetForegroundText("]"),
+					m.theme.Text.Render("  ["),
+					m.theme.SecondaryText.Render("•"),
+					m.theme.Text.Render("]"),
 				)
 			}
 		} else {
-			v += m.theme.StyleSetForegroundText("  [ ] ")
+			v += m.theme.Text.Render("  [ ] ")
 		}
-		v += m.theme.StyleSetForegroundText(item.Render())
+		v += m.theme.Text.Render(item.Render())
 		v += "\n"
 	}
 

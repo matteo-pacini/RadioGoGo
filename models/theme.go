@@ -20,64 +20,78 @@
 package models
 
 import (
-	"fmt"
-
 	"github.com/zi0p4tch0/radiogogo/config"
-	"github.com/zi0p4tch0/radiogogo/data"
-	"github.com/zi0p4tch0/radiogogo/playback"
 
+	"github.com/charmbracelet/bubbles/table"
 	"github.com/charmbracelet/lipgloss"
 )
 
 // Theme represents a style configuration for the application.
 type Theme struct {
-	config config.Config
+	PrimaryBlock   lipgloss.Style
+	SecondaryBlock lipgloss.Style
+
+	Text          lipgloss.Style
+	PrimaryText   lipgloss.Style
+	SecondaryText lipgloss.Style
+	TertiaryText  lipgloss.Style
+	ErrorText     lipgloss.Style
+
+	StationsTableStyle table.Styles
 }
 
-// PrimaryColor returns the primary color of the given theme.
-func (t Theme) PrimaryColor() string {
-	return t.config.Theme.PrimaryColor
-}
+func NewTheme(config config.Config) Theme {
 
-// SecondaryColor returns the secondary color of the given theme.
-func (t Theme) SecondaryColor() string {
-	return t.config.Theme.SecondaryColor
-}
-
-// TertiaryColor returns the tertiary color of the given theme.
-func (t Theme) TertiaryColor() string {
-	return t.config.Theme.TertiaryColor
-}
-
-// TextColor returns the text color for the given theme.
-func (t Theme) TextColor() string {
-	return t.config.Theme.TextColor
-}
-
-// ErrorColor returns the error color for the given theme.
-func (t Theme) ErrorColor() string {
-	return t.config.Theme.ErrorColor
-}
-
-// Header returns a string containing the styled header and version of the application.
-func (t Theme) Header(playbackManager playback.PlaybackManagerService) string {
-	headerStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color(t.TextColor())).
-		Background(lipgloss.Color(t.PrimaryColor())).
+	primaryBlock := lipgloss.NewStyle().
+		Foreground(lipgloss.Color(config.Theme.TextColor)).
+		Background(lipgloss.Color(config.Theme.PrimaryColor)).
 		PaddingLeft(2).
 		PaddingRight(2)
 
-	versionStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color(t.TextColor())).
-		Background(lipgloss.Color(t.SecondaryColor())).
+	secondaryBlock := lipgloss.NewStyle().
+		Foreground(lipgloss.Color(config.Theme.TextColor)).
+		Background(lipgloss.Color(config.Theme.SecondaryColor)).
 		PaddingLeft(2).
 		PaddingRight(2)
 
-	header := headerStyle.Render("radiogogo")
-	version := versionStyle.Render(fmt.Sprintf("v%s", data.Version))
-	engine := headerStyle.Render("Playback engine: " + playbackManager.Name())
+	text := lipgloss.NewStyle().
+		Foreground(lipgloss.Color(config.Theme.TextColor))
 
-	return header + version + engine + "\n"
+	primaryText := lipgloss.NewStyle().
+		Foreground(lipgloss.Color(config.Theme.PrimaryColor))
+
+	secondaryText := lipgloss.NewStyle().
+		Foreground(lipgloss.Color(config.Theme.SecondaryColor))
+
+	tertiaryText := lipgloss.NewStyle().
+		Foreground(lipgloss.Color(config.Theme.TertiaryColor))
+
+	errorText := lipgloss.NewStyle().
+		Foreground(lipgloss.Color(config.Theme.ErrorColor))
+
+	stationsTableStyles := table.DefaultStyles()
+	stationsTableStyles.Header = stationsTableStyles.Header.
+		BorderStyle(lipgloss.NormalBorder()).
+		BorderForeground(lipgloss.Color(config.Theme.TextColor)).
+		BorderBottom(true).
+		Bold(false)
+	stationsTableStyles.Cell = stationsTableStyles.Cell.
+		Foreground(lipgloss.Color(config.Theme.TextColor))
+	stationsTableStyles.Selected = stationsTableStyles.Selected.
+		Foreground(lipgloss.Color(config.Theme.TextColor)).
+		Background(lipgloss.Color(config.Theme.PrimaryColor)).
+		Bold(false)
+
+	return Theme{
+		PrimaryBlock:       primaryBlock,
+		SecondaryBlock:     secondaryBlock,
+		Text:               text,
+		PrimaryText:        primaryText,
+		SecondaryText:      secondaryText,
+		TertiaryText:       tertiaryText,
+		ErrorText:          errorText,
+		StationsTableStyle: stationsTableStyles,
+	}
 }
 
 // StyleBottomBar returns a string representing the styled bottom bar of the given Theme.
@@ -91,61 +105,11 @@ func (t Theme) StyleBottomBar(commands []string) string {
 	var bottomBar string
 	for i, command := range commands {
 		if i%2 == 0 {
-			bottomBar += lipgloss.NewStyle().
-				Foreground(lipgloss.Color(t.TextColor())).
-				Background(lipgloss.Color(t.PrimaryColor())).
-				PaddingLeft(2).
-				PaddingRight(2).
-				Render(command)
+			bottomBar += t.PrimaryBlock.Render(command)
 		} else {
-			bottomBar += lipgloss.NewStyle().
-				Foreground(lipgloss.Color(t.TextColor())).
-				Background(lipgloss.Color(t.SecondaryColor())).
-				PaddingLeft(2).
-				PaddingRight(2).
-				Render(command)
+			bottomBar += t.SecondaryBlock.Render(command)
 		}
 	}
 	return bottomBar
 
-}
-
-// StyleSetForegroundText returns a string with the input text styled with the text color of the Theme.
-func (t Theme) StyleSetForegroundText(input string) string {
-	return lipgloss.NewStyle().
-		Foreground(lipgloss.Color(t.TextColor())).
-		Render(input)
-}
-
-// StyleSetForegroundPrimary returns a string with the input text styled with the primary color of the Theme.
-// If the bold parameter is true, the text is also styled as bold.
-func (t Theme) StyleSetForegroundPrimary(input string, bold bool) string {
-	return lipgloss.NewStyle().
-		Foreground(lipgloss.Color(t.PrimaryColor())).
-		Bold(bold).
-		Render(input)
-}
-
-// StyleSetForegroundSecondary returns a string with the input text styled with the secondary color of the Theme.
-// If the bold parameter is true, the text is also styled as bold.
-func (t Theme) StyleSetForegroundSecondary(input string, bold bool) string {
-	return lipgloss.NewStyle().
-		Foreground(lipgloss.Color(t.SecondaryColor())).
-		Bold(bold).
-		Render(input)
-}
-
-// StyleSetForegroundTertiary returns a string with the input text styled with the tertiary color of the Theme.
-func (t Theme) StyleSetForegroundTertiary(input string) string {
-	return lipgloss.NewStyle().
-		Foreground(lipgloss.Color(t.TertiaryColor())).
-		Render(input)
-}
-
-// StyleSetForegroundError returns a string with the input text styled with the error color of the Theme.
-func (t Theme) StyleSetForegroundError(input string) string {
-	return lipgloss.NewStyle().
-		Foreground(lipgloss.Color(t.ErrorColor())).
-		Bold(true).
-		Render(input)
 }

@@ -25,7 +25,6 @@ import (
 
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 )
 
 type LoadingModel struct {
@@ -49,7 +48,7 @@ func NewLoadingModel(
 
 	s := spinner.New()
 	s.Spinner = spinner.Dot
-	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color(theme.SecondaryColor()))
+	s.Style = theme.SecondaryText
 
 	return LoadingModel{
 		theme:        theme,
