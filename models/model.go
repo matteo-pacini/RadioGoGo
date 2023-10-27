@@ -147,9 +147,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Top-level messages
 	switch msg := msg.(type) {
+	case stationCursorMovedMsg:
+		m.headerModel.totalStations = msg.totalStations
+		m.headerModel.stationOffset = msg.offset
+		return m, nil
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
+		m.headerModel.width = msg.Width
 		childHeight := m.height - 2 // 2 = header height + bottom bar height
 		switch m.state {
 		case searchState:
@@ -175,21 +180,25 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case switchToSearchModelMsg:
+		m.headerModel.showOffset = false
 		m.searchModel = NewSearchModel(m.theme)
 		m.searchModel.SetWidthAndHeight(m.width, childHeight)
 		m.state = searchState
 		return m, m.searchModel.Init()
 	case switchToLoadingModelMsg:
+		m.headerModel.showOffset = false
 		m.loadingModel = NewLoadingModel(m.theme, m.browser, msg.query, msg.queryText)
 		m.loadingModel.SetWidthAndHeight(m.width, childHeight)
 		m.state = loadingState
 		return m, m.loadingModel.Init()
 	case switchToStationsModelMsg:
+		m.headerModel.showOffset = true
 		m.stationsModel = NewStationsModel(m.theme, m.browser, m.playbackManager, msg.stations)
 		m.stationsModel.SetWidthAndHeight(m.width, childHeight)
 		m.state = stationsState
 		return m, m.stationsModel.Init()
 	case switchToErrorModelMsg:
+		m.headerModel.showOffset = false
 		m.errorModel = NewErrorModel(m.theme, msg.err)
 		m.errorModel.SetWidthAndHeight(m.width, childHeight)
 		m.state = errorState

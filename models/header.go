@@ -23,6 +23,7 @@ import (
 	"fmt"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/zi0p4tch0/radiogogo/data"
 	"github.com/zi0p4tch0/radiogogo/playback"
 )
@@ -30,13 +31,18 @@ import (
 type HeaderModel struct {
 	theme Theme
 
-	playbackManager playback.PlaybackManagerService
+	engineName string
+
+	width         int
+	showOffset    bool
+	stationOffset int
+	totalStations int
 }
 
 func NewHeaderModel(theme Theme, playbackManager playback.PlaybackManagerService) HeaderModel {
 	return HeaderModel{
-		theme:           theme,
-		playbackManager: playbackManager,
+		theme:      theme,
+		engineName: playbackManager.Name(),
 	}
 }
 
@@ -45,6 +51,11 @@ func (m HeaderModel) Init() tea.Cmd {
 }
 
 func (m HeaderModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case stationCursorMovedMsg:
+		m.stationOffset = msg.offset
+		m.totalStations = msg.totalStations
+	}
 	return m, nil
 }
 
@@ -52,8 +63,22 @@ func (m HeaderModel) View() string {
 
 	header := m.theme.PrimaryBlock.Render("radiogogo")
 	version := m.theme.SecondaryBlock.Render(fmt.Sprintf("v%s", data.Version))
-	engine := m.theme.PrimaryBlock.Render("Playback engine: " + m.playbackManager.Name())
+	engine := m.theme.PrimaryBlock.Render("Playback engine: " + m.engineName)
 
-	return header + version + engine + "\n"
+	leftHeader := header + version + engine
+
+	if m.showOffset {
+
+		rightHeader := m.theme.PrimaryBlock.Render(fmt.Sprintf("%d/%d", m.stationOffset+1, m.totalStations))
+
+		fillerWidth := m.width - lipgloss.Width(leftHeader) - lipgloss.Width(rightHeader)
+		filler := lipgloss.NewStyle().Width(fillerWidth).Render(" ")
+
+		return leftHeader + filler + rightHeader + "\n"
+
+	} else {
+
+		return leftHeader + "\n"
+	}
 
 }

@@ -110,6 +110,11 @@ type nonFatalError struct {
 }
 type clearNonFatalError struct{}
 
+type stationCursorMovedMsg struct {
+	offset        int
+	totalStations int
+}
+
 // Commands
 
 func playStationCmd(
@@ -172,10 +177,20 @@ func updateCommandsCmd(isPlaying bool, volume int, volumeIsPercentage bool) tea.
 // Model
 
 func (m StationsModel) Init() tea.Cmd {
-	return updateCommandsCmd(false, m.volume, m.playbackManager.VolumeIsPercentage())
+	return tea.Batch(
+		updateCommandsCmd(false, m.volume, m.playbackManager.VolumeIsPercentage()),
+		func() tea.Msg {
+			return stationCursorMovedMsg{
+				offset:        m.stationsTable.Cursor(),
+				totalStations: len(m.stations),
+			}
+		},
+	)
 }
 
 func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+
+	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
 	case playbackStartedMsg:
@@ -208,6 +223,13 @@ func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 	case tea.KeyMsg:
 		switch msg.String() {
+		case "up", "down", "j", "k":
+			cmds = append(cmds, func() tea.Msg {
+				return stationCursorMovedMsg{
+					offset:        m.stationsTable.Cursor(),
+					totalStations: len(m.stations),
+				}
+			})
 		case "ctrl+k":
 			return m, func() tea.Msg {
 				err := m.playbackManager.StopStation()
@@ -245,8 +267,6 @@ func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, playStationCmd(m.playbackManager, station, m.volume)
 		}
 	}
-
-	var cmds []tea.Cmd
 
 	if m.playbackManager.IsPlaying() {
 		newSpinner, cmd := m.currentStationSpinner.Update(msg)
@@ -294,5 +314,6 @@ func (m StationsModel) View() string {
 func (m *StationsModel) SetWidthAndHeight(width int, height int) {
 	m.width = width
 	m.height = height
+	m.stationsTable.SetWidth(width)
 	m.stationsTable.SetHeight(height - 4)
 }
