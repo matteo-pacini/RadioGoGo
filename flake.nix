@@ -15,19 +15,23 @@
     flake-utils.lib.eachDefaultSystem (system: let
       pkgs = import nixpkgs {
         inherit system;
+        overlays = [
+          (final: prev: {
+            radiogogo = prev.callPackage ./nix/package.nix {};
+          })
+        ];
       };
     in {
       devShells.default = pkgs.mkShell {
         buildInputs = with pkgs; [
           go
+          delve
           gopls
           go-tools
           gotools
           ffmpeg
         ];
       };
-      packages = {
-        radiogogo = pkgs.callPackage ./package.nix {};
-      };
+      defaultPackage = pkgs.radiogogo;
     });
 }
