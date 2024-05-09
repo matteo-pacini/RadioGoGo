@@ -1,5 +1,5 @@
 {
-  description = "RadioGoGo Development Flake";
+  description = "RadioGoGo Flake";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
@@ -26,5 +26,6 @@
           ffmpeg
         ];
       };
+      packages.default = import ./package.nix {};
     });
 }
