@@ -63,9 +63,8 @@ func (m HeaderModel) View() string {
 
 	header := m.theme.PrimaryBlock.Render("radiogogo")
 	version := m.theme.SecondaryBlock.Render(fmt.Sprintf("v%s", data.Version))
-	engine := m.theme.PrimaryBlock.Render("Playback engine: " + m.engineName)
 
-	leftHeader := header + version + engine
+	leftHeader := header + version
 
 	if m.showOffset {
 

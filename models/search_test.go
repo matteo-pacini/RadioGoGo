@@ -24,6 +24,7 @@ import (
 
 	"github.com/zi0p4tch0/radiogogo/common"
 
+	"github.com/charmbracelet/bubbles/cursor"
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/stretchr/testify/assert"
@@ -99,7 +100,7 @@ func TestSearchModel_Update(t *testing.T) {
 
 		msg := cmd()
 
-		assert.IsType(t, tea.BatchMsg{}, msg)
+		assert.IsType(t, cursor.BlinkMsg{}, msg)
 
 	})
 

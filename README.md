@@ -21,7 +21,7 @@ Let's Go 🚀!
 - Sleek and intuitive TUI that's a joy to navigate.
 - Search, browse, and play radio stations from a vast global database.
 - Enjoy cross-platform compatibility, because radio waves know no bounds.
-- Integrated playback using either `ffplay` or `mpv`. Customize your playback preference in the configuration.
+- Integrated playback using `ffplay`.
 
 ## 📋 Upcoming Features
 
@@ -35,7 +35,7 @@ Let's Go 🚀!
 
 ### Dependencies: 
 
-For seamless playback, ensure you have either `ffplay` or `mpv` installed:
+For seamless playback, ensure you have either `ffplay` installed:
 
 #### FFmpeg
 
@@ -116,79 +116,6 @@ OpenBSD:
 doas pkg_add ffmpeg
 ```
 
-#### mpv
-
-##### Windows:
-
-Download mpv from the [official website](https://mpv.io/installation/) or consider using a package manager.
-
-It can be installed via [Chocolatey](https://chocolatey.org/):
-
-```
-choco install mpv
-```
-
-Or [Scoop](https://scoop.sh/):
-
-```
-scoop install mpv
-```
-
-##### Linux:
-
-For apt-based distros (like Ubuntu and Debian):
-
-```
-sudo apt update
-sudo apt install mpv
-```
-
-For dnf-based distros (like Fedora):
-
-```
-sudo dnf install mpv
-```
-
-For pacman-based distros (like Arch):
-
-```
-sudo pacman -S mpv
-```
-
-For Gentoo:
-
-```
-emerge --ask --quiet --verbose mpv
-```
-
-##### macOS:
-
-For macOS users with Homebrew installed:
-
-```
-brew install mpv
-```
-
-##### \*BSD:
-
-FreeBSD:
-
-```
-pkg install mpv
-```
-
-NetBSD:
-
-```
-pkg_add mpv
-```
-
-OpenBSD:
-
-```
-doas pkg_add mpv
-```
-
 ### Installing via Go
 
 Ensure you have [Go](https://golang.org/dl/) installed (version 1.18 or later).
@@ -246,15 +173,6 @@ radiogogo
 - **Other Platforms:** `~/.config/radiogogo/config.yaml`
 
 It gets created automatically when you launch the app for the first time.
-
-### Playback Engine
-
-By default, RadioGoGo uses `ffplay` for playback. If you wish to use `mpv` instead, adjust the `playbackEngine` configuration.
-
-```yaml
-playbackEngine: "mpv" # or "ffplay"
-```
-
 
 ### 🎨 Customizing App Theme
 

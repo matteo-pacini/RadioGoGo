@@ -111,12 +111,7 @@ func NewDefaultModel(config config.Config) (Model, error) {
 		return Model{}, err
 	}
 
-	var playbackManager playback.PlaybackManagerService
-	if config.PlaybackEngine == playback.FFPlay {
-		playbackManager = playback.NewFFPlaybackManager()
-	} else {
-		playbackManager = playback.NewMPVbackManager()
-	}
+	playbackManager := playback.NewFFPlaybackManager()
 
 	return NewModel(config, browser, playbackManager), nil
 
