@@ -26,6 +26,8 @@
           ffmpeg
         ];
       };
-      packages.default = import ./package.nix {};
+      packages = {
+        radiogogo = pkgs.callPackage ./package.nix {};
+      };
     });
 }
