@@ -31,8 +31,6 @@ import (
 type HeaderModel struct {
 	theme Theme
 
-	engineName string
-
 	width         int
 	showOffset    bool
 	stationOffset int
@@ -41,8 +39,7 @@ type HeaderModel struct {
 
 func NewHeaderModel(theme Theme, playbackManager playback.PlaybackManagerService) HeaderModel {
 	return HeaderModel{
-		theme:      theme,
-		engineName: playbackManager.Name(),
+		theme: theme,
 	}
 }
 

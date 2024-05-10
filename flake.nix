@@ -32,6 +32,8 @@
           ffmpeg
         ];
       };
-      defaultPackage = pkgs.radiogogo;
+      packages = {
+        radiogogo = pkgs.radiogogo;
+      };
     });
 }
