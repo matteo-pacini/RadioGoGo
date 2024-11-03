@@ -1,5 +1,17 @@
 # RadioGoGo 📻
 
+---
+
+📌 Repository Archived
+
+Unfortunately, I am no longer able to commit the necessary time to maintain and develop it further. As a result, I have decided to archive this repository.
+
+The code and documentation will remain accessible, so feel free to fork it or use it as a reference for your own projects. I hope it continues to be helpful to the community in its current form.
+
+Thank you again for your understanding and support!
+
+---
+
 <div style="display:flex;justify-content:center;">
     <img src="./logo.png" alt="RadioGoGo Logo" width="200" height="200">
 </div>
