@@ -58,11 +58,17 @@ func (m *MockPlaybackManagerService) IsPlaying() bool {
 }
 
 func (m *MockPlaybackManagerService) PlayStation(station common.Station, volume int) error {
-	return m.PlayStationFunc(station, volume)
+	if m.PlayStationFunc != nil {
+		return m.PlayStationFunc(station, volume)
+	}
+	return nil
 }
 
 func (m *MockPlaybackManagerService) StopStation() error {
-	return m.StopStationFunc()
+	if m.StopStationFunc != nil {
+		return m.StopStationFunc()
+	}
+	return nil
 }
 
 func (m *MockPlaybackManagerService) VolumeMin() int {

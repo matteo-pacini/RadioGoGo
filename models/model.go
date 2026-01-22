@@ -220,8 +220,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case switchToSearchModelMsg:
+		// Stop any playing audio when returning to search
+		if m.playbackManager != nil {
+			m.playbackManager.StopStation()
+		}
 		m.headerModel.showOffset = false
-		m.bottomBarSecondaryCommands = nil // Clear two-row bar
+		m.headerModel.playbackStatus = PlaybackIdle // Reset playback indicator
+		m.headerModel.isRecording = false           // Reset recording indicator
+		m.bottomBarSecondaryCommands = nil          // Clear two-row bar
 		m.searchModel = NewSearchModel(m.theme)
 		m.searchModel.SetWidthAndHeight(m.width, m.height-2) // 1 header + 1 bottom bar row
 		m.state = searchState

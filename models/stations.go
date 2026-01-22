@@ -578,12 +578,9 @@ func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "q":
 			return m, tea.Sequence(stopStationCmd(m.playbackManager), quitCmd)
 		case "s":
-			return m, tea.Sequence(
-				stopStationCmd(m.playbackManager),
-				func() tea.Msg {
-					return switchToSearchModelMsg{}
-				},
-			)
+			return m, func() tea.Msg {
+				return switchToSearchModelMsg{}
+			}
 		case "9":
 			if m.volume > m.playbackManager.VolumeMin() {
 				m.volume -= 10
