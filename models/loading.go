@@ -80,7 +80,7 @@ func searchStations(browser api.RadioBrowserService, query common.StationQuery, 
 	return func() tea.Msg {
 		stations, err := browser.GetStations(query, queryText, "votes", true, 0, 100, true)
 		if err != nil {
-			return switchToErrorModelMsg{err: err.Error()}
+			return switchToErrorModelMsg{err: err.Error(), recoverable: true}
 		}
 		return switchToStationsModelMsg{stations: stations}
 	}

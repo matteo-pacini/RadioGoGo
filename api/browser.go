@@ -21,8 +21,7 @@ package api
 
 import (
 	"encoding/json"
-	"math/rand"
-	"net"
+	"fmt"
 	"net/http"
 	"net/url"
 
@@ -60,38 +59,21 @@ type RadioBrowserImpl struct {
 	baseUrl url.URL
 }
 
-// NewRadioBrowser returns a new instance of RadioBrowserService with the default DNS lookup and HTTP client services.
+// NewRadioBrowser returns a new instance of RadioBrowserService with the default HTTP client.
 func NewRadioBrowser() (RadioBrowserService, error) {
-	return NewRadioBrowserWithDependencies(
-		&DNSLookupServiceImpl{},
-		http.DefaultClient,
-	)
+	return NewRadioBrowserWithDependencies(http.DefaultClient)
 }
 
-// NewRadioBrowserWithDependencies creates a new instance of RadioBrowserService with the provided dependencies.
-// It takes a DNSLookupService and an HTTPClientService as arguments and returns a pointer to RadioBrowserService and an error.
-// The function performs a DNS lookup for "all.api.radio-browser.info" and selects a random IP address from the returned list.
-// It then constructs a URL with the selected IP address and sets it as the base URL for the browser.
-// Returns an error if the DNS lookup or URL parsing fails.
+// NewRadioBrowserWithDependencies creates a new instance of RadioBrowserService with the provided HTTP client.
+// Returns an error if URL parsing fails.
 func NewRadioBrowserWithDependencies(
-	dnsLookupService DNSLookupService,
 	httpClient HTTPClientService,
 ) (RadioBrowserService, error) {
 	browser := &RadioBrowserImpl{
 		httpClient: httpClient,
 	}
-	ips, err := dnsLookupService.LookupIP("all.api.radio-browser.info")
-	if err != nil {
-		return nil, err
-	}
 
-	randomIp := ips[rand.Intn(len(ips))]
-
-	if net.ParseIP(randomIp).To4() == nil {
-		randomIp = "[" + randomIp + "]"
-	}
-
-	url, err := url.Parse("http://" + randomIp + "/json")
+	url, err := url.Parse("https://all.api.radio-browser.info/json")
 	if err != nil {
 		return nil, err
 	}
@@ -144,6 +126,10 @@ func (radioBrowser *RadioBrowserImpl) GetStations(
 
 	defer result.Body.Close()
 
+	if result.StatusCode != 200 {
+		return nil, fmt.Errorf("API request failed with status %d", result.StatusCode)
+	}
+
 	err = json.NewDecoder(result.Body).Decode(&stations)
 
 	if err != nil {
@@ -177,6 +163,10 @@ func (radioBrowser *RadioBrowserImpl) ClickStation(station common.Station) (comm
 	}
 
 	defer result.Body.Close()
+
+	if result.StatusCode != 200 {
+		return common.ClickStationResponse{}, fmt.Errorf("API request failed with status %d", result.StatusCode)
+	}
 
 	var response common.ClickStationResponse
 	err = json.NewDecoder(result.Body).Decode(&response)

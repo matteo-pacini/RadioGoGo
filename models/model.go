@@ -42,7 +42,8 @@ const (
 // State switching messages
 
 type switchToErrorModelMsg struct {
-	err string
+	err         string
+	recoverable bool
 }
 type switchToSearchModelMsg struct {
 }
@@ -74,7 +75,8 @@ func checkIfPlaybackIsPossibleCmd(playbackManager playback.PlaybackManagerServic
 	return func() tea.Msg {
 		if !playbackManager.IsAvailable() {
 			return switchToErrorModelMsg{
-				err: playbackManager.NotAvailableErrorString(),
+				err:         playbackManager.NotAvailableErrorString(),
+				recoverable: false,
 			}
 		}
 		return switchToSearchModelMsg{}
@@ -194,7 +196,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, m.stationsModel.Init()
 	case switchToErrorModelMsg:
 		m.headerModel.showOffset = false
-		m.errorModel = NewErrorModel(m.theme, msg.err)
+		m.errorModel = NewErrorModel(m.theme, msg.err, msg.recoverable)
 		m.errorModel.SetWidthAndHeight(m.width, childHeight)
 		m.state = errorState
 		return m, m.errorModel.Init()
