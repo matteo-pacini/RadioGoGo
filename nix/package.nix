@@ -16,7 +16,7 @@ in
       owner = "matteo-pacini";
       repo = "RadioGoGo";
       rev = "v${version}";
-      hash = "sha256-vEZUBA+KeDHgqZvzrAN6ramZ5D4iqQdVU+qFOK/39co=";
+      hash = "sha256-StbSd6tHoe4hBQV2CMSBgHkgGhAINBkd6KyP1SlGi6k=";
     };
 
     vendorHash = "sha256-yOc1qYy3Qy4rpaSycPqWheOFW+mIrmzEuw3l+yZ0TRY=";
