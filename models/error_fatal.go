@@ -40,18 +40,20 @@ type quitTickMsg struct{}
 type ErrorModel struct {
 	theme Theme
 
-	message string
+	message     string
+	recoverable bool
 
 	tickCount int
 	width     int
 	height    int
 }
 
-func NewErrorModel(theme Theme, err string) ErrorModel {
+func NewErrorModel(theme Theme, err string, recoverable bool) ErrorModel {
 
 	return ErrorModel{
-		theme:   theme,
-		message: err,
+		theme:       theme,
+		message:     err,
+		recoverable: recoverable,
 	}
 
 }
@@ -69,8 +71,16 @@ func (m ErrorModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "q":
 			return m, quitCmd
+		case "enter", "esc":
+			if m.recoverable {
+				return m, func() tea.Msg { return switchToSearchModelMsg{} }
+			}
 		}
 	case quitTickMsg:
+		if m.recoverable {
+			// Don't auto-quit for recoverable errors
+			return m, nil
+		}
 		m.tickCount++
 		if m.tickCount >= quitTicks {
 			return m, quitCmd
@@ -86,7 +96,12 @@ func (m ErrorModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m ErrorModel) View() string {
 
-	message := fmt.Sprintf("%s\n\nQuitting in %d seconds (or press \"q\" to exit now)...", m.message, quitTicks-m.tickCount)
+	var message string
+	if m.recoverable {
+		message = fmt.Sprintf("%s\n\nPress Enter to try again or \"q\" to quit.", m.message)
+	} else {
+		message = fmt.Sprintf("%s\n\nQuitting in %d seconds (or press \"q\" to exit now)...", m.message, quitTicks-m.tickCount)
+	}
 
 	return "\n" + m.theme.ErrorText.Render(message) + "\n\n"
 

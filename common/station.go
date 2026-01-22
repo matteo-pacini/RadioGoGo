@@ -96,10 +96,11 @@ type Station struct {
 }
 
 func (bi *BoolFromlInt) UnmarshalJSON(data []byte) error {
-	switch string(data) {
-	case "1":
+	s := string(data)
+	switch s {
+	case "1", "true":
 		*bi = true
-	case "0", "null": // "null" to handle if the field is null in JSON
+	case "0", "false", "null":
 		*bi = false
 	default:
 		return fmt.Errorf("boolean from int unmarshal error: invalid input %s", data)
