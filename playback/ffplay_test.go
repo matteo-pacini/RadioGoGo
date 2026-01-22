@@ -75,4 +75,35 @@ func TestFFPlayPlaybackManager(t *testing.T) {
 		err := manager.StopStation()
 		assert.NoError(t, err)
 	})
+
+	t.Run("RecordingNotAvailableErrorString returns descriptive message", func(t *testing.T) {
+		manager := &FFPlayPlaybackManager{}
+		errStr := manager.RecordingNotAvailableErrorString()
+		assert.Contains(t, errStr, "ffmpeg")
+		assert.Contains(t, errStr, "PATH")
+	})
+
+	t.Run("IsRecording returns false when nothing is recording", func(t *testing.T) {
+		manager := &FFPlayPlaybackManager{}
+		assert.False(t, manager.IsRecording())
+	})
+
+	t.Run("CurrentRecordingPath returns empty when not recording", func(t *testing.T) {
+		manager := &FFPlayPlaybackManager{}
+		assert.Empty(t, manager.CurrentRecordingPath())
+	})
+
+	t.Run("StopRecording returns empty path when not recording", func(t *testing.T) {
+		manager := &FFPlayPlaybackManager{}
+		path, err := manager.StopRecording()
+		assert.NoError(t, err)
+		assert.Empty(t, path)
+	})
+
+	t.Run("StartRecording returns error when not playing", func(t *testing.T) {
+		manager := &FFPlayPlaybackManager{}
+		err := manager.StartRecording("test.mp3")
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "no station is playing")
+	})
 }

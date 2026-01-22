@@ -22,17 +22,23 @@ package mocks
 import "github.com/zi0p4tch0/radiogogo/common"
 
 type MockPlaybackManagerService struct {
-	NameResult                    string
-	IsAvailableResult             bool
-	NotAvailableErrorStringResult string
-	IsPlayingResult               bool
-	PlayStationFunc               func(station common.Station, volume int) error
-	StopStationFunc               func() error
-	VolumeMinResult               int
-	VolumeDefaultResult           int
-	VolumeMaxResult               int
-	VolumeIsPercentageResult      bool
-	CurrentStationResult          common.Station
+	NameResult                          string
+	IsAvailableResult                   bool
+	NotAvailableErrorStringResult       string
+	IsPlayingResult                     bool
+	PlayStationFunc                     func(station common.Station, volume int) error
+	StopStationFunc                     func() error
+	VolumeMinResult                     int
+	VolumeDefaultResult                 int
+	VolumeMaxResult                     int
+	VolumeIsPercentageResult            bool
+	CurrentStationResult                common.Station
+	IsRecordingAvailableResult          bool
+	RecordingNotAvailableErrorStrResult string
+	IsRecordingResult                   bool
+	StartRecordingFunc                  func(outputPath string) error
+	StopRecordingFunc                   func() (string, error)
+	CurrentRecordingPathResult          string
 }
 
 func (m *MockPlaybackManagerService) IsAvailable() bool {
@@ -77,4 +83,34 @@ func (m *MockPlaybackManagerService) VolumeIsPercentage() bool {
 
 func (m *MockPlaybackManagerService) CurrentStation() common.Station {
 	return m.CurrentStationResult
+}
+
+func (m *MockPlaybackManagerService) IsRecordingAvailable() bool {
+	return m.IsRecordingAvailableResult
+}
+
+func (m *MockPlaybackManagerService) RecordingNotAvailableErrorString() string {
+	return m.RecordingNotAvailableErrorStrResult
+}
+
+func (m *MockPlaybackManagerService) IsRecording() bool {
+	return m.IsRecordingResult
+}
+
+func (m *MockPlaybackManagerService) StartRecording(outputPath string) error {
+	if m.StartRecordingFunc != nil {
+		return m.StartRecordingFunc(outputPath)
+	}
+	return nil
+}
+
+func (m *MockPlaybackManagerService) StopRecording() (string, error) {
+	if m.StopRecordingFunc != nil {
+		return m.StopRecordingFunc()
+	}
+	return "", nil
+}
+
+func (m *MockPlaybackManagerService) CurrentRecordingPath() string {
+	return m.CurrentRecordingPathResult
 }

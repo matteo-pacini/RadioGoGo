@@ -49,4 +49,18 @@ type PlaybackManagerService interface {
 	VolumeIsPercentage() bool
 	// CurrentStation returns the station currently playing, or an empty Station if nothing is playing.
 	CurrentStation() common.Station
+	// IsRecordingAvailable returns true if recording (ffmpeg) is available for use.
+	IsRecordingAvailable() bool
+	// RecordingNotAvailableErrorString returns a string that describes why recording is not available.
+	RecordingNotAvailableErrorString() string
+	// IsRecording returns true if currently recording to disk.
+	IsRecording() bool
+	// StartRecording begins recording the current stream to the specified file path.
+	// Returns an error if no station is playing or recording fails to start.
+	StartRecording(outputPath string) error
+	// StopRecording stops the current recording. Returns the path of the recorded file.
+	// If not recording, this method does nothing and returns empty string.
+	StopRecording() (string, error)
+	// CurrentRecordingPath returns the path of the current recording, or empty if not recording.
+	CurrentRecordingPath() string
 }

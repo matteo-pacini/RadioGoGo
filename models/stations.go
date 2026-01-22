@@ -132,6 +132,18 @@ type volumeRestartFailedMsg struct {
 	err error
 }
 
+type recordingStartedMsg struct {
+	filePath string
+}
+
+type recordingStoppedMsg struct {
+	filePath string
+}
+
+type recordingErrorMsg struct {
+	err error
+}
+
 // Commands
 
 func playStationCmd(
@@ -192,7 +204,27 @@ func restartPlaybackWithVolumeCmd(
 	}
 }
 
-func updateCommandsCmd(isPlaying bool, volume int, volumeIsPercentage bool) tea.Cmd {
+func startRecordingCmd(pm playback.PlaybackManagerService, outputPath string) tea.Cmd {
+	return func() tea.Msg {
+		err := pm.StartRecording(outputPath)
+		if err != nil {
+			return recordingErrorMsg{err: err}
+		}
+		return recordingStartedMsg{filePath: outputPath}
+	}
+}
+
+func stopRecordingCmd(pm playback.PlaybackManagerService) tea.Cmd {
+	return func() tea.Msg {
+		filePath, err := pm.StopRecording()
+		if err != nil {
+			return recordingErrorMsg{err: err}
+		}
+		return recordingStoppedMsg{filePath: filePath}
+	}
+}
+
+func updateCommandsCmd(isPlaying bool, volume int, volumeIsPercentage bool, isRecording bool) tea.Cmd {
 	return func() tea.Msg {
 
 		commands := []string{"q: quit", "s: search", "enter: play", "↑/↓: move"}
@@ -208,7 +240,11 @@ func updateCommandsCmd(isPlaying bool, volume int, volumeIsPercentage bool) tea.
 		}
 
 		if isPlaying {
-			commands = append(commands, "ctrl+k: stop", "9/0: vol down/up", volumeDisplay)
+			if isRecording {
+				commands = append(commands, "r: stop rec", "ctrl+k: stop", "9/0: vol down/up", volumeDisplay)
+			} else {
+				commands = append(commands, "r: record", "ctrl+k: stop", "9/0: vol down/up", volumeDisplay)
+			}
 		} else {
 			commands = append(commands, "9/0: vol down/up", volumeDisplay)
 		}
@@ -223,7 +259,7 @@ func updateCommandsCmd(isPlaying bool, volume int, volumeIsPercentage bool) tea.
 
 func (m StationsModel) Init() tea.Cmd {
 	return tea.Batch(
-		updateCommandsCmd(false, m.volume, m.playbackManager.VolumeIsPercentage()),
+		updateCommandsCmd(false, m.volume, m.playbackManager.VolumeIsPercentage(), false),
 		func() tea.Msg {
 			return stationCursorMovedMsg{
 				offset:        m.stationsTable.Cursor(),
@@ -247,15 +283,16 @@ func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, tea.Batch(
 			m.currentStationSpinner.Tick,
 			notifyRadioBrowserCmd(m.browser, m.currentStation),
-			updateCommandsCmd(true, m.volume, m.playbackManager.VolumeIsPercentage()),
+			updateCommandsCmd(true, m.volume, m.playbackManager.VolumeIsPercentage(), m.playbackManager.IsRecording()),
 			func() tea.Msg { return playbackStatusMsg{status: PlaybackPlaying} },
 		)
 	case playbackStoppedMsg:
 		m.currentStation = common.Station{}
 		m.currentStationSpinner = spinner.Model{}
 		return m, tea.Batch(
-			updateCommandsCmd(false, m.volume, m.playbackManager.VolumeIsPercentage()),
+			updateCommandsCmd(false, m.volume, m.playbackManager.VolumeIsPercentage(), false),
 			func() tea.Msg { return playbackStatusMsg{status: PlaybackIdle} },
+			func() tea.Msg { return recordingStatusMsg{isRecording: false} },
 		)
 	case nonFatalError:
 		var cmds []tea.Cmd
@@ -285,6 +322,21 @@ func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, func() tea.Msg { return playbackStatusMsg{status: PlaybackPlaying} }
 	case volumeRestartFailedMsg:
 		m.err = fmt.Sprintf("Volume change failed: %v", msg.err)
+		return m, tea.Tick(3*time.Second, func(t time.Time) tea.Msg {
+			return clearNonFatalError{}
+		})
+	case recordingStartedMsg:
+		return m, tea.Batch(
+			updateCommandsCmd(true, m.volume, m.playbackManager.VolumeIsPercentage(), true),
+			func() tea.Msg { return recordingStatusMsg{isRecording: true} },
+		)
+	case recordingStoppedMsg:
+		return m, tea.Batch(
+			updateCommandsCmd(true, m.volume, m.playbackManager.VolumeIsPercentage(), false),
+			func() tea.Msg { return recordingStatusMsg{isRecording: false} },
+		)
+	case recordingErrorMsg:
+		m.err = fmt.Sprintf("Recording error: %v", msg.err)
 		return m, tea.Tick(3*time.Second, func(t time.Time) tea.Msg {
 			return clearNonFatalError{}
 		})
@@ -322,12 +374,12 @@ func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.pendingVolumeChangeID = changeID
 					m.volumeChangePending = true
 					return m, tea.Batch(
-						updateCommandsCmd(true, m.volume, m.playbackManager.VolumeIsPercentage()),
+						updateCommandsCmd(true, m.volume, m.playbackManager.VolumeIsPercentage(), m.playbackManager.IsRecording()),
 						startVolumeDebounceCmd(changeID),
 						func() tea.Msg { return playbackStatusMsg{status: PlaybackRestarting} },
 					)
 				}
-				return m, updateCommandsCmd(false, m.volume, m.playbackManager.VolumeIsPercentage())
+				return m, updateCommandsCmd(false, m.volume, m.playbackManager.VolumeIsPercentage(), false)
 			}
 			return m, nil
 		case "0":
@@ -338,14 +390,37 @@ func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.pendingVolumeChangeID = changeID
 					m.volumeChangePending = true
 					return m, tea.Batch(
-						updateCommandsCmd(true, m.volume, m.playbackManager.VolumeIsPercentage()),
+						updateCommandsCmd(true, m.volume, m.playbackManager.VolumeIsPercentage(), m.playbackManager.IsRecording()),
 						startVolumeDebounceCmd(changeID),
 						func() tea.Msg { return playbackStatusMsg{status: PlaybackRestarting} },
 					)
 				}
-				return m, updateCommandsCmd(false, m.volume, m.playbackManager.VolumeIsPercentage())
+				return m, updateCommandsCmd(false, m.volume, m.playbackManager.VolumeIsPercentage(), false)
 			}
 			return m, nil
+		case "r":
+			// Only allow recording if something is playing
+			if !m.playbackManager.IsPlaying() {
+				return m, nil
+			}
+
+			// Toggle recording
+			if m.playbackManager.IsRecording() {
+				return m, stopRecordingCmd(m.playbackManager)
+			}
+
+			// Check if ffmpeg is available
+			if !m.playbackManager.IsRecordingAvailable() {
+				m.err = m.playbackManager.RecordingNotAvailableErrorString()
+				return m, tea.Tick(3*time.Second, func(t time.Time) tea.Msg {
+					return clearNonFatalError{}
+				})
+			}
+
+			// Generate filename and start recording
+			station := m.playbackManager.CurrentStation()
+			filename := playback.GenerateRecordingFilename(station.Name, station.Codec)
+			return m, startRecordingCmd(m.playbackManager, filename)
 		case "enter":
 			if len(m.stations) == 0 {
 				return m, nil

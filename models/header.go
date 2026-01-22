@@ -42,6 +42,11 @@ type playbackStatusMsg struct {
 	status PlaybackStatus
 }
 
+// recordingStatusMsg is sent to update the header's recording indicator
+type recordingStatusMsg struct {
+	isRecording bool
+}
+
 type HeaderModel struct {
 	theme Theme
 
@@ -51,6 +56,7 @@ type HeaderModel struct {
 	totalStations  int
 	playbackStatus PlaybackStatus
 	playerName     string
+	isRecording    bool
 }
 
 func NewHeaderModel(theme Theme, playbackManager playback.PlaybackManagerService) HeaderModel {
@@ -71,6 +77,8 @@ func (m HeaderModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.totalStations = msg.totalStations
 	case playbackStatusMsg:
 		m.playbackStatus = msg.status
+	case recordingStatusMsg:
+		m.isRecording = msg.isRecording
 	}
 	return m, nil
 }
@@ -80,26 +88,39 @@ func (m HeaderModel) View() string {
 	header := m.theme.PrimaryBlock.Render("radiogogo")
 	version := m.theme.SecondaryBlock.Render(fmt.Sprintf("v%s", data.Version))
 
-	// Playback status indicator
-	var dotColor lipgloss.Color
-	switch m.playbackStatus {
-	case PlaybackIdle:
-		dotColor = lipgloss.Color("252") // white/gray
-	case PlaybackPlaying:
-		dotColor = lipgloss.Color("42") // green
-	case PlaybackRestarting:
-		dotColor = lipgloss.Color("226") // yellow
-	}
-
 	// Base style with background but no padding (we'll add padding to outer parts only)
 	baseStyle := m.theme.PrimaryBlock.Copy().PaddingLeft(0).PaddingRight(0)
-	dotStyle := baseStyle.Copy().Foreground(dotColor)
 
-	statusIndicator := baseStyle.Copy().PaddingLeft(2).Render("(") +
-		dotStyle.Render("●") +
+	// Playback status indicator
+	var playbackDotColor lipgloss.Color
+	switch m.playbackStatus {
+	case PlaybackIdle:
+		playbackDotColor = lipgloss.Color("252") // white/gray
+	case PlaybackPlaying:
+		playbackDotColor = lipgloss.Color("42") // green
+	case PlaybackRestarting:
+		playbackDotColor = lipgloss.Color("226") // yellow
+	}
+
+	playbackDotStyle := baseStyle.Copy().Foreground(playbackDotColor)
+	playbackIndicator := baseStyle.Copy().PaddingLeft(2).Render("(") +
+		playbackDotStyle.Render("●") +
 		baseStyle.Copy().PaddingRight(2).Render(") "+m.playerName)
 
-	leftHeader := header + version + statusIndicator
+	// Recording status indicator
+	var recDotColor lipgloss.Color
+	if m.isRecording {
+		recDotColor = lipgloss.Color("196") // red
+	} else {
+		recDotColor = lipgloss.Color("252") // white/gray
+	}
+
+	recDotStyle := baseStyle.Copy().Foreground(recDotColor)
+	recIndicator := baseStyle.Render("(") +
+		recDotStyle.Render("●") +
+		baseStyle.Copy().PaddingRight(2).Render(") rec")
+
+	leftHeader := header + version + playbackIndicator + recIndicator
 
 	if m.showOffset {
 
