@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Matteo Pacini
+// Copyright (c) 2023-2026 Matteo Pacini
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
@@ -80,6 +80,41 @@ func TestErrorModel_Update(t *testing.T) {
 		assert.NotNil(t, cmd)
 		msg := cmd()
 		assert.IsType(t, quitMsg{}, msg)
+
+	})
+
+	t.Run("broadcasts switchToSearchModelMsg when 'enter' is pressed on recoverable error", func(t *testing.T) {
+
+		recoverableModel := NewErrorModel(Theme{}, "this is recoverable", true)
+
+		input := tea.Msg(tea.KeyMsg{Type: tea.KeyEnter})
+
+		_, cmd := recoverableModel.Update(input)
+		assert.NotNil(t, cmd)
+
+		msg := cmd()
+		assert.IsType(t, switchToSearchModelMsg{}, msg)
+
+	})
+
+	t.Run("does not broadcast switchToSearchModelMsg when 'enter' is pressed on non-recoverable error", func(t *testing.T) {
+
+		nonRecoverableModel := NewErrorModel(Theme{}, "this is fatal", false)
+
+		input := tea.Msg(tea.KeyMsg{Type: tea.KeyEnter})
+
+		_, cmd := nonRecoverableModel.Update(input)
+		assert.Nil(t, cmd)
+
+	})
+
+	t.Run("does not auto-quit on tick for recoverable error", func(t *testing.T) {
+
+		recoverableModel := NewErrorModel(Theme{}, "this is recoverable", true)
+		recoverableModel.tickCount = 29
+
+		_, cmd := recoverableModel.Update(quitTickMsg{})
+		assert.Nil(t, cmd)
 
 	})
 
