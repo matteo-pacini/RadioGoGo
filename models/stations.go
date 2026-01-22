@@ -465,6 +465,17 @@ func (m StationsModel) View() string {
 		v = "\n" + m.stationsTable.View() + "\n"
 	}
 
+	// Show status bar (with blank line above)
+	var statusBar string
+	if m.currentStation.StationUuid != uuid.Nil {
+		statusBar = m.currentStationSpinner.View() + " " +
+			m.theme.SecondaryText.Bold(true).Render("Now playing: "+m.currentStation.Name) +
+			" " + m.currentStationSpinner.View()
+	} else {
+		statusBar = m.theme.TertiaryText.Render("Select a station and press enter to play")
+	}
+	v += "\n" + statusBar
+
 	// Show error if any
 	if m.err != "" {
 		v += m.theme.ErrorText.Render(m.err) + "\n"
@@ -492,8 +503,9 @@ func (m *StationsModel) SetWidthAndHeight(width int, height int) {
 	m.height = height
 	m.stationsTable.SetWidth(width)
 	// Table height calculation:
-	// - View adds "\n" before and "\n" after the table (2 lines)
-	// - We want minimal filler for visual separation
-	// So: tableHeight = height - 2
-	m.stationsTable.SetHeight(height - 2)
+	// - "\n" before table (1 line)
+	// - "\n" after table (1 line)
+	// - "\n" blank line + status bar (2 lines)
+	// So: tableHeight = height - 4
+	m.stationsTable.SetHeight(height - 4)
 }
