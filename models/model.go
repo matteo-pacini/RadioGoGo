@@ -157,6 +157,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.headerModel.totalStations = msg.totalStations
 		m.headerModel.stationOffset = msg.offset
 		return m, nil
+	case playbackStatusMsg:
+		newHeaderModel, cmd := m.headerModel.Update(msg)
+		m.headerModel = newHeaderModel.(HeaderModel)
+		return m, cmd
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height

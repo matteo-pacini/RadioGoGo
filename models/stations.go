@@ -248,11 +248,15 @@ func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.currentStationSpinner.Tick,
 			notifyRadioBrowserCmd(m.browser, m.currentStation),
 			updateCommandsCmd(true, m.volume, m.playbackManager.VolumeIsPercentage()),
+			func() tea.Msg { return playbackStatusMsg{status: PlaybackPlaying} },
 		)
 	case playbackStoppedMsg:
 		m.currentStation = common.Station{}
 		m.currentStationSpinner = spinner.Model{}
-		return m, updateCommandsCmd(false, m.volume, m.playbackManager.VolumeIsPercentage())
+		return m, tea.Batch(
+			updateCommandsCmd(false, m.volume, m.playbackManager.VolumeIsPercentage()),
+			func() tea.Msg { return playbackStatusMsg{status: PlaybackIdle} },
+		)
 	case nonFatalError:
 		var cmds []tea.Cmd
 		if msg.stopPlayback {
@@ -278,7 +282,7 @@ func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 	case volumeRestartCompleteMsg:
 		m.currentStation = msg.station
-		return m, nil
+		return m, func() tea.Msg { return playbackStatusMsg{status: PlaybackPlaying} }
 	case volumeRestartFailedMsg:
 		m.err = fmt.Sprintf("Volume change failed: %v", msg.err)
 		return m, tea.Tick(3*time.Second, func(t time.Time) tea.Msg {
@@ -320,6 +324,7 @@ func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return m, tea.Batch(
 						updateCommandsCmd(true, m.volume, m.playbackManager.VolumeIsPercentage()),
 						startVolumeDebounceCmd(changeID),
+						func() tea.Msg { return playbackStatusMsg{status: PlaybackRestarting} },
 					)
 				}
 				return m, updateCommandsCmd(false, m.volume, m.playbackManager.VolumeIsPercentage())
@@ -335,6 +340,7 @@ func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return m, tea.Batch(
 						updateCommandsCmd(true, m.volume, m.playbackManager.VolumeIsPercentage()),
 						startVolumeDebounceCmd(changeID),
+						func() tea.Msg { return playbackStatusMsg{status: PlaybackRestarting} },
 					)
 				}
 				return m, updateCommandsCmd(false, m.volume, m.playbackManager.VolumeIsPercentage())

@@ -28,18 +28,35 @@ import (
 	"github.com/zi0p4tch0/radiogogo/playback"
 )
 
+// PlaybackStatus represents the current state of the audio player
+type PlaybackStatus int
+
+const (
+	PlaybackIdle PlaybackStatus = iota
+	PlaybackPlaying
+	PlaybackRestarting
+)
+
+// playbackStatusMsg is sent to update the header's playback status indicator
+type playbackStatusMsg struct {
+	status PlaybackStatus
+}
+
 type HeaderModel struct {
 	theme Theme
 
-	width         int
-	showOffset    bool
-	stationOffset int
-	totalStations int
+	width          int
+	showOffset     bool
+	stationOffset  int
+	totalStations  int
+	playbackStatus PlaybackStatus
+	playerName     string
 }
 
 func NewHeaderModel(theme Theme, playbackManager playback.PlaybackManagerService) HeaderModel {
 	return HeaderModel{
-		theme: theme,
+		theme:      theme,
+		playerName: playbackManager.Name(),
 	}
 }
 
@@ -52,6 +69,8 @@ func (m HeaderModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case stationCursorMovedMsg:
 		m.stationOffset = msg.offset
 		m.totalStations = msg.totalStations
+	case playbackStatusMsg:
+		m.playbackStatus = msg.status
 	}
 	return m, nil
 }
@@ -61,7 +80,26 @@ func (m HeaderModel) View() string {
 	header := m.theme.PrimaryBlock.Render("radiogogo")
 	version := m.theme.SecondaryBlock.Render(fmt.Sprintf("v%s", data.Version))
 
-	leftHeader := header + version
+	// Playback status indicator
+	var dotColor lipgloss.Color
+	switch m.playbackStatus {
+	case PlaybackIdle:
+		dotColor = lipgloss.Color("252") // white/gray
+	case PlaybackPlaying:
+		dotColor = lipgloss.Color("42") // green
+	case PlaybackRestarting:
+		dotColor = lipgloss.Color("226") // yellow
+	}
+
+	// Base style with background but no padding (we'll add padding to outer parts only)
+	baseStyle := m.theme.PrimaryBlock.Copy().PaddingLeft(0).PaddingRight(0)
+	dotStyle := baseStyle.Copy().Foreground(dotColor)
+
+	statusIndicator := baseStyle.Copy().PaddingLeft(2).Render("(") +
+		dotStyle.Render("●") +
+		baseStyle.Copy().PaddingRight(2).Render(") "+m.playerName)
+
+	leftHeader := header + version + statusIndicator
 
 	if m.showOffset {
 
