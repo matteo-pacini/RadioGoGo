@@ -142,17 +142,17 @@ Examples:
 `
 	case StationQueryByLanguage:
 		return `
-Examples:
-- "Italian" matches stations with "Italian" in their language.
-- "English" matches stations with "English" in their language.
-- "Spanish" matches stations with "Spanish" in their language.
+Examples (lowercase required):
+- "italian" matches stations with "italian" in their language.
+- "english" matches stations with "english" in their language.
+- "spanish" matches stations with "spanish" in their language.
 `
 	case StationQueryByLanguageExact:
 		return `
-Examples:
-- "Italian" matches stations with "Italian" as their language.
-- "English" matches stations with "English" as their language.
-- "Spanish" matches stations with "Spanish" as their language.
+Examples (lowercase required):
+- "italian" matches stations with "italian" as their language.
+- "english" matches stations with "english" as their language.
+- "spanish" matches stations with "spanish" as their language.
 `
 	case StationQueryByTag:
 		return `

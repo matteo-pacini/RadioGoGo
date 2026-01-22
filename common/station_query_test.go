@@ -85,7 +85,7 @@ func TestStationQuery_ExampleString(t *testing.T) {
 	t.Run("returns non-empty string for ByLanguage", func(t *testing.T) {
 		example := StationQueryByLanguage.ExampleString()
 		assert.NotEmpty(t, example)
-		assert.Contains(t, example, "Italian")
+		assert.Contains(t, example, "italian")
 	})
 
 	t.Run("returns non-empty string for ByTag", func(t *testing.T) {
