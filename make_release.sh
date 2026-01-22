@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -eo pipefail
 
@@ -56,7 +56,7 @@ for target in "${TARGETS[@]}"; do
     fi
 
     echo "Building for $GOOS/$GOARCH"
-    GOOS=$GOOS GOARCH=$GOARCH go build -o $OUTPUT
+    CGO_ENABLED=0 GOOS=$GOOS GOARCH=$GOARCH go build -o $OUTPUT
 
     zip -j "bin/radiogogo_$1_${GOOS}_${GOARCH}.zip" $OUTPUT
     rm -rf $OUTPUT

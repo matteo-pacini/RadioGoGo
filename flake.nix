@@ -30,6 +30,7 @@
           go-tools
           gotools
           ffmpeg
+          zip
         ];
       };
       packages = {
