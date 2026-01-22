@@ -89,7 +89,7 @@ Examples:
 Examples:
 - "BBC Radio 1" matches stations with "BBC Radio 1" as their name.
 - "Radio Italia" matches stations with "Radio Italia" as their name.
-- "Radio Romance" mtaches stations with "Radio Romance" as their name.
+- "Radio Romance" matches stations with "Radio Romance" as their name.
 `
 	case StationQueryByCodec:
 		return `
@@ -124,7 +124,7 @@ Examples:
 Examples:
 - "IT" matches stations with "IT" as their country code.
 - "US" matches stations with "US" as their country code.
-- "UK" matches stations with "UK" as their country code.
+- "GB" matches stations with "GB" as their country code.
 `
 	case StationQueryByState:
 		return `
@@ -164,9 +164,9 @@ Examples:
 	case StationQueryByTagExact:
 		return `
 Examples:
-- "rock" matches stations with "rock" as their tags.
-- "jazz" matches stations with "jazz" as their tags.
-- "pop" matches stations with "pop" as their tags.
+- "rock" matches stations with "rock" as one of their tags.
+- "jazz" matches stations with "jazz" as one of their tags.
+- "pop" matches stations with "pop" as one of their tags.
 `
 	}
 	return ""
