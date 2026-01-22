@@ -19,15 +19,12 @@
 
 package api
 
-import "fmt"
+import "strconv"
 
 func boolToString(b bool) string {
-	if b {
-		return "true"
-	}
-	return "false"
+	return strconv.FormatBool(b)
 }
 
 func uint64ToString(i uint64) string {
-	return fmt.Sprintf("%d", i)
+	return strconv.FormatUint(i, 10)
 }

@@ -22,14 +22,14 @@ package mocks
 import "github.com/google/uuid"
 
 type MockStationStorageService struct {
-	GetBookmarksFunc    func() ([]uuid.UUID, error)
-	AddBookmarkFunc     func(stationUUID uuid.UUID) error
-	RemoveBookmarkFunc  func(stationUUID uuid.UUID) error
-	IsBookmarkedFunc    func(stationUUID uuid.UUID) bool
-	GetHiddenFunc       func() ([]uuid.UUID, error)
-	AddHiddenFunc       func(stationUUID uuid.UUID) error
-	RemoveHiddenFunc    func(stationUUID uuid.UUID) error
-	IsHiddenFunc        func(stationUUID uuid.UUID) bool
+	GetBookmarksFunc   func() ([]uuid.UUID, error)
+	AddBookmarkFunc    func(stationUUID uuid.UUID) error
+	RemoveBookmarkFunc func(stationUUID uuid.UUID) error
+	IsBookmarkedFunc   func(stationUUID uuid.UUID) bool
+	GetHiddenFunc      func() ([]uuid.UUID, error)
+	AddHiddenFunc      func(stationUUID uuid.UUID) error
+	RemoveHiddenFunc   func(stationUUID uuid.UUID) error
+	IsHiddenFunc       func(stationUUID uuid.UUID) bool
 }
 
 func (m *MockStationStorageService) GetBookmarks() ([]uuid.UUID, error) {

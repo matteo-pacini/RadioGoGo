@@ -17,6 +17,17 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+// Package models implements the TUI components and state machine for RadioGoGo.
+// It uses BubbleTea's Elm-inspired architecture with the following states:
+//   - bootState: Initialization, checks if playback (FFplay) is available
+//   - searchState: User enters search criteria (name, country, codec, etc.)
+//   - loadingState: Fetches stations from RadioBrowser API
+//   - stationsState: Displays results in a table, allows selection and playback
+//   - errorState: Shows error messages
+//   - terminalTooSmallState: Displays when terminal is below minimum size
+//
+// State transitions are handled via typed messages (switchToXModelMsg) and
+// the main Model coordinates between child models for each state.
 package models
 
 import (
@@ -93,21 +104,22 @@ func checkIfPlaybackIsPossibleCmd(playbackManager playback.PlaybackManagerServic
 	}
 }
 
-// Model
-
+// Model is the root BubbleTea model that coordinates the application state machine.
+// It manages state transitions between search, loading, stations, and error views,
+// and handles global messages like window resize and quit events.
 type Model struct {
 
 	// Theme
 	theme Theme
 
 	// Models
-	headerModel                    HeaderModel
-	searchModel                    SearchModel
-	errorModel                     ErrorModel
-	loadingModel                   LoadingModel
-	stationsModel                  StationsModel
-	bottomBarCommands              []string
-	bottomBarSecondaryCommands     []string
+	headerModel                HeaderModel
+	searchModel                SearchModel
+	errorModel                 ErrorModel
+	loadingModel               LoadingModel
+	stationsModel              StationsModel
+	bottomBarCommands          []string
+	bottomBarSecondaryCommands []string
 
 	// State
 	state           modelState
@@ -119,6 +131,9 @@ type Model struct {
 	storage         storage.StationStorageService
 }
 
+// NewDefaultModel creates a new Model with production dependencies (real API client,
+// FFplay playback manager, and file-based storage). Returns an error if any
+// dependency initialization fails.
 func NewDefaultModel(config config.Config) (Model, error) {
 
 	browser, err := api.NewRadioBrowser()
@@ -137,6 +152,8 @@ func NewDefaultModel(config config.Config) (Model, error) {
 
 }
 
+// NewModel creates a new Model with the provided dependencies. This constructor
+// is preferred for testing as it allows injecting mock implementations.
 func NewModel(
 	config config.Config,
 	browser api.RadioBrowserService,
@@ -156,10 +173,15 @@ func NewModel(
 	}
 }
 
+// Init initializes the model by checking if playback is available.
+// If FFplay is not found, transitions to error state; otherwise transitions to search state.
 func (m Model) Init() tea.Cmd {
 	return checkIfPlaybackIsPossibleCmd(m.playbackManager)
 }
 
+// Update handles incoming messages and manages state transitions.
+// It processes global events (window resize, quit) and delegates state-specific
+// messages to the appropriate child model.
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Top-level messages
@@ -280,17 +302,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
+// View renders the current UI based on the active state.
+// Composes the header, current state's view, and bottom bar.
 func (m Model) View() string {
 
 	// Handle terminal too small state separately
 	if m.state == terminalTooSmallState {
-		errorStyle := lipgloss.NewStyle().
-			Foreground(lipgloss.Color("9")).
-			Bold(true)
-
 		message := fmt.Sprintf(
 			"%s\n\nMinimum size: %dx%d\nCurrent size: %dx%d",
-			errorStyle.Render("Terminal too small!"),
+			m.theme.ErrorText.Bold(true).Render("Terminal too small!"),
 			minTerminalWidth, minTerminalHeight,
 			m.width, m.height,
 		)

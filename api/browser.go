@@ -17,6 +17,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+// Package api provides a client for the RadioBrowser API (https://api.radio-browser.info/).
+// It allows searching for radio stations by various criteria, fetching station details,
+// and reporting station clicks. The implementation uses DNS-based server discovery
+// for load balancing across RadioBrowser API servers.
 package api
 
 import (

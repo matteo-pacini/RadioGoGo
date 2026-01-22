@@ -21,20 +21,6 @@ package models
 
 import "strings"
 
-// LayoutConfig holds terminal dimensions
-type LayoutConfig struct {
-	TerminalWidth  int
-	TerminalHeight int
-}
-
-// LayoutResult contains calculated heights for each component
-type LayoutResult struct {
-	HeaderHeight    int
-	ContentHeight   int
-	BottomBarHeight int
-	FillerHeight    int
-}
-
 // CalculateFillerHeight computes the filler height needed to fill the terminal.
 // headerContentHeight should be lipgloss.Height of the already-concatenated header + content.
 // bottomBarHeight is 1 for single-row bar, 2 for two-row bar.
@@ -50,43 +36,6 @@ func CalculateFillerHeight(terminalHeight, headerContentHeight, bottomBarHeight 
 		filler = 0
 	}
 	return filler
-}
-
-// CalculateLayout computes heights for single-row bottom bar states (search, loading, error)
-// DEPRECATED: Use CalculateFillerHeight instead for accurate calculations
-func CalculateLayout(config LayoutConfig, contentLines int) LayoutResult {
-	headerHeight := 1
-	bottomBarHeight := 1
-	// Use the new formula: terminal - actualHeight - bottomBar + 1
-	// Here we approximate actualHeight as headerHeight + contentLines, but this is imprecise
-	// because it doesn't account for trailing newline merge effects
-	fillerHeight := config.TerminalHeight - headerHeight - contentLines - bottomBarHeight + 1
-	if fillerHeight < 0 {
-		fillerHeight = 0
-	}
-	return LayoutResult{
-		HeaderHeight:    headerHeight,
-		ContentHeight:   config.TerminalHeight - headerHeight - bottomBarHeight,
-		BottomBarHeight: bottomBarHeight,
-		FillerHeight:    fillerHeight,
-	}
-}
-
-// CalculateStationsLayout computes heights for two-row bottom bar (stations state)
-// DEPRECATED: Use CalculateFillerHeight instead for accurate calculations
-func CalculateStationsLayout(config LayoutConfig, contentLines int) LayoutResult {
-	headerHeight := 1
-	bottomBarHeight := 2
-	fillerHeight := config.TerminalHeight - headerHeight - contentLines - bottomBarHeight + 1
-	if fillerHeight < 0 {
-		fillerHeight = 0
-	}
-	return LayoutResult{
-		HeaderHeight:    headerHeight,
-		ContentHeight:   config.TerminalHeight - headerHeight - bottomBarHeight,
-		BottomBarHeight: bottomBarHeight,
-		FillerHeight:    fillerHeight,
-	}
 }
 
 // RenderFiller returns the exact newlines needed for filler space

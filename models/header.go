@@ -83,20 +83,33 @@ func (m HeaderModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
+// View renders the header bar with app name, version, and status indicators.
+// Layout: [radiogogo][v0.x.x][(●) ffplay][(●) rec] ... [1/100]
+//
+// The header adapts based on context:
+//   - In search/loading views: Shows only app name and version
+//   - In stations view: Shows full header with playback/recording indicators
+//
+// Status indicator colors:
+//   - Playback dot: white (idle), green (playing), yellow (restarting)
+//   - Recording dot: white (not recording), red (recording)
 func (m HeaderModel) View() string {
 
 	header := m.theme.PrimaryBlock.Render("radiogogo")
 	version := m.theme.SecondaryBlock.Render(fmt.Sprintf("v%s", data.Version))
 
-	// Only show playback/rec indicators in stations view (when showOffset is true)
+	// In non-stations views (search, loading, error), show minimal header
 	if !m.showOffset {
 		return header + version + "\n"
 	}
 
-	// Base style with background but no padding (we'll add padding to outer parts only)
+	// Create a base style with matching background but no padding.
+	// We apply padding selectively to create proper spacing between elements
+	// while maintaining a continuous colored background across all indicators.
 	baseStyle := m.theme.PrimaryBlock.Copy().PaddingLeft(0).PaddingRight(0)
 
-	// Playback status indicator
+	// Playback status indicator: (●) ffplay
+	// Color indicates: idle (white), playing (green), restarting (yellow)
 	var playbackDotColor lipgloss.Color
 	switch m.playbackStatus {
 	case PlaybackIdle:
@@ -108,11 +121,13 @@ func (m HeaderModel) View() string {
 	}
 
 	playbackDotStyle := baseStyle.Copy().Foreground(playbackDotColor)
+	// Build indicator piece by piece to maintain consistent background
 	playbackIndicator := baseStyle.Copy().PaddingLeft(2).Render("(") +
 		playbackDotStyle.Render("●") +
 		baseStyle.Copy().PaddingRight(2).Render(") "+m.playerName)
 
-	// Recording status indicator
+	// Recording status indicator: (●) rec
+	// Color indicates: not recording (white), recording (red)
 	var recDotColor lipgloss.Color
 	if m.isRecording {
 		recDotColor = lipgloss.Color("196") // red
@@ -125,10 +140,11 @@ func (m HeaderModel) View() string {
 		recDotStyle.Render("●") +
 		baseStyle.Copy().PaddingRight(2).Render(") rec")
 
+	// Compose left and right sections
 	leftHeader := header + version + playbackIndicator + recIndicator
-
 	rightHeader := m.theme.PrimaryBlock.Render(fmt.Sprintf("%d/%d", m.stationOffset+1, m.totalStations))
 
+	// Fill remaining space to push station counter to the right edge
 	fillerWidth := m.width - lipgloss.Width(leftHeader) - lipgloss.Width(rightHeader)
 	if fillerWidth < 0 {
 		fillerWidth = 0

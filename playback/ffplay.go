@@ -53,6 +53,14 @@ func (d *FFPlayPlaybackManager) PlayStation(station common.Station, volume int) 
 	return nil
 }
 
+// StopStation stops the currently playing station and any active recording.
+// Platform-specific behavior:
+//   - Windows: Uses taskkill with /T (tree kill) and /F (force) flags to kill
+//     the ffplay process and all its child processes. This is necessary because
+//     Windows doesn't propagate signals to child processes like Unix does.
+//   - Unix/macOS: Uses SIGKILL via Process.Kill() which immediately terminates
+//     the process. This is sufficient as ffplay doesn't spawn child processes
+//     on these platforms.
 func (d *FFPlayPlaybackManager) StopStation() error {
 	// Stop recording first if active
 	if _, err := d.StopRecording(); err != nil {
@@ -61,18 +69,19 @@ func (d *FFPlayPlaybackManager) StopStation() error {
 
 	if d.nowPlaying != nil {
 		if runtime.GOOS == "windows" {
-			// On Windows, use taskkill to ensure all child processes are also killed.
+			// Windows: taskkill /T kills entire process tree, /F forces termination
 			killCmd := exec.Command("taskkill", "/T", "/F", "/PID", fmt.Sprintf("%d", d.nowPlaying.Process.Pid))
 			if err := killCmd.Run(); err != nil {
 				return err
 			}
 		} else {
-			// On other platforms, just use the normal Kill method.
+			// Unix/macOS: SIGKILL is sufficient for single-process termination
 			if err := d.nowPlaying.Process.Kill(); err != nil {
 				return err
 			}
 		}
 
+		// Wait for process to be reaped to avoid zombie processes
 		_, err := d.nowPlaying.Process.Wait()
 		if err != nil {
 			return err
@@ -144,6 +153,14 @@ func (d *FFPlayPlaybackManager) StartRecording(outputPath string) error {
 	return nil
 }
 
+// StopRecording stops the current recording and returns the output file path.
+// Platform-specific behavior:
+//   - Windows: Uses taskkill to force-terminate ffmpeg. This may result in
+//     slightly corrupted file endings, but is the most reliable cross-platform
+//     approach on Windows.
+//   - Unix/macOS: Sends SIGINT (Ctrl+C) to ffmpeg, allowing it to gracefully
+//     finalize the output file (write proper headers/trailers). Falls back to
+//     SIGKILL if SIGINT fails.
 func (d *FFPlayPlaybackManager) StopRecording() (string, error) {
 	if d.nowRecording == nil {
 		return "", nil
@@ -152,22 +169,22 @@ func (d *FFPlayPlaybackManager) StopRecording() (string, error) {
 	filePath := d.recordingPath
 
 	if runtime.GOOS == "windows" {
+		// Windows: Force kill - ffmpeg doesn't handle signals well on Windows
 		killCmd := exec.Command("taskkill", "/T", "/F", "/PID", fmt.Sprintf("%d", d.nowRecording.Process.Pid))
 		if err := killCmd.Run(); err != nil {
 			return "", err
 		}
 	} else {
-		// Send SIGINT (ctrl+c) for graceful shutdown - ffmpeg will finalize the file
+		// Unix/macOS: SIGINT allows ffmpeg to finalize the output file properly
 		if err := d.nowRecording.Process.Signal(os.Interrupt); err != nil {
-			// Fallback to kill if interrupt fails
+			// Fallback to SIGKILL if SIGINT fails (process may be unresponsive)
 			if err := d.nowRecording.Process.Kill(); err != nil {
 				return "", err
 			}
 		}
 	}
 
-	// Wait for process to complete
-	// Ignore error as process may have already exited
+	// Wait for process to be reaped (ignore errors as process may have already exited)
 	_, _ = d.nowRecording.Process.Wait()
 
 	d.nowRecording = nil

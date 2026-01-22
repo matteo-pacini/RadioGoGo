@@ -19,11 +19,46 @@
 
 package api
 
-import "net/http"
+import (
+	"testing"
 
-// HTTPClientService abstracts the HTTP client interface for making API requests.
-// This allows for dependency injection and easier testing by swapping the default
-// http.Client with mock implementations.
-type HTTPClientService interface {
-	Do(req *http.Request) (*http.Response, error)
+	"github.com/stretchr/testify/assert"
+)
+
+func TestBoolToString(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    bool
+		expected string
+	}{
+		{"true value", true, "true"},
+		{"false value", false, "false"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := boolToString(tt.input)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestUint64ToString(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    uint64
+		expected string
+	}{
+		{"zero", 0, "0"},
+		{"small number", 42, "42"},
+		{"large number", 1000000, "1000000"},
+		{"max uint64", 18446744073709551615, "18446744073709551615"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := uint64ToString(tt.input)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
 }
