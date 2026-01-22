@@ -72,6 +72,11 @@ type switchToLoadingModelMsg struct {
 	queryText string
 }
 type switchToStationsModelMsg struct {
+	stations  []common.Station
+	query     common.StationQuery
+	queryText string
+}
+type switchToBookmarksMsg struct {
 	stations []common.Station
 }
 
@@ -250,7 +255,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.headerModel.playbackStatus = PlaybackIdle // Reset playback indicator
 		m.headerModel.isRecording = false           // Reset recording indicator
 		m.bottomBarSecondaryCommands = nil          // Clear two-row bar
-		m.searchModel = NewSearchModel(m.theme)
+		m.searchModel = NewSearchModel(m.theme, m.browser, m.storage)
 		m.searchModel.SetWidthAndHeight(m.width, m.height-2) // 1 header + 1 bottom bar row
 		m.state = searchState
 		return m, m.searchModel.Init()
@@ -265,7 +270,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.headerModel.showOffset = true
 		// Filter out hidden stations before displaying
 		filteredStations := filterHiddenStations(msg.stations, m.storage)
-		m.stationsModel = NewStationsModel(m.theme, m.browser, m.playbackManager, m.storage, filteredStations, viewModeSearchResults)
+		m.stationsModel = NewStationsModel(m.theme, m.browser, m.playbackManager, m.storage, filteredStations, viewModeSearchResults, msg.query, msg.queryText)
+		m.stationsModel.SetWidthAndHeight(m.width, m.height-3) // 1 header + 2 bottom bar rows
+		m.state = stationsState
+		return m, m.stationsModel.Init()
+	case switchToBookmarksMsg:
+		m.headerModel.showOffset = true
+		// Bookmarks don't need refetch - they're managed separately
+		m.stationsModel = NewStationsModel(m.theme, m.browser, m.playbackManager, m.storage, msg.stations, viewModeBookmarks, "", "")
 		m.stationsModel.SetWidthAndHeight(m.width, m.height-3) // 1 header + 2 bottom bar rows
 		m.state = stationsState
 		return m, m.stationsModel.Init()
@@ -354,8 +366,10 @@ func (m Model) View() string {
 		view += RenderFiller(fillerHeight)
 	}
 
-	// Render bottom bar (one or two rows)
-	if len(m.bottomBarSecondaryCommands) > 0 {
+	// Render bottom bar (one or two rows) - skip when modal is showing
+	if m.state == stationsState && m.stationsModel.IsModalShowing() {
+		// Don't render bottom bar when modal is open
+	} else if len(m.bottomBarSecondaryCommands) > 0 {
 		view += m.theme.StyleTwoRowBottomBar(m.bottomBarCommands, m.bottomBarSecondaryCommands)
 	} else {
 		view += m.theme.StyleBottomBar(m.bottomBarCommands)

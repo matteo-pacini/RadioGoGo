@@ -105,6 +105,12 @@ type hiddenFetchFailedMsg struct {
 type stationUnhiddenMsg struct {
 	station common.Station
 }
+type stationsRefetchedMsg struct {
+	stations []common.Station
+}
+type stationsRefetchFailedMsg struct {
+	err error
+}
 
 // Playback commands
 
@@ -246,6 +252,25 @@ func fetchBookmarksCmd(browser api.RadioBrowserService, storage storage.StationS
 	}
 }
 
+// fetchBookmarksForSearchCmd fetches bookmarks and switches directly to bookmarks view.
+// Used when accessing bookmarks from the search screen.
+func fetchBookmarksForSearchCmd(browser api.RadioBrowserService, storage storage.StationStorageService) tea.Cmd {
+	return func() tea.Msg {
+		uuids, err := storage.GetBookmarks()
+		if err != nil {
+			return switchToErrorModelMsg{err: err.Error(), recoverable: true}
+		}
+		if len(uuids) == 0 {
+			return switchToBookmarksMsg{stations: []common.Station{}}
+		}
+		stations, err := browser.GetStationsByUUIDs(uuids)
+		if err != nil {
+			return switchToErrorModelMsg{err: err.Error(), recoverable: true}
+		}
+		return switchToBookmarksMsg{stations: stations}
+	}
+}
+
 // fetchHiddenStationsCmd fetches all hidden stations from storage and the API.
 func fetchHiddenStationsCmd(browser api.RadioBrowserService, storage storage.StationStorageService) tea.Cmd {
 	return func() tea.Msg {
@@ -261,6 +286,17 @@ func fetchHiddenStationsCmd(browser api.RadioBrowserService, storage storage.Sta
 			return hiddenFetchFailedMsg{err: err}
 		}
 		return hiddenFetchedMsg{stations: stations}
+	}
+}
+
+// refetchStationsCmd refetches search results from the API using the stored query.
+func refetchStationsCmd(browser api.RadioBrowserService, query common.StationQuery, queryText string) tea.Cmd {
+	return func() tea.Msg {
+		stations, err := browser.GetStations(query, queryText, "votes", true, 0, 100, true)
+		if err != nil {
+			return stationsRefetchFailedMsg{err: err}
+		}
+		return stationsRefetchedMsg{stations: stations}
 	}
 }
 
@@ -304,7 +340,8 @@ func updateCommandsCmd(viewMode stationsViewMode, isPlaying bool, volume int, vo
 		if viewMode == viewModeSearchResults {
 			secondaryCommands = []string{"b: bookmark", "B: bookmarks", "h: hide", "H: manage hidden"}
 		} else {
-			secondaryCommands = []string{"b: bookmark", "B: back", "H: manage hidden"}
+			// "B: back" is already in primary row, no hide commands in bookmarks mode
+			secondaryCommands = []string{"b: bookmark"}
 		}
 
 		return bottomBarUpdateMsg{

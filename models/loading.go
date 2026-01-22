@@ -82,7 +82,7 @@ func searchStations(browser api.RadioBrowserService, query common.StationQuery, 
 		if err != nil {
 			return switchToErrorModelMsg{err: err.Error(), recoverable: true}
 		}
-		return switchToStationsModelMsg{stations: stations}
+		return switchToStationsModelMsg{stations: stations, query: query, queryText: queryText}
 	}
 }
 

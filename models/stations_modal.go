@@ -50,6 +50,14 @@ func (m *StationsModel) handleHiddenModalInput(msg tea.KeyMsg) (bool, tea.Cmd) {
 		return true, nil
 	case "esc", "H", "q":
 		m.showHiddenModal = false
+		// Trigger refetch if any stations were unhidden
+		if m.needsRefetch {
+			m.needsRefetch = false
+			return true, tea.Batch(
+				refetchStationsCmd(m.browser, m.lastQuery, m.lastQueryText),
+				updateCommandsCmd(m.viewMode, m.playbackManager.IsPlaying(), m.volume, m.playbackManager.VolumeIsPercentage(), m.playbackManager.IsRecording()),
+			)
+		}
 		return true, updateCommandsCmd(m.viewMode, m.playbackManager.IsPlaying(), m.volume, m.playbackManager.VolumeIsPercentage(), m.playbackManager.IsRecording())
 	}
 	return true, nil

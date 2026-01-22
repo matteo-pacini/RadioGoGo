@@ -62,10 +62,19 @@ type StationsModel struct {
 	viewMode stationsViewMode
 	storage  storage.StationStorageService
 
+	// Saved state for returning from bookmarks view
+	savedStations []common.Station
+	savedCursor   int
+
 	// Hidden modal state
 	showHiddenModal   bool
 	hiddenStations    []common.Station
 	hiddenModalCursor int
+	needsRefetch      bool
+
+	// Last search query for refetching
+	lastQuery     common.StationQuery
+	lastQueryText string
 
 	browser         api.RadioBrowserService
 	playbackManager playback.PlaybackManagerService
@@ -81,6 +90,8 @@ func NewStationsModel(
 	storage storage.StationStorageService,
 	stations []common.Station,
 	viewMode stationsViewMode,
+	lastQuery common.StationQuery,
+	lastQueryText string,
 ) StationsModel {
 
 	return StationsModel{
@@ -92,6 +103,8 @@ func NewStationsModel(
 		storage:         storage,
 		browser:         browser,
 		playbackManager: playbackManager,
+		lastQuery:       lastQuery,
+		lastQueryText:   lastQueryText,
 	}
 }
 
@@ -226,8 +239,16 @@ func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Bookmark and hidden station messages
 	case bookmarkToggledMsg:
-		// Refresh table to update star prefix
+		cursor := m.stationsTable.Cursor()
+		// If in bookmarks mode, refresh the list (station may have been unbookmarked)
+		if m.viewMode == viewModeBookmarks {
+			// Save cursor to restore after fetch completes
+			m.savedCursor = cursor
+			return m, fetchBookmarksCmd(m.browser, m.storage)
+		}
+		// Otherwise just refresh table to update star prefix
 		m.stationsTable = newStationsTableModel(m.theme, m.stations, m.storage)
+		m.stationsTable.SetCursor(cursor)
 		return m, nil
 	case stationHiddenMsg:
 		// Remove hidden station from current view
@@ -239,9 +260,11 @@ func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		m.stations = newStations
 		m.stationsTable = newStationsTableModel(m.theme, m.stations, m.storage)
-		// Adjust cursor if needed
+		// Restore cursor position (adjust if past end)
 		if msg.cursor >= len(m.stations) && len(m.stations) > 0 {
 			m.stationsTable.SetCursor(len(m.stations) - 1)
+		} else {
+			m.stationsTable.SetCursor(msg.cursor)
 		}
 		return m, func() tea.Msg {
 			return stationCursorMovedMsg{
@@ -250,10 +273,25 @@ func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 	case bookmarksFetchedMsg:
+		// Save current state before switching to bookmarks (only if coming from search results)
+		cursorToRestore := 0
+		if m.viewMode == viewModeSearchResults {
+			m.savedStations = m.stations
+			m.savedCursor = m.stationsTable.Cursor()
+		} else {
+			// Already in bookmarks mode (refreshing after unbookmark), restore cursor
+			cursorToRestore = m.savedCursor
+		}
 		// Switch to bookmarks view
 		m.viewMode = viewModeBookmarks
 		m.stations = msg.stations
 		m.stationsTable = newStationsTableModel(m.theme, m.stations, m.storage)
+		// Restore cursor if valid
+		if cursorToRestore > 0 && cursorToRestore < len(m.stations) {
+			m.stationsTable.SetCursor(cursorToRestore)
+		} else if cursorToRestore >= len(m.stations) && len(m.stations) > 0 {
+			m.stationsTable.SetCursor(len(m.stations) - 1)
+		}
 		return m, tea.Batch(
 			updateCommandsCmd(m.viewMode, m.playbackManager.IsPlaying(), m.volume, m.playbackManager.VolumeIsPercentage(), m.playbackManager.IsRecording()),
 			func() tea.Msg {
@@ -279,6 +317,9 @@ func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return clearNonFatalError{}
 		})
 	case stationUnhiddenMsg:
+		// Mark that we need to refetch when modal closes
+		m.needsRefetch = true
+
 		// Remove from modal list
 		newHidden := make([]common.Station, 0, len(m.hiddenStations)-1)
 		for _, s := range m.hiddenStations {
@@ -292,8 +333,34 @@ func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		if len(m.hiddenStations) == 0 {
 			m.showHiddenModal = false
+			// Trigger refetch now that modal is closed
+			if m.needsRefetch {
+				m.needsRefetch = false
+				return m, refetchStationsCmd(m.browser, m.lastQuery, m.lastQueryText)
+			}
 		}
 		return m, nil
+	case stationsRefetchedMsg:
+		// Filter hidden stations and update the view
+		filtered := make([]common.Station, 0, len(msg.stations))
+		for _, s := range msg.stations {
+			if !m.storage.IsHidden(s.StationUuid) {
+				filtered = append(filtered, s)
+			}
+		}
+		m.stations = filtered
+		m.stationsTable = newStationsTableModel(m.theme, m.stations, m.storage)
+		return m, func() tea.Msg {
+			return stationCursorMovedMsg{
+				offset:        m.stationsTable.Cursor(),
+				totalStations: len(m.stations),
+			}
+		}
+	case stationsRefetchFailedMsg:
+		m.err = fmt.Sprintf("Failed to refresh stations: %v", msg.err)
+		return m, tea.Tick(3*time.Second, func(t time.Time) tea.Msg {
+			return clearNonFatalError{}
+		})
 
 	// Key event handling
 	case tea.KeyMsg:
@@ -349,13 +416,44 @@ func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, hideStationCmd(m.storage, station, m.stationsTable.Cursor())
 		case "B":
 			// Toggle view mode (search results <-> bookmarks)
+			// Stop playback when switching views
 			if m.viewMode == viewModeSearchResults {
-				return m, fetchBookmarksCmd(m.browser, m.storage)
+				return m, tea.Sequence(
+					stopStationCmd(m.playbackManager),
+					fetchBookmarksCmd(m.browser, m.storage),
+				)
 			} else {
+				// Return from bookmarks to previous stations (or search if none saved)
+				if len(m.savedStations) > 0 {
+					// Stop playback
+					m.playbackManager.StopStation()
+					m.currentStation = common.Station{}
+					m.currentStationSpinner = spinner.Model{}
+
+					m.viewMode = viewModeSearchResults
+					m.stations = m.savedStations
+					m.stationsTable = newStationsTableModel(m.theme, m.stations, m.storage)
+					m.stationsTable.SetCursor(m.savedCursor)
+					m.savedStations = nil
+					m.savedCursor = 0
+					return m, tea.Batch(
+						updateCommandsCmd(m.viewMode, false, m.volume, m.playbackManager.VolumeIsPercentage(), false),
+						func() tea.Msg { return playbackStatusMsg{status: PlaybackIdle} },
+						func() tea.Msg {
+							return stationCursorMovedMsg{
+								offset:        m.stationsTable.Cursor(),
+								totalStations: len(m.stations),
+							}
+						},
+					)
+				}
 				return m, func() tea.Msg { return switchToSearchModelMsg{} }
 			}
 		case "H":
-			// Open hidden stations modal
+			// Open hidden stations modal (only in search results mode)
+			if m.viewMode != viewModeSearchResults {
+				return m, nil
+			}
 			return m, fetchHiddenStationsCmd(m.browser, m.storage)
 		case "enter":
 			if len(m.stations) == 0 {
@@ -508,4 +606,9 @@ func (m *StationsModel) SetWidthAndHeight(width int, height int) {
 	// - "\n" blank line + status bar (2 lines)
 	// So: tableHeight = height - 4
 	m.stationsTable.SetHeight(height - 4)
+}
+
+// IsModalShowing returns true if a modal dialog is currently displayed.
+func (m StationsModel) IsModalShowing() bool {
+	return m.showHiddenModal
 }

@@ -23,7 +23,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/zi0p4tch0/radiogogo/api"
 	"github.com/zi0p4tch0/radiogogo/common"
+	"github.com/zi0p4tch0/radiogogo/storage"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
@@ -31,13 +33,15 @@ import (
 
 type SearchModel struct {
 	theme         Theme
+	browser       api.RadioBrowserService
+	storage       storage.StationStorageService
 	inputModel    textinput.Model
 	querySelector SelectorModel[common.StationQuery]
 	width         int
 	height        int
 }
 
-func NewSearchModel(theme Theme) SearchModel {
+func NewSearchModel(theme Theme, browser api.RadioBrowserService, storage storage.StationStorageService) SearchModel {
 	i := textinput.New()
 	i.Placeholder = "Name"
 	i.Width = 30
@@ -68,6 +72,8 @@ func NewSearchModel(theme Theme) SearchModel {
 
 	return SearchModel{
 		theme:         theme,
+		browser:       browser,
+		storage:       storage,
 		inputModel:    i,
 		querySelector: selector,
 	}
@@ -78,13 +84,13 @@ func NewSearchModel(theme Theme) SearchModel {
 
 func updateCommandsForTextfieldFocus() tea.Msg {
 	return bottomBarUpdateMsg{
-		commands: []string{"q: quit", "tab: cycle focus", "enter: search"},
+		commands: []string{"q: quit", "tab: cycle focus", "enter: search", "B: bookmarks"},
 	}
 }
 
 func updateCommandsForSelectorFocus() tea.Msg {
 	return bottomBarUpdateMsg{
-		commands: []string{"q: quit", "tab: cycle focus", "↑/↓: change filter"},
+		commands: []string{"q: quit", "tab: cycle focus", "↑/↓: change filter", "B: bookmarks"},
 	}
 }
 
@@ -113,6 +119,8 @@ func (m SearchModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if !m.inputModel.Focused() {
 				return m, quitCmd
 			}
+		case "B":
+			return m, fetchBookmarksForSearchCmd(m.browser, m.storage)
 		case "enter":
 			if !m.inputModel.Focused() {
 				return m, nil
