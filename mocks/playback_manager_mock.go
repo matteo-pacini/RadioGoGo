@@ -32,6 +32,7 @@ type MockPlaybackManagerService struct {
 	VolumeDefaultResult           int
 	VolumeMaxResult               int
 	VolumeIsPercentageResult      bool
+	CurrentStationResult          common.Station
 }
 
 func (m *MockPlaybackManagerService) IsAvailable() bool {
@@ -72,4 +73,8 @@ func (m *MockPlaybackManagerService) VolumeMax() int {
 
 func (m *MockPlaybackManagerService) VolumeIsPercentage() bool {
 	return m.VolumeIsPercentageResult
+}
+
+func (m *MockPlaybackManagerService) CurrentStation() common.Station {
+	return m.CurrentStationResult
 }

@@ -10,7 +10,8 @@ import (
 
 // FFPlayPlaybackManager represents a playback manager for FFPlay.
 type FFPlayPlaybackManager struct {
-	nowPlaying *exec.Cmd
+	nowPlaying     *exec.Cmd
+	currentStation common.Station
 }
 
 func NewFFPlaybackManager() PlaybackManagerService {
@@ -45,6 +46,7 @@ func (d *FFPlayPlaybackManager) PlayStation(station common.Station, volume int) 
 		return err
 	}
 	d.nowPlaying = cmd
+	d.currentStation = station
 	return nil
 }
 
@@ -68,6 +70,7 @@ func (d *FFPlayPlaybackManager) StopStation() error {
 			return err
 		}
 		d.nowPlaying = nil
+		d.currentStation = common.Station{}
 	}
 	return nil
 }
@@ -86,4 +89,8 @@ func (d FFPlayPlaybackManager) VolumeMax() int {
 
 func (d FFPlayPlaybackManager) VolumeIsPercentage() bool {
 	return false
+}
+
+func (d FFPlayPlaybackManager) CurrentStation() common.Station {
+	return d.currentStation
 }

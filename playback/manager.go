@@ -47,4 +47,6 @@ type PlaybackManagerService interface {
 	VolumeMax() int
 	// VolumeIsPercentage returns true if the volume is represented as a percentage.
 	VolumeIsPercentage() bool
+	// CurrentStation returns the station currently playing, or an empty Station if nothing is playing.
+	CurrentStation() common.Station
 }

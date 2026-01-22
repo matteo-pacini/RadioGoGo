@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/zi0p4tch0/radiogogo/api"
 	"github.com/zi0p4tch0/radiogogo/assets"
 	"github.com/zi0p4tch0/radiogogo/common"
@@ -42,6 +43,10 @@ type StationsModel struct {
 	currentStationSpinner spinner.Model
 	volume                int
 	err                   string
+
+	// Volume change debouncing
+	pendingVolumeChangeID int64
+	volumeChangePending   bool
 
 	browser         api.RadioBrowserService
 	playbackManager playback.PlaybackManagerService
@@ -115,6 +120,18 @@ type stationCursorMovedMsg struct {
 	totalStations int
 }
 
+type volumeDebounceExpiredMsg struct {
+	changeID int64
+}
+
+type volumeRestartCompleteMsg struct {
+	station common.Station
+}
+
+type volumeRestartFailedMsg struct {
+	err error
+}
+
 // Commands
 
 func playStationCmd(
@@ -151,21 +168,49 @@ func notifyRadioBrowserCmd(browser api.RadioBrowserService, station common.Stati
 	}
 }
 
+const volumeDebounceDelay = 300 * time.Millisecond
+
+func startVolumeDebounceCmd(changeID int64) tea.Cmd {
+	return tea.Tick(volumeDebounceDelay, func(t time.Time) tea.Msg {
+		return volumeDebounceExpiredMsg{changeID: changeID}
+	})
+}
+
+func restartPlaybackWithVolumeCmd(
+	pm playback.PlaybackManagerService,
+	station common.Station,
+	volume int,
+) tea.Cmd {
+	return func() tea.Msg {
+		if err := pm.StopStation(); err != nil {
+			return volumeRestartFailedMsg{err: err}
+		}
+		if err := pm.PlayStation(station, volume); err != nil {
+			return volumeRestartFailedMsg{err: err}
+		}
+		return volumeRestartCompleteMsg{station: station}
+	}
+}
+
 func updateCommandsCmd(isPlaying bool, volume int, volumeIsPercentage bool) tea.Cmd {
 	return func() tea.Msg {
 
 		commands := []string{"q: quit", "s: search", "enter: play", "↑/↓: move"}
 
-		if isPlaying {
-			commands = append(commands, "ctrl+k: stop")
+		var volumeDisplay string
+		if volume == 0 {
+			volumeDisplay = "mute"
 		} else {
-
-			volume := fmt.Sprintf("%d", volume)
+			volumeDisplay = fmt.Sprintf("vol: %d", volume)
 			if volumeIsPercentage {
-				volume += "%"
+				volumeDisplay += "%"
 			}
+		}
 
-			commands = append(commands, "9/0: vol down/up", "vol: "+volume)
+		if isPlaying {
+			commands = append(commands, "ctrl+k: stop", "9/0: vol down/up", volumeDisplay)
+		} else {
+			commands = append(commands, "9/0: vol down/up", volumeDisplay)
 		}
 
 		return bottomBarUpdateMsg{
@@ -195,6 +240,7 @@ func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case playbackStartedMsg:
 		m.currentStation = msg.station
+		m.volumeChangePending = false
 		m.currentStationSpinner = spinner.New()
 		m.currentStationSpinner.Spinner = spinner.Dot
 		m.currentStationSpinner.Style = m.theme.PrimaryText
@@ -221,6 +267,23 @@ func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case clearNonFatalError:
 		m.err = ""
 		return m, nil
+	case volumeDebounceExpiredMsg:
+		if msg.changeID == m.pendingVolumeChangeID && m.volumeChangePending {
+			m.volumeChangePending = false
+			station := m.playbackManager.CurrentStation()
+			if station.StationUuid != uuid.Nil {
+				return m, restartPlaybackWithVolumeCmd(m.playbackManager, station, m.volume)
+			}
+		}
+		return m, nil
+	case volumeRestartCompleteMsg:
+		m.currentStation = msg.station
+		return m, nil
+	case volumeRestartFailedMsg:
+		m.err = fmt.Sprintf("Volume change failed: %v", msg.err)
+		return m, tea.Tick(3*time.Second, func(t time.Time) tea.Msg {
+			return clearNonFatalError{}
+		})
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "up", "down", "j", "k":
@@ -248,14 +311,32 @@ func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				},
 			)
 		case "9":
-			if m.volume > m.playbackManager.VolumeMin() && !m.playbackManager.IsPlaying() {
+			if m.volume > m.playbackManager.VolumeMin() {
 				m.volume -= 10
+				if m.playbackManager.IsPlaying() {
+					changeID := time.Now().UnixNano()
+					m.pendingVolumeChangeID = changeID
+					m.volumeChangePending = true
+					return m, tea.Batch(
+						updateCommandsCmd(true, m.volume, m.playbackManager.VolumeIsPercentage()),
+						startVolumeDebounceCmd(changeID),
+					)
+				}
 				return m, updateCommandsCmd(false, m.volume, m.playbackManager.VolumeIsPercentage())
 			}
 			return m, nil
 		case "0":
-			if m.volume < m.playbackManager.VolumeMax() && !m.playbackManager.IsPlaying() {
+			if m.volume < m.playbackManager.VolumeMax() {
 				m.volume += 10
+				if m.playbackManager.IsPlaying() {
+					changeID := time.Now().UnixNano()
+					m.pendingVolumeChangeID = changeID
+					m.volumeChangePending = true
+					return m, tea.Batch(
+						updateCommandsCmd(true, m.volume, m.playbackManager.VolumeIsPercentage()),
+						startVolumeDebounceCmd(changeID),
+					)
+				}
 				return m, updateCommandsCmd(false, m.volume, m.playbackManager.VolumeIsPercentage())
 			}
 			return m, nil
