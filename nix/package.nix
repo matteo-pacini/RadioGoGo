@@ -6,7 +6,7 @@
   ffmpeg,
   makeWrapper,
 }: let
-  version = "0.3.3";
+  version = "0.3.4";
 in
   buildGoModule {
     pname = "radiogogo";
@@ -19,7 +19,7 @@ in
       hash = "sha256-vEZUBA+KeDHgqZvzrAN6ramZ5D4iqQdVU+qFOK/39co=";
     };
 
-    vendorHash = "sha256-hYEXzKrACpSyvrAYbV0jkX504Ix/ch2PVrhksYKFhwE=";
+    vendorHash = "sha256-yOc1qYy3Qy4rpaSycPqWheOFW+mIrmzEuw3l+yZ0TRY=";
 
     nativeBuildInputs = [makeWrapper];
 

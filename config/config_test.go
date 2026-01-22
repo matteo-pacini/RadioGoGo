@@ -1,6 +1,8 @@
 package config
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -46,4 +48,107 @@ theme:
 		assert.Equal(t, "#FF0000", cfg.Theme.ErrorColor)
 	})
 
+}
+
+func TestNewDefaultConfig(t *testing.T) {
+	t.Run("returns config with default values", func(t *testing.T) {
+		cfg := NewDefaultConfig()
+
+		assert.Equal(t, "#ffffff", cfg.Theme.TextColor)
+		assert.Equal(t, "#5a4f9f", cfg.Theme.PrimaryColor)
+		assert.Equal(t, "#8b77db", cfg.Theme.SecondaryColor)
+		assert.Equal(t, "#4e4e4e", cfg.Theme.TertiaryColor)
+		assert.Equal(t, "#ff0000", cfg.Theme.ErrorColor)
+	})
+}
+
+func TestConfig_Load(t *testing.T) {
+	t.Run("loads config from valid file", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		cfgPath := filepath.Join(tmpDir, "config.yaml")
+
+		content := `theme:
+  textColor: "#111111"
+  primaryColor: "#222222"
+  secondaryColor: "#333333"
+  tertiaryColor: "#444444"
+  errorColor: "#555555"
+`
+		err := os.WriteFile(cfgPath, []byte(content), 0644)
+		assert.NoError(t, err)
+
+		var cfg Config
+		err = cfg.Load(cfgPath)
+
+		assert.NoError(t, err)
+		assert.Equal(t, "#111111", cfg.Theme.TextColor)
+		assert.Equal(t, "#222222", cfg.Theme.PrimaryColor)
+	})
+
+	t.Run("returns error for missing file", func(t *testing.T) {
+		var cfg Config
+		err := cfg.Load("/nonexistent/path/config.yaml")
+
+		assert.Error(t, err)
+	})
+
+	t.Run("returns error for invalid YAML", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		cfgPath := filepath.Join(tmpDir, "config.yaml")
+
+		err := os.WriteFile(cfgPath, []byte("not: valid: yaml: content:"), 0644)
+		assert.NoError(t, err)
+
+		var cfg Config
+		err = cfg.Load(cfgPath)
+
+		assert.Error(t, err)
+	})
+}
+
+func TestConfig_Save(t *testing.T) {
+	t.Run("saves config to file", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		cfgPath := filepath.Join(tmpDir, "config.yaml")
+
+		cfg := NewDefaultConfig()
+		err := cfg.Save(cfgPath)
+
+		assert.NoError(t, err)
+
+		// Verify file exists and can be loaded back
+		var loadedCfg Config
+		err = loadedCfg.Load(cfgPath)
+		assert.NoError(t, err)
+		assert.Equal(t, cfg.Theme.PrimaryColor, loadedCfg.Theme.PrimaryColor)
+	})
+
+	t.Run("returns error for invalid path", func(t *testing.T) {
+		cfg := NewDefaultConfig()
+		err := cfg.Save("/nonexistent/directory/config.yaml")
+
+		assert.Error(t, err)
+	})
+}
+
+func TestConfigDir(t *testing.T) {
+	t.Run("returns non-empty path", func(t *testing.T) {
+		dir := ConfigDir()
+		assert.NotEmpty(t, dir)
+		assert.Contains(t, dir, "radiogogo")
+	})
+}
+
+func TestConfigFile(t *testing.T) {
+	t.Run("returns path ending with config.yaml", func(t *testing.T) {
+		file := ConfigFile()
+		assert.NotEmpty(t, file)
+		assert.True(t, filepath.Base(file) == "config.yaml")
+	})
+
+	t.Run("returns path inside ConfigDir", func(t *testing.T) {
+		file := ConfigFile()
+		dir := ConfigDir()
+		assert.Equal(t, dir, filepath.Dir(file))
+	})
 }

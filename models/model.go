@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Matteo Pacini
+// Copyright (c) 2023-2026 Matteo Pacini
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
@@ -20,6 +20,8 @@
 package models
 
 import (
+	"fmt"
+
 	"github.com/zi0p4tch0/radiogogo/api"
 	"github.com/zi0p4tch0/radiogogo/common"
 	"github.com/zi0p4tch0/radiogogo/config"
@@ -27,6 +29,11 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+)
+
+const (
+	minTerminalWidth  = 115
+	minTerminalHeight = 31
 )
 
 type modelState int
@@ -37,6 +44,7 @@ const (
 	errorState
 	loadingState
 	stationsState
+	terminalTooSmallState
 )
 
 // State switching messages
@@ -100,6 +108,7 @@ type Model struct {
 
 	// State
 	state           modelState
+	previousState   modelState
 	width           int
 	height          int
 	browser         api.RadioBrowserService
@@ -152,6 +161,19 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.width = msg.Width
 		m.height = msg.Height
 		m.headerModel.width = msg.Width
+
+		tooSmall := m.width < minTerminalWidth || m.height < minTerminalHeight
+
+		if tooSmall && m.state != terminalTooSmallState {
+			m.previousState = m.state
+			m.state = terminalTooSmallState
+			return m, nil
+		}
+
+		if !tooSmall && m.state == terminalTooSmallState {
+			m.state = m.previousState
+		}
+
 		childHeight := m.height - 2 // 2 = header height + bottom bar height
 		switch m.state {
 		case searchState:
@@ -227,6 +249,26 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) View() string {
+
+	// Handle terminal too small state separately
+	if m.state == terminalTooSmallState {
+		errorStyle := lipgloss.NewStyle().
+			Foreground(lipgloss.Color("9")).
+			Bold(true)
+
+		message := fmt.Sprintf(
+			"%s\n\nMinimum size: %dx%d\nCurrent size: %dx%d",
+			errorStyle.Render("Terminal too small!"),
+			minTerminalWidth, minTerminalHeight,
+			m.width, m.height,
+		)
+
+		return lipgloss.Place(
+			m.width, m.height,
+			lipgloss.Center, lipgloss.Center,
+			message,
+		)
+	}
 
 	var view string
 

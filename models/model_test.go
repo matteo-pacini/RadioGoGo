@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Matteo Pacini
+// Copyright (c) 2023-2026 Matteo Pacini
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
@@ -126,11 +126,11 @@ func TestModel_Update(t *testing.T) {
 		model := NewModel(config.Config{}, &browser, &playbackManager)
 		model.state = searchState
 
-		msg := tea.WindowSizeMsg{Width: 100, Height: 100}
+		msg := tea.WindowSizeMsg{Width: 120, Height: 100}
 
 		newModel, cmd := model.Update(tea.Msg(msg))
 
-		assert.Equal(t, 100, newModel.(Model).searchModel.width)
+		assert.Equal(t, 120, newModel.(Model).searchModel.width)
 		assert.Equal(t, 98 /* -2 for top and bottom bars */, newModel.(Model).searchModel.height)
 
 		assert.Nil(t, cmd)
@@ -145,11 +145,11 @@ func TestModel_Update(t *testing.T) {
 		model := NewModel(config.Config{}, &browser, &playbackManager)
 		model.state = errorState
 
-		msg := tea.WindowSizeMsg{Width: 100, Height: 100}
+		msg := tea.WindowSizeMsg{Width: 120, Height: 100}
 
 		newModel, cmd := model.Update(tea.Msg(msg))
 
-		assert.Equal(t, 100, newModel.(Model).errorModel.width)
+		assert.Equal(t, 120, newModel.(Model).errorModel.width)
 		assert.Equal(t, 98 /* -2 for top and bottom bars */, newModel.(Model).errorModel.height)
 
 		assert.Nil(t, cmd)
@@ -164,11 +164,11 @@ func TestModel_Update(t *testing.T) {
 		model := NewModel(config.Config{}, &browser, &playbackManager)
 		model.state = loadingState
 
-		msg := tea.WindowSizeMsg{Width: 100, Height: 100}
+		msg := tea.WindowSizeMsg{Width: 120, Height: 100}
 
 		newModel, cmd := model.Update(tea.Msg(msg))
 
-		assert.Equal(t, 100, newModel.(Model).loadingModel.width)
+		assert.Equal(t, 120, newModel.(Model).loadingModel.width)
 		assert.Equal(t, 98 /* -2 for top and bottom bars */, newModel.(Model).loadingModel.height)
 
 		assert.Nil(t, cmd)
@@ -183,11 +183,11 @@ func TestModel_Update(t *testing.T) {
 		model := NewModel(config.Config{}, &browser, &playbackManager)
 		model.state = stationsState
 
-		msg := tea.WindowSizeMsg{Width: 100, Height: 100}
+		msg := tea.WindowSizeMsg{Width: 120, Height: 100}
 
 		newModel, cmd := model.Update(tea.Msg(msg))
 
-		assert.Equal(t, 100, newModel.(Model).stationsModel.width)
+		assert.Equal(t, 120, newModel.(Model).stationsModel.width)
 		assert.Equal(t, 98 /* -2 for top and bottom bars */, newModel.(Model).stationsModel.height)
 
 		assert.Nil(t, cmd)
@@ -297,6 +297,95 @@ func TestModel_Update(t *testing.T) {
 		assert.Equal(t, errorState, newModel.(Model).state)
 		assert.Equal(t, "test2", newModel.(Model).errorModel.message)
 		assert.NotNil(t, cmd)
+
+	})
+
+	t.Run("switches to terminalTooSmallState when width is below minimum", func(t *testing.T) {
+
+		browser := mocks.MockRadioBrowserService{}
+		playbackManager := mocks.MockPlaybackManagerService{}
+
+		model := NewModel(config.Config{}, &browser, &playbackManager)
+		model.state = searchState
+
+		msg := tea.WindowSizeMsg{Width: 100, Height: 50}
+
+		newModel, cmd := model.Update(tea.Msg(msg))
+
+		assert.Equal(t, terminalTooSmallState, newModel.(Model).state)
+		assert.Equal(t, searchState, newModel.(Model).previousState)
+		assert.Nil(t, cmd)
+
+	})
+
+	t.Run("switches to terminalTooSmallState when height is below minimum", func(t *testing.T) {
+
+		browser := mocks.MockRadioBrowserService{}
+		playbackManager := mocks.MockPlaybackManagerService{}
+
+		model := NewModel(config.Config{}, &browser, &playbackManager)
+		model.state = stationsState
+
+		msg := tea.WindowSizeMsg{Width: 120, Height: 20}
+
+		newModel, cmd := model.Update(tea.Msg(msg))
+
+		assert.Equal(t, terminalTooSmallState, newModel.(Model).state)
+		assert.Equal(t, stationsState, newModel.(Model).previousState)
+		assert.Nil(t, cmd)
+
+	})
+
+	t.Run("restores previous state when terminal is resized back to adequate size", func(t *testing.T) {
+
+		browser := mocks.MockRadioBrowserService{}
+		playbackManager := mocks.MockPlaybackManagerService{}
+
+		model := NewModel(config.Config{}, &browser, &playbackManager)
+		model.state = terminalTooSmallState
+		model.previousState = searchState
+
+		msg := tea.WindowSizeMsg{Width: 120, Height: 50}
+
+		newModel, cmd := model.Update(tea.Msg(msg))
+
+		assert.Equal(t, searchState, newModel.(Model).state)
+		assert.Nil(t, cmd)
+
+	})
+
+	t.Run("stays in terminalTooSmallState if still too small", func(t *testing.T) {
+
+		browser := mocks.MockRadioBrowserService{}
+		playbackManager := mocks.MockPlaybackManagerService{}
+
+		model := NewModel(config.Config{}, &browser, &playbackManager)
+		model.state = terminalTooSmallState
+		model.previousState = searchState
+
+		msg := tea.WindowSizeMsg{Width: 80, Height: 20}
+
+		newModel, cmd := model.Update(tea.Msg(msg))
+
+		assert.Equal(t, terminalTooSmallState, newModel.(Model).state)
+		assert.Nil(t, cmd)
+
+	})
+
+	t.Run("stores cursor movement and returns nil command", func(t *testing.T) {
+
+		browser := mocks.MockRadioBrowserService{}
+		playbackManager := mocks.MockPlaybackManagerService{}
+
+		model := NewModel(config.Config{}, &browser, &playbackManager)
+
+		msg := stationCursorMovedMsg{offset: 5, totalStations: 100}
+
+		newModel, cmd := model.Update(tea.Msg(msg))
+
+		assert.Equal(t, 5, newModel.(Model).headerModel.stationOffset)
+		assert.Equal(t, 100, newModel.(Model).headerModel.totalStations)
+		assert.Nil(t, cmd)
 
 	})
 

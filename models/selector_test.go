@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Matteo Pacini
+// Copyright (c) 2023-2026 Matteo Pacini
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
@@ -147,6 +147,28 @@ func TestSelectorModel(t *testing.T) {
 		model, _ = model.Update(msg)
 
 		assert.Equal(t, 2, model.selection)
+
+	})
+
+	t.Run("ignores key events when not focused", func(t *testing.T) {
+
+		model := NewSelectorModel(Theme{}, "Title", items, 0)
+		// Don't focus the model
+
+		msg := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("down")}
+		model, cmd := model.Update(msg)
+
+		assert.Equal(t, 0, model.selection)
+		assert.Nil(t, cmd)
+
+	})
+
+	t.Run("Init returns nil", func(t *testing.T) {
+
+		model := NewSelectorModel(Theme{}, "Title", items, 0)
+
+		cmd := model.Init()
+		assert.Nil(t, cmd)
 
 	})
 
