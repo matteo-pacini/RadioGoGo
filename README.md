@@ -1,188 +1,123 @@
-# RadioGoGo 📻
+# RadioGoGo
 
 <div style="display:flex;justify-content:center;">
     <img src="./logo.png" alt="RadioGoGo Logo" width="200" height="200">
 </div>
-<br>
 
-Tune into global radio vibes directly from your terminal! 
-
-Crafted with love in Go, RadioGoGo marries the elegance of the [BubbleTea TUI](https://github.com/charmbracelet/bubbletea) with the expansive reach of [RadioBrowser API](http://www.radio-browser.info/). 
-
-Dive into a world of sounds with just a few keystrokes. 
-
-Let's Go 🚀!
+A terminal UI for browsing and playing internet radio stations. Built with Go using [BubbleTea](https://github.com/charmbracelet/bubbletea) and the [RadioBrowser API](http://www.radio-browser.info/).
 
 <img src="./screen1.png" alt="RadioGoGo Search View" width="500" height="320">
 <img src="./screen2.png" alt="RadioGoGo Station List View" width="500" height="320">
 
-## ⭐️ Features
+## Features
 
-- Sleek and intuitive TUI that's a joy to navigate.
-- Search, browse, and play radio stations from a vast global database.
-- Enjoy cross-platform compatibility, because radio waves know no bounds.
-- Integrated playback using `ffplay`.
+- Search stations by name, country, language, or codec
+- Browse results in a navigable table
+- Stream playback via `ffplay`
+- Real-time volume control during playback
+- Record streams to disk via `ffmpeg`
+- Customizable color themes
+- Cross-platform (Linux, macOS, Windows, *BSD)
 
-## 📋 Upcoming Features
+## How It Works
 
-- Scroll indicator for the station list.
-- Report / hide broken stations.
-- Vote stations.
-- Bookmark your favorite stations for easy access.
-- Record your favorite broadcasts for later listening.
+RadioGoGo uses FFmpeg tools for audio:
 
-## ⚒️ Installation
+- **Playback**: `ffplay` handles audio streaming. Volume changes restart the player with the new level (with debouncing to avoid rapid restarts).
+- **Recording**: `ffmpeg` runs alongside `ffplay` when recording. Both connect to the stream independently—audio keeps playing while the stream saves to disk.
 
-### Dependencies: 
+The header shows two status indicators:
+- `(●) ffplay` — green when playing, yellow during volume restart, gray when idle
+- `(●) rec` — red when recording, gray when idle
 
-For seamless playback, ensure you have either `ffplay` installed:
+## Keyboard Shortcuts
 
-#### FFmpeg
+| Key | Action |
+|-----|--------|
+| `Enter` | Play selected station |
+| `Ctrl+K` | Stop playback |
+| `9` / `0` | Volume down / up |
+| `r` | Toggle recording (while playing) |
+| `↑` / `↓` or `j` / `k` | Navigate station list |
+| `s` | Back to search |
+| `q` | Quit |
 
-##### Windows:
+## Recording
 
-Download FFmpeg from the [official website](https://ffmpeg.org/download.html) and add it to your system's PATH. For those unfamiliar with adding to the PATH, you might want to consult a guide or search for instructions specific to your version of Windows.
+Press `r` while a station is playing to start recording. The file saves to your current directory with the format:
 
-It can be installed via [Chocolatey](https://chocolatey.org/):
+```
+station_name-YYYY-MM-DD-HH-MM-SS.codec
+```
 
+For example: `bbc_radio_1-2026-01-22-18-32-00.mp3`
+
+Press `r` again to stop recording. The recording continues even if you adjust volume (only the player restarts, not the recorder).
+
+## Installation
+
+### Dependencies
+
+You need `ffplay` for playback. For recording, you also need `ffmpeg`. Both come with the FFmpeg package.
+
+**Windows:**
 ```
 choco install ffmpeg
 ```
-
-Or [Scoop](https://scoop.sh/):
-
+or
 ```
 scoop install ffmpeg
 ```
 
-##### Linux:
-
-For apt-based distros (like Ubuntu and Debian):
-
+**Linux (apt):**
 ```
-sudo apt update
 sudo apt install ffmpeg
 ```
 
-For users of dnf-based distros such as Fedora, you may need to enable the RPM Fusion repository first before installing FFmpeg:
-
+**Linux (dnf/Fedora):**
 ```
-sudo dnf install https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
-```
-
-And then:
-
-```
+sudo dnf install https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm
 sudo dnf install ffmpeg
 ```
 
-For pacman-based distros, such as Arch, you can install FFmpeg using the following command:
-
+**Linux (pacman):**
 ```
 sudo pacman -S ffmpeg
 ```
 
-For Gentoo:
-
-```
-emerge --ask --quiet --verbose media-video/ffmpeg
-```
-
-##### macOS:
-
-For macOS users with Homebrew installed, you can use the following command:
-
+**macOS:**
 ```
 brew install ffmpeg
 ```
 
-##### \*BSD:
-
-FreeBSD:
-
+**FreeBSD:**
 ```
 pkg install ffmpeg
 ```
 
-NetBSD:
+### Install RadioGoGo
 
-```
-pkg_add ffmpeg
-```
-
-OpenBSD:
-
-```
-doas pkg_add ffmpeg
-```
-
-### Installing via Go
-
-Ensure you have [Go](https://golang.org/dl/) installed (version 1.18 or later).
-
-To install RadioGoGo:
-
+**Via Go:**
 ```bash
 go install github.com/zi0p4tch0/radiogogo@latest
 ```
 
-#### For Linux/macOS/\*BSD:
+Make sure `$(go env GOPATH)/bin` is in your PATH.
 
-To make sure `radiogogo` is available in your terminal, you might need to add the Go binary path to your system's PATH:
+**Via releases:**
 
-```bash
-export PATH=$PATH:$(go env GOPATH)/bin
-```
-
-#### For Windows:
-
-After installation, you might need to add the Go binary path to your system's PATH to run `radiogogo` from the Command Prompt. You can do this manually through the System Properties → Environment Variables, or run the following in Command Prompt:
-
-```bash
-setx PATH "%PATH%;%USERPROFILE%\go\bin"
-```
-
-Now, you can launch `radiogogo` directly from your terminal or Command Prompt.
-
-### Downloading the Binary
-
-Navigate to the `Releases` section of the project repository. 
-
-Find the appropriate binary for your OS, download it, and place it in your system's PATH for easy access.
-
-## 🚀 Usage
-
-Launch RadioGoGo by executing the following command:
-
-```bash
-radiogogo
-```
-
-### Terminals for an optimal RadioGoGo experience:
-
-- **Windows:** For a smooth experience on Windows, consider using [Windows Terminal](https://aka.ms/terminal). It offers multiple tabs, a GPU-accelerated text rendering engine, and a rich set of customization options. If you're fond of UNIX-like environments, [WSL (Windows Subsystem for Linux)](https://docs.microsoft.com/en-us/windows/wsl/) combined with Windows Terminal can be a powerful duo.
-
-- **Linux:** On Linux, most modern terminals should work well with RadioGoGo. However, [Alacritty](https://github.com/alacritty/alacritty), a GPU-accelerated terminal, and [Terminator](https://gnometerminator.blogspot.com/p/introduction.html), known for its flexibility, stand out as exceptional choices. Both offer great performance and customization options to enhance your TUI experience.
-
-- **macOS:** On macOS, while the default Terminal.app should work fine, you might want to explore [iTerm2](https://iterm2.com/) for its advanced features, superior performance, and extensive customization options. iTerm2's integration with macOS makes it a preferred choice for many users.
+Download the binary for your platform from the [Releases](https://github.com/zi0p4tch0/radiogogo/releases) page.
 
 ## Configuration
 
-**Config File Location:**
+Config file location:
 - **Windows:** `%LOCALAPPDATA%\radiogogo\config.yaml`
-- **Other Platforms:** `~/.config/radiogogo/config.yaml`
+- **Linux/macOS/*BSD:** `~/.config/radiogogo/config.yaml`
 
-It gets created automatically when you launch the app for the first time.
+Created automatically on first run.
 
-### 🎨 Customizing App Theme
+### Theme
 
-Personalize the look of RadioGoGo to match your style! 
-
-The application supports theme customization, which allows you to change various color attributes to give the TUI a fresh appearance.
-
-The configuration file is automatically created when the app is launched for the first time if it doesn't already exist.
-
-**Default Theme Configuration:**
 ```yaml
 theme:
     textColor: '#ffffff'
@@ -192,9 +127,7 @@ theme:
     errorColor: '#ff0000'
 ```
 
-Adjust the color values in the configuration to your liking and relaunch the app to see the changes take effect.
-
-Here's another theme configuration to give you an idea of how you can customize the app's appearance:
+Example alternate theme:
 
 ```yaml
 theme:
@@ -205,73 +138,31 @@ theme:
     errorColor: '#ff0000'
 ```
 
-How it looks:
+<img src="./screen3.png" alt="RadioGoGo Alternate Theme" width="500" height="320">
+<img src="./screen4.png" alt="RadioGoGo Alternate Theme" width="500" height="320">
 
-<img src="./screen3.png" alt="RadioGoGo Search View" width="500" height="320">
-<img src="./screen4.png" alt="RadioGoGo Station List View" width="500" height="320">
+## FAQ
 
-## 🤔 FAQ
+**Station takes a while to start playing?**
 
-### I selected a radio station but there's no audio. What's happening?
-Upon selecting a station, the duration to initiate playback can vary based on the stream's origin and its server location.
-In some cases, the playback is immediate, while in others, it might necessitate a brief buffering period. 
-It's analogous to the latency encountered with various online services – certain connections are swift, while others require a momentary lag. 
-If you don't experience instant audio, I recommend waiting a few seconds. 
-The broadcast is likely en route to your terminal.
+Some streams need time to buffer depending on server location and connection. Wait a few seconds.
 
-### Why do some stations not work at all?
-Due to the dynamic nature of radio stations, some might go offline or change their streaming endpoints. 
-Currently, RadioGoGo doesn't have a feature to report or hide these non-functioning stations. 
-However, I am actively aware of this challenge and am planning to introduce a feature in future releases to enhance this aspect of the user experience. 
+**Station doesn't work at all?**
 
-### How do I adjust the volume in RadioGoGo?
-Volume controls in RadioGoGo are set before initiating playback. This is because the volume level is passed as a command line argument to `ffplay`. As of now, once the playback has started, adjusting the volume within RadioGoGo isn't supported. To change the volume during an ongoing playback, you'd have to stop (`ctrl+k`) and restart the stream.
+Stations go offline or change URLs. RadioBrowser is community-maintained, so some entries may be stale.
 
-## Who is talking about RadioGoGo?
+**Recording requires ffmpeg?**
 
-- Mentioned on [Golang Weekly Issue 481](https://golangweekly.com/issues/481)!
+Yes. Playback only needs `ffplay`, but recording needs `ffmpeg` installed and in your PATH.
 
-## ❤️ Contributing
+## Mentions
 
-Hey there, fellow radio enthusiast! 
+- [Golang Weekly Issue 481](https://golangweekly.com/issues/481)
 
-First off, a big thanks for even considering contributing. 
+## Contributing
 
-Every typo fix, bug report, or thought you share genuinely helps make RadioGoGo better. If you're eyeing to introduce a new feature, I'd love to hear about it! 
+Bug reports, fixes, and feature ideas welcome. For new features, open an issue first to discuss.
 
-Please kick off a discussion by creating an issue before diving into crafting a pull request. This way, we can ensure everyone's on the same frequency. 
+## License
 
-📻 Happy coding!
-
-
-## ⚖️ License(s)
-
-RadioGoGo is licensed under the [MIT License](LICENSE).
-
-### Third-party dependencies
-
-BubbleTea TUI license (MIT):
-
-```
-MIT License
-
-Copyright (c) 2020-2023 Charmbracelet, Inc
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
+MIT. See [LICENSE](LICENSE).
