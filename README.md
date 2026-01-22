@@ -17,6 +17,8 @@ A terminal UI for browsing and playing internet radio stations. Built with Go us
 - Real-time volume control during playback
 - Record streams to disk via `ffmpeg`
 - Customizable color themes
+- Bookmark favorite stations for quick access
+- Hide unwanted stations from search results
 - Cross-platform (Linux, macOS, Windows, *BSD)
 
 ## How It Works
@@ -39,6 +41,10 @@ The header shows two status indicators:
 | `9` / `0` | Volume down / up |
 | `r` | Toggle recording (while playing) |
 | `↑` / `↓` or `j` / `k` | Navigate station list |
+| `b` | Toggle bookmark on selected station |
+| `B` | View bookmarks / back to stations |
+| `h` | Hide station from results |
+| `H` | Manage hidden stations |
 | `s` | Back to search |
 | `q` | Quit |
 
@@ -53,6 +59,14 @@ station_name-YYYY-MM-DD-HH-MM-SS.codec
 For example: `bbc_radio_1-2026-01-22-18-32-00.mp3`
 
 Press `r` again to stop recording. The recording continues even if you adjust volume (only the player restarts, not the recorder).
+
+## Bookmarks & Hidden Stations
+
+**Bookmarks:** Press `b` on any station to bookmark it (⭐ appears next to name). Press `B` to view all bookmarks. Press `B` again to return to your search results.
+
+**Hidden Stations:** Press `h` to hide a station from search results. Press `H` to manage hidden stations and unhide them if needed.
+
+Bookmarks and hidden stations persist across sessions.
 
 ## Installation
 
