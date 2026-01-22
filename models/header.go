@@ -88,6 +88,11 @@ func (m HeaderModel) View() string {
 	header := m.theme.PrimaryBlock.Render("radiogogo")
 	version := m.theme.SecondaryBlock.Render(fmt.Sprintf("v%s", data.Version))
 
+	// Only show playback/rec indicators in stations view (when showOffset is true)
+	if !m.showOffset {
+		return header + version + "\n"
+	}
+
 	// Base style with background but no padding (we'll add padding to outer parts only)
 	baseStyle := m.theme.PrimaryBlock.Copy().PaddingLeft(0).PaddingRight(0)
 
@@ -122,18 +127,14 @@ func (m HeaderModel) View() string {
 
 	leftHeader := header + version + playbackIndicator + recIndicator
 
-	if m.showOffset {
+	rightHeader := m.theme.PrimaryBlock.Render(fmt.Sprintf("%d/%d", m.stationOffset+1, m.totalStations))
 
-		rightHeader := m.theme.PrimaryBlock.Render(fmt.Sprintf("%d/%d", m.stationOffset+1, m.totalStations))
-
-		fillerWidth := m.width - lipgloss.Width(leftHeader) - lipgloss.Width(rightHeader)
-		filler := lipgloss.NewStyle().Width(fillerWidth).Render(" ")
-
-		return leftHeader + filler + rightHeader + "\n"
-
-	} else {
-
-		return leftHeader + "\n"
+	fillerWidth := m.width - lipgloss.Width(leftHeader) - lipgloss.Width(rightHeader)
+	if fillerWidth < 0 {
+		fillerWidth = 0
 	}
+	filler := lipgloss.NewStyle().Width(fillerWidth).Render(" ")
+
+	return leftHeader + filler + rightHeader + "\n"
 
 }

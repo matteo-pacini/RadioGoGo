@@ -67,7 +67,7 @@ func TestModel_Init(t *testing.T) {
 
 		browser := mocks.MockRadioBrowserService{}
 
-		model := NewModel(config.Config{}, &browser, &playbackManager)
+		model := NewModel(config.Config{}, &browser, &playbackManager, &mocks.MockStationStorageService{})
 
 		cmd := model.Init()
 		assert.NotNil(t, cmd)
@@ -86,7 +86,7 @@ func TestModel_Init(t *testing.T) {
 
 		browser := mocks.MockRadioBrowserService{}
 
-		model := NewModel(config.Config{}, &browser, &playbackManager)
+		model := NewModel(config.Config{}, &browser, &playbackManager, &mocks.MockStationStorageService{})
 
 		cmd := model.Init()
 		assert.NotNil(t, cmd)
@@ -106,7 +106,7 @@ func TestModel_Update(t *testing.T) {
 		browser := mocks.MockRadioBrowserService{}
 		playbackManager := mocks.MockPlaybackManagerService{}
 
-		model := NewModel(config.Config{}, &browser, &playbackManager)
+		model := NewModel(config.Config{}, &browser, &playbackManager, &mocks.MockStationStorageService{})
 
 		msg := tea.WindowSizeMsg{Width: 100, Height: 100}
 
@@ -123,7 +123,7 @@ func TestModel_Update(t *testing.T) {
 		browser := mocks.MockRadioBrowserService{}
 		playbackManager := mocks.MockPlaybackManagerService{}
 
-		model := NewModel(config.Config{}, &browser, &playbackManager)
+		model := NewModel(config.Config{}, &browser, &playbackManager, &mocks.MockStationStorageService{})
 		model.state = searchState
 
 		msg := tea.WindowSizeMsg{Width: 120, Height: 100}
@@ -142,7 +142,7 @@ func TestModel_Update(t *testing.T) {
 		browser := mocks.MockRadioBrowserService{}
 		playbackManager := mocks.MockPlaybackManagerService{}
 
-		model := NewModel(config.Config{}, &browser, &playbackManager)
+		model := NewModel(config.Config{}, &browser, &playbackManager, &mocks.MockStationStorageService{})
 		model.state = errorState
 
 		msg := tea.WindowSizeMsg{Width: 120, Height: 100}
@@ -161,7 +161,7 @@ func TestModel_Update(t *testing.T) {
 		browser := mocks.MockRadioBrowserService{}
 		playbackManager := mocks.MockPlaybackManagerService{}
 
-		model := NewModel(config.Config{}, &browser, &playbackManager)
+		model := NewModel(config.Config{}, &browser, &playbackManager, &mocks.MockStationStorageService{})
 		model.state = loadingState
 
 		msg := tea.WindowSizeMsg{Width: 120, Height: 100}
@@ -180,7 +180,7 @@ func TestModel_Update(t *testing.T) {
 		browser := mocks.MockRadioBrowserService{}
 		playbackManager := mocks.MockPlaybackManagerService{}
 
-		model := NewModel(config.Config{}, &browser, &playbackManager)
+		model := NewModel(config.Config{}, &browser, &playbackManager, &mocks.MockStationStorageService{})
 		model.state = stationsState
 
 		msg := tea.WindowSizeMsg{Width: 120, Height: 100}
@@ -188,7 +188,7 @@ func TestModel_Update(t *testing.T) {
 		newModel, cmd := model.Update(tea.Msg(msg))
 
 		assert.Equal(t, 120, newModel.(Model).stationsModel.width)
-		assert.Equal(t, 98 /* -2 for top and bottom bars */, newModel.(Model).stationsModel.height)
+		assert.Equal(t, 97 /* -3 for header and two-row bottom bar */, newModel.(Model).stationsModel.height)
 
 		assert.Nil(t, cmd)
 
@@ -199,7 +199,7 @@ func TestModel_Update(t *testing.T) {
 		browser := mocks.MockRadioBrowserService{}
 		playbackManager := mocks.MockPlaybackManagerService{}
 
-		model := NewModel(config.Config{}, &browser, &playbackManager)
+		model := NewModel(config.Config{}, &browser, &playbackManager, &mocks.MockStationStorageService{})
 
 		msg := quitMsg{}
 
@@ -216,7 +216,7 @@ func TestModel_Update(t *testing.T) {
 		browser := mocks.MockRadioBrowserService{}
 		playbackManager := mocks.MockPlaybackManagerService{}
 
-		model := NewModel(config.Config{}, &browser, &playbackManager)
+		model := NewModel(config.Config{}, &browser, &playbackManager, &mocks.MockStationStorageService{})
 
 		msg := bottomBarUpdateMsg{commands: []string{"test"}}
 
@@ -232,7 +232,7 @@ func TestModel_Update(t *testing.T) {
 		browser := mocks.MockRadioBrowserService{}
 		playbackManager := mocks.MockPlaybackManagerService{}
 
-		model := NewModel(config.Config{}, &browser, &playbackManager)
+		model := NewModel(config.Config{}, &browser, &playbackManager, &mocks.MockStationStorageService{})
 		model.searchModel.width = 111
 
 		msg := switchToSearchModelMsg{}
@@ -251,7 +251,7 @@ func TestModel_Update(t *testing.T) {
 
 		playbackManager := mocks.MockPlaybackManagerService{}
 
-		model := NewModel(config.Config{}, &browser, &playbackManager)
+		model := NewModel(config.Config{}, &browser, &playbackManager, &mocks.MockStationStorageService{})
 		model.loadingModel.queryText = "test"
 
 		msg := switchToLoadingModelMsg{queryText: "test2"}
@@ -269,7 +269,7 @@ func TestModel_Update(t *testing.T) {
 		browser := mocks.MockRadioBrowserService{}
 		playbackManager := mocks.MockPlaybackManagerService{}
 
-		model := NewModel(config.Config{}, &browser, &playbackManager)
+		model := NewModel(config.Config{}, &browser, &playbackManager, &mocks.MockStationStorageService{})
 		model.stationsModel.volume = 1
 
 		msg := switchToStationsModelMsg{}
@@ -287,7 +287,7 @@ func TestModel_Update(t *testing.T) {
 		browser := mocks.MockRadioBrowserService{}
 		playbackManager := mocks.MockPlaybackManagerService{}
 
-		model := NewModel(config.Config{}, &browser, &playbackManager)
+		model := NewModel(config.Config{}, &browser, &playbackManager, &mocks.MockStationStorageService{})
 		model.errorModel.message = "test"
 
 		msg := switchToErrorModelMsg{err: "test2"}
@@ -305,7 +305,7 @@ func TestModel_Update(t *testing.T) {
 		browser := mocks.MockRadioBrowserService{}
 		playbackManager := mocks.MockPlaybackManagerService{}
 
-		model := NewModel(config.Config{}, &browser, &playbackManager)
+		model := NewModel(config.Config{}, &browser, &playbackManager, &mocks.MockStationStorageService{})
 		model.state = searchState
 
 		msg := tea.WindowSizeMsg{Width: 100, Height: 50}
@@ -323,10 +323,10 @@ func TestModel_Update(t *testing.T) {
 		browser := mocks.MockRadioBrowserService{}
 		playbackManager := mocks.MockPlaybackManagerService{}
 
-		model := NewModel(config.Config{}, &browser, &playbackManager)
+		model := NewModel(config.Config{}, &browser, &playbackManager, &mocks.MockStationStorageService{})
 		model.state = stationsState
 
-		msg := tea.WindowSizeMsg{Width: 120, Height: 20}
+		msg := tea.WindowSizeMsg{Width: 120, Height: 10}
 
 		newModel, cmd := model.Update(tea.Msg(msg))
 
@@ -341,7 +341,7 @@ func TestModel_Update(t *testing.T) {
 		browser := mocks.MockRadioBrowserService{}
 		playbackManager := mocks.MockPlaybackManagerService{}
 
-		model := NewModel(config.Config{}, &browser, &playbackManager)
+		model := NewModel(config.Config{}, &browser, &playbackManager, &mocks.MockStationStorageService{})
 		model.state = terminalTooSmallState
 		model.previousState = searchState
 
@@ -359,7 +359,7 @@ func TestModel_Update(t *testing.T) {
 		browser := mocks.MockRadioBrowserService{}
 		playbackManager := mocks.MockPlaybackManagerService{}
 
-		model := NewModel(config.Config{}, &browser, &playbackManager)
+		model := NewModel(config.Config{}, &browser, &playbackManager, &mocks.MockStationStorageService{})
 		model.state = terminalTooSmallState
 		model.previousState = searchState
 
@@ -377,7 +377,7 @@ func TestModel_Update(t *testing.T) {
 		browser := mocks.MockRadioBrowserService{}
 		playbackManager := mocks.MockPlaybackManagerService{}
 
-		model := NewModel(config.Config{}, &browser, &playbackManager)
+		model := NewModel(config.Config{}, &browser, &playbackManager, &mocks.MockStationStorageService{})
 
 		msg := stationCursorMovedMsg{offset: 5, totalStations: 100}
 

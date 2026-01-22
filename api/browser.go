@@ -24,7 +24,9 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 
+	"github.com/google/uuid"
 	"github.com/zi0p4tch0/radiogogo/common"
 	"github.com/zi0p4tch0/radiogogo/data"
 )
@@ -50,6 +52,10 @@ type RadioBrowserService interface {
 	// ClickStation sends a POST request to the RadioBrowser API to increment the click count of a given station.
 	// It takes a Station struct as input and returns a ClickStationResponse struct and an error.
 	ClickStation(station common.Station) (common.ClickStationResponse, error)
+	// GetStationsByUUIDs fetches multiple stations by their UUIDs in a single API request.
+	// Uses the query parameter format: GET /json/stations/byuuid?uuids=UUID1,UUID2,UUID3
+	// Returns an empty slice if no UUIDs are provided.
+	GetStationsByUUIDs(uuids []uuid.UUID) ([]common.Station, error)
 }
 
 type RadioBrowserImpl struct {
@@ -176,4 +182,54 @@ func (radioBrowser *RadioBrowserImpl) ClickStation(station common.Station) (comm
 	}
 
 	return response, nil
+}
+
+func (radioBrowser *RadioBrowserImpl) GetStationsByUUIDs(uuids []uuid.UUID) ([]common.Station, error) {
+	if len(uuids) == 0 {
+		return []common.Station{}, nil
+	}
+
+	url := radioBrowser.baseUrl.JoinPath("/stations/byuuid")
+
+	// Build comma-separated UUID list
+	uuidStrings := make([]string, len(uuids))
+	for i, u := range uuids {
+		uuidStrings[i] = u.String()
+	}
+
+	query := url.Query()
+	query.Set("uuids", strings.Join(uuidStrings, ","))
+	url.RawQuery = query.Encode()
+
+	headers := make(map[string]string)
+	headers["User-Agent"] = data.UserAgent
+	headers["Accept"] = "application/json"
+
+	req, err := http.NewRequest("GET", url.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	for key, value := range headers {
+		req.Header.Set(key, value)
+	}
+
+	result, err := radioBrowser.httpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	defer result.Body.Close()
+
+	if result.StatusCode != 200 {
+		return nil, fmt.Errorf("API request failed with status %d", result.StatusCode)
+	}
+
+	var stations []common.Station
+	err = json.NewDecoder(result.Body).Decode(&stations)
+	if err != nil {
+		return nil, err
+	}
+
+	return stations, nil
 }

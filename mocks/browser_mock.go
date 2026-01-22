@@ -19,7 +19,10 @@
 
 package mocks
 
-import "github.com/zi0p4tch0/radiogogo/common"
+import (
+	"github.com/google/uuid"
+	"github.com/zi0p4tch0/radiogogo/common"
+)
 
 type MockRadioBrowserService struct {
 	GetStationsFunc func(
@@ -33,6 +36,8 @@ type MockRadioBrowserService struct {
 	) ([]common.Station, error)
 
 	ClickStationFunc func(station common.Station) (common.ClickStationResponse, error)
+
+	GetStationsByUUIDsFunc func(uuids []uuid.UUID) ([]common.Station, error)
 }
 
 func (m *MockRadioBrowserService) GetStations(
@@ -49,4 +54,11 @@ func (m *MockRadioBrowserService) GetStations(
 
 func (m *MockRadioBrowserService) ClickStation(station common.Station) (common.ClickStationResponse, error) {
 	return m.ClickStationFunc(station)
+}
+
+func (m *MockRadioBrowserService) GetStationsByUUIDs(uuids []uuid.UUID) ([]common.Station, error) {
+	if m.GetStationsByUUIDsFunc != nil {
+		return m.GetStationsByUUIDsFunc(uuids)
+	}
+	return []common.Station{}, nil
 }

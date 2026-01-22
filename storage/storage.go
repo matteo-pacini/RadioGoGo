@@ -17,12 +17,29 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-package assets
+package storage
 
-import _ "embed"
+import (
+	"github.com/google/uuid"
+)
 
-//go:embed logo.txt
-var Logo []byte
+// StationStorageService defines operations for persistent station lists (bookmarks and hidden).
+type StationStorageService interface {
+	// GetBookmarks returns all bookmarked station UUIDs.
+	GetBookmarks() ([]uuid.UUID, error)
+	// AddBookmark adds a station to bookmarks.
+	AddBookmark(stationUUID uuid.UUID) error
+	// RemoveBookmark removes a station from bookmarks.
+	RemoveBookmark(stationUUID uuid.UUID) error
+	// IsBookmarked returns true if the station is bookmarked.
+	IsBookmarked(stationUUID uuid.UUID) bool
 
-//go:embed noStations.txt
-var NoStations []byte
+	// GetHidden returns all hidden station UUIDs.
+	GetHidden() ([]uuid.UUID, error)
+	// AddHidden hides a station from search results.
+	AddHidden(stationUUID uuid.UUID) error
+	// RemoveHidden unhides a station.
+	RemoveHidden(stationUUID uuid.UUID) error
+	// IsHidden returns true if the station is hidden.
+	IsHidden(stationUUID uuid.UUID) bool
+}

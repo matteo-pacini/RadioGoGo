@@ -38,6 +38,9 @@ type Theme struct {
 	ErrorText     lipgloss.Style
 
 	StationsTableStyle table.Styles
+
+	// Color values for dynamic styling
+	SecondaryColor string
 }
 
 func NewTheme(config config.Config) Theme {
@@ -91,6 +94,7 @@ func NewTheme(config config.Config) Theme {
 		TertiaryText:       tertiaryText,
 		ErrorText:          errorText,
 		StationsTableStyle: stationsTableStyles,
+		SecondaryColor:     config.Theme.SecondaryColor,
 	}
 }
 
@@ -112,4 +116,12 @@ func (t Theme) StyleBottomBar(commands []string) string {
 	}
 	return bottomBar
 
+}
+
+// StyleTwoRowBottomBar returns a two-row bottom bar with primary commands on top
+// and secondary commands below.
+func (t Theme) StyleTwoRowBottomBar(primary, secondary []string) string {
+	row1 := t.StyleBottomBar(primary)
+	row2 := t.StyleBottomBar(secondary)
+	return row1 + "\n" + row2
 }

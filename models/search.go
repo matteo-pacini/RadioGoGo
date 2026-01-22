@@ -23,12 +23,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/zi0p4tch0/radiogogo/assets"
 	"github.com/zi0p4tch0/radiogogo/common"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 )
 
 type SearchModel struct {
@@ -148,27 +146,15 @@ func (m SearchModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m SearchModel) View() string {
-
 	searchType := m.querySelector.Selection().Render()
 	searchType = strings.ToLower(searchType)
 
-	rightOfLogoStyle := lipgloss.NewStyle().
-		PaddingLeft(2)
-
-	rightV := rightOfLogoStyle.Render(
-		fmt.Sprintf("\n%s\n\n%s\n\n%s\n%s",
-			m.theme.SecondaryText.Render(fmt.Sprint("Search radio ", searchType)),
-			m.inputModel.View(),
-			m.querySelector.View(),
-			m.theme.TertiaryText.Render(m.querySelector.Selection().ExampleString()),
-		))
-
-	leftV := fmt.Sprintf(
-		"\n%s\n\n",
-		assets.Logo,
+	v := fmt.Sprintf("\n%s\n\n%s\n\n%s\n%s\n",
+		m.theme.SecondaryText.Render(fmt.Sprint("Search radio ", searchType)),
+		m.inputModel.View(),
+		m.querySelector.View(),
+		m.theme.TertiaryText.Render(m.querySelector.Selection().ExampleString()),
 	)
-
-	v := lipgloss.JoinHorizontal(lipgloss.Top, leftV, rightV)
 
 	return v
 }

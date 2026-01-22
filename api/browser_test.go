@@ -185,3 +185,75 @@ func TestBrowserImplClickStation(t *testing.T) {
 
 	assert.Equal(t, true, response.Ok)
 }
+
+func TestBrowserImplGetStationsByUUIDs(t *testing.T) {
+	t.Run("returns empty slice for empty input", func(t *testing.T) {
+		mockHttpClient := mocks.MockHttpClient{
+			DoFunc: func(req *http.Request) (*http.Response, error) {
+				t.Error("HTTP client should not be called for empty UUIDs")
+				return nil, nil
+			},
+		}
+
+		browser, err := NewRadioBrowserWithDependencies(&mockHttpClient)
+		assert.NoError(t, err)
+
+		stations, err := browser.GetStationsByUUIDs([]uuid.UUID{})
+		assert.NoError(t, err)
+		assert.Empty(t, stations)
+	})
+
+	t.Run("builds correct URL with multiple UUIDs", func(t *testing.T) {
+		uuid1 := uuid.MustParse("941ef6f1-0699-4821-95b1-2b678e3ff62e")
+		uuid2 := uuid.MustParse("16a73a57-5dba-11e8-b0ce-52543be04c81")
+
+		mockHttpClient := mocks.MockHttpClient{
+			DoFunc: func(req *http.Request) (*http.Response, error) {
+				assert.Equal(t, "/json/stations/byuuid", req.URL.Path)
+				assert.Equal(t, "GET", req.Method)
+				assert.Contains(t, req.URL.RawQuery, "uuids=")
+				assert.Contains(t, req.URL.RawQuery, uuid1.String())
+				assert.Contains(t, req.URL.RawQuery, uuid2.String())
+				assert.Equal(t, "application/json", req.Header.Get("Accept"))
+				assert.Equal(t, data.UserAgent, req.Header.Get("User-Agent"))
+
+				responseBody := io.NopCloser(bytes.NewReader([]byte(`[
+					{"stationuuid": "941ef6f1-0699-4821-95b1-2b678e3ff62e", "name": "Station 1"},
+					{"stationuuid": "16a73a57-5dba-11e8-b0ce-52543be04c81", "name": "Station 2"}
+				]`)))
+				return &http.Response{
+					StatusCode: 200,
+					Body:       responseBody,
+				}, nil
+			},
+		}
+
+		browser, err := NewRadioBrowserWithDependencies(&mockHttpClient)
+		assert.NoError(t, err)
+
+		stations, err := browser.GetStationsByUUIDs([]uuid.UUID{uuid1, uuid2})
+		assert.NoError(t, err)
+		assert.Len(t, stations, 2)
+		assert.Equal(t, "Station 1", stations[0].Name)
+		assert.Equal(t, "Station 2", stations[1].Name)
+	})
+
+	t.Run("handles API error", func(t *testing.T) {
+		mockHttpClient := mocks.MockHttpClient{
+			DoFunc: func(req *http.Request) (*http.Response, error) {
+				responseBody := io.NopCloser(bytes.NewReader([]byte(`error`)))
+				return &http.Response{
+					StatusCode: 500,
+					Body:       responseBody,
+				}, nil
+			},
+		}
+
+		browser, err := NewRadioBrowserWithDependencies(&mockHttpClient)
+		assert.NoError(t, err)
+
+		_, err = browser.GetStationsByUUIDs([]uuid.UUID{uuid.New()})
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "500")
+	})
+}

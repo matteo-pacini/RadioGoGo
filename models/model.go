@@ -26,6 +26,7 @@ import (
 	"github.com/zi0p4tch0/radiogogo/common"
 	"github.com/zi0p4tch0/radiogogo/config"
 	"github.com/zi0p4tch0/radiogogo/playback"
+	"github.com/zi0p4tch0/radiogogo/storage"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -33,7 +34,7 @@ import (
 
 const (
 	minTerminalWidth  = 115
-	minTerminalHeight = 31
+	minTerminalHeight = 29
 )
 
 type modelState int
@@ -66,7 +67,8 @@ type switchToStationsModelMsg struct {
 // UI messages
 
 type bottomBarUpdateMsg struct {
-	commands []string
+	commands          []string
+	secondaryCommands []string
 }
 
 // Quit message
@@ -99,12 +101,13 @@ type Model struct {
 	theme Theme
 
 	// Models
-	headerModel       HeaderModel
-	searchModel       SearchModel
-	errorModel        ErrorModel
-	loadingModel      LoadingModel
-	stationsModel     StationsModel
-	bottomBarCommands []string
+	headerModel                    HeaderModel
+	searchModel                    SearchModel
+	errorModel                     ErrorModel
+	loadingModel                   LoadingModel
+	stationsModel                  StationsModel
+	bottomBarCommands              []string
+	bottomBarSecondaryCommands     []string
 
 	// State
 	state           modelState
@@ -113,6 +116,7 @@ type Model struct {
 	height          int
 	browser         api.RadioBrowserService
 	playbackManager playback.PlaybackManagerService
+	storage         storage.StationStorageService
 }
 
 func NewDefaultModel(config config.Config) (Model, error) {
@@ -124,7 +128,12 @@ func NewDefaultModel(config config.Config) (Model, error) {
 
 	playbackManager := playback.NewFFPlaybackManager()
 
-	return NewModel(config, browser, playbackManager), nil
+	storageService, err := storage.NewFileStorage()
+	if err != nil {
+		return Model{}, err
+	}
+
+	return NewModel(config, browser, playbackManager, storageService), nil
 
 }
 
@@ -132,6 +141,7 @@ func NewModel(
 	config config.Config,
 	browser api.RadioBrowserService,
 	playbackManager playback.PlaybackManagerService,
+	storage storage.StationStorageService,
 ) Model {
 
 	theme := NewTheme(config)
@@ -142,6 +152,7 @@ func NewModel(
 		state:           bootState,
 		browser:         browser,
 		playbackManager: playbackManager,
+		storage:         storage,
 	}
 }
 
@@ -182,15 +193,18 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.state = m.previousState
 		}
 
-		childHeight := m.height - 2 // 2 = header height + bottom bar height
 		switch m.state {
 		case searchState:
+			childHeight := m.height - 2 // 1 header + 1 bottom bar row
 			m.searchModel.SetWidthAndHeight(m.width, childHeight)
 		case loadingState:
+			childHeight := m.height - 2 // 1 header + 1 bottom bar row
 			m.loadingModel.SetWidthAndHeight(m.width, childHeight)
 		case stationsState:
+			childHeight := m.height - 3 // 1 header + 2 bottom bar rows
 			m.stationsModel.SetWidthAndHeight(m.width, childHeight)
 		case errorState:
+			childHeight := m.height - 2 // 1 header + 1 bottom bar row
 			m.errorModel.SetWidthAndHeight(m.width, childHeight)
 		}
 		return m, nil
@@ -198,36 +212,40 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, tea.Quit
 	case bottomBarUpdateMsg:
 		m.bottomBarCommands = msg.commands
+		m.bottomBarSecondaryCommands = msg.secondaryCommands
 		return m, nil
 	}
 
 	// State transitions
 
-	childHeight := m.height - 2 // 2 = header height + bottom bar height
-
 	switch msg := msg.(type) {
 	case switchToSearchModelMsg:
 		m.headerModel.showOffset = false
+		m.bottomBarSecondaryCommands = nil // Clear two-row bar
 		m.searchModel = NewSearchModel(m.theme)
-		m.searchModel.SetWidthAndHeight(m.width, childHeight)
+		m.searchModel.SetWidthAndHeight(m.width, m.height-2) // 1 header + 1 bottom bar row
 		m.state = searchState
 		return m, m.searchModel.Init()
 	case switchToLoadingModelMsg:
 		m.headerModel.showOffset = false
+		m.bottomBarSecondaryCommands = nil // Clear two-row bar
 		m.loadingModel = NewLoadingModel(m.theme, m.browser, msg.query, msg.queryText)
-		m.loadingModel.SetWidthAndHeight(m.width, childHeight)
+		m.loadingModel.SetWidthAndHeight(m.width, m.height-2) // 1 header + 1 bottom bar row
 		m.state = loadingState
 		return m, m.loadingModel.Init()
 	case switchToStationsModelMsg:
 		m.headerModel.showOffset = true
-		m.stationsModel = NewStationsModel(m.theme, m.browser, m.playbackManager, msg.stations)
-		m.stationsModel.SetWidthAndHeight(m.width, childHeight)
+		// Filter out hidden stations before displaying
+		filteredStations := filterHiddenStations(msg.stations, m.storage)
+		m.stationsModel = NewStationsModel(m.theme, m.browser, m.playbackManager, m.storage, filteredStations, viewModeSearchResults)
+		m.stationsModel.SetWidthAndHeight(m.width, m.height-3) // 1 header + 2 bottom bar rows
 		m.state = stationsState
 		return m, m.stationsModel.Init()
 	case switchToErrorModelMsg:
 		m.headerModel.showOffset = false
+		m.bottomBarSecondaryCommands = nil // Clear two-row bar
 		m.errorModel = NewErrorModel(m.theme, msg.err, msg.recoverable)
-		m.errorModel.SetWidthAndHeight(m.width, childHeight)
+		m.errorModel.SetWidthAndHeight(m.width, m.height-2) // 1 header + 1 bottom bar row
 		m.state = errorState
 		return m, m.errorModel.Init()
 	}
@@ -297,21 +315,39 @@ func (m Model) View() string {
 		currentView = m.errorModel.View()
 	}
 
-	currentViewHeight := lipgloss.Height(currentView)
-
 	// Render the current view
-
 	view += currentView
 
-	// Push the bottom bar at the bottom of the terminal
+	// Push the bottom bar at the bottom of the terminal (skip for stations - it handles its own height)
+	if m.state != stationsState {
+		// Measure the actual height of header + content combined
+		// This accounts for trailing newline merge effects
+		headerContentHeight := lipgloss.Height(view)
+		bottomBarHeight := 1
+		fillerHeight := CalculateFillerHeight(m.height, headerContentHeight, bottomBarHeight)
+		view += RenderFiller(fillerHeight)
+	}
 
-	view += lipgloss.NewStyle().
-		Height(m.height - currentViewHeight).
-		Render()
-
-	// Render bottom bar
-
-	view += m.theme.StyleBottomBar(m.bottomBarCommands)
+	// Render bottom bar (one or two rows)
+	if len(m.bottomBarSecondaryCommands) > 0 {
+		view += m.theme.StyleTwoRowBottomBar(m.bottomBarCommands, m.bottomBarSecondaryCommands)
+	} else {
+		view += m.theme.StyleBottomBar(m.bottomBarCommands)
+	}
 
 	return view
+}
+
+// filterHiddenStations removes hidden stations from the list
+func filterHiddenStations(stations []common.Station, storage storage.StationStorageService) []common.Station {
+	if storage == nil {
+		return stations
+	}
+	result := make([]common.Station, 0, len(stations))
+	for _, s := range stations {
+		if !storage.IsHidden(s.StationUuid) {
+			result = append(result, s)
+		}
+	}
+	return result
 }
