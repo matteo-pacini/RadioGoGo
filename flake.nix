@@ -33,8 +33,10 @@
           zip
         ];
       };
-      packages = {
-        radiogogo = pkgs.radiogogo;
+      packages.radiogogo = pkgs.radiogogo;
+      apps.default = {
+        type = "app";
+        program = "${pkgs.radiogogo}/bin/radiogogo";
       };
     });
 }
