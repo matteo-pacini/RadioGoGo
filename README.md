@@ -196,15 +196,103 @@ theme:
 <img src="./screen3.png" alt="RadioGoGo Alternate Theme" width="500" height="320">
 <img src="./screen4.png" alt="RadioGoGo Alternate Theme" width="500" height="320">
 
+## Troubleshooting
+
+### Playback Issues
+
+**"FFplay not found" error on startup**
+- Ensure FFmpeg is installed (see [Dependencies](#dependencies))
+- Verify `ffplay` is in your PATH: run `ffplay -version` in terminal
+- On Windows, you may need to restart your terminal after installing FFmpeg
+
+**Station takes a while to start playing**
+- Some streams need time to buffer depending on server location and connection
+- Wait a few seconds for the stream to start
+- Check if the station works in a browser first
+
+**No audio output**
+- Check your system audio settings and output device
+- Try playing a different station (some may be temporarily offline)
+- Verify FFplay works: run `ffplay -autoexit -nodisp <any audio file>`
+
+**Station doesn't work at all**
+- Stations go offline or change URLs frequently
+- RadioBrowser is community-maintained, so some entries may be stale
+- Try searching for the same station by name to find updated URLs
+
+### Recording Issues
+
+**Recording button doesn't work**
+- Recording requires `ffmpeg` installed separately from `ffplay`
+- Verify `ffmpeg` is in your PATH: run `ffmpeg -version`
+- Recording only works while a station is actively playing
+
+**Recording file is empty or corrupt**
+- Some stations may use codecs or streams that FFmpeg cannot capture
+- Check write permissions in your current directory
+- Ensure you have sufficient disk space
+
+### Configuration Issues
+
+**Config changes not taking effect**
+- Restart the app after editing `config.yaml`
+- Check for YAML syntax errors (proper indentation, quotes around special characters)
+- Invalid keybindings show warnings at startup and fall back to defaults
+
+**Terminal too small error**
+- Resize your terminal to at least 115 columns x 29 rows
+- Use a terminal that supports resizing
+- Check if your terminal font size is too large
+
+## Building from Source
+
+### Prerequisites
+
+- Go 1.22 or later
+- FFmpeg (for playback and recording)
+
+### Build
+
+```bash
+# Clone the repository
+git clone https://github.com/zi0p4tch0/radiogogo.git
+cd radiogogo
+
+# Build
+go build -o radiogogo
+
+# Or install to GOPATH/bin
+go install
+```
+
+### Run Tests
+
+```bash
+# Run all tests
+go test ./...
+
+# Run with verbose output
+go test -v ./...
+
+# Run tests for a specific package
+go test ./api
+go test ./models
+go test ./playback
+```
+
+### Nix Development Environment
+
+If you use Nix with flakes:
+
+```bash
+# Enter development shell (provides Go, FFmpeg, Delve, Gopls)
+nix develop
+
+# Or with direnv
+direnv allow
+```
+
 ## FAQ
-
-**Station takes a while to start playing?**
-
-Some streams need time to buffer depending on server location and connection. Wait a few seconds.
-
-**Station doesn't work at all?**
-
-Stations go offline or change URLs. RadioBrowser is community-maintained, so some entries may be stale.
 
 **Recording requires ffmpeg?**
 

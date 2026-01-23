@@ -86,28 +86,22 @@ func NewSearchModel(theme Theme, browser api.RadioBrowserService, storage storag
 
 // Commands
 
-func updateCommandsForTextfieldFocus(kb config.Keybindings) tea.Cmd {
+// updateSearchCommandsCmd returns a command that updates the bottom bar based on focus state.
+// When textfieldFocused is true, shows search-specific commands; otherwise shows filter commands.
+func updateSearchCommandsCmd(kb config.Keybindings, textfieldFocused bool) tea.Cmd {
 	return func() tea.Msg {
-		return bottomBarUpdateMsg{
-			commands: []string{
-				i18n.Tf("cmd_quit", map[string]interface{}{"Key": kb.Quit}),
-				i18n.T("cmd_cycle_focus"),
-				i18n.T("cmd_enter_search"),
-				i18n.Tf("cmd_bookmarks", map[string]interface{}{"Key": kb.BookmarksView}),
-				i18n.Tf("cmd_change_language", map[string]interface{}{"Key": kb.ChangeLanguage}),
-				i18n.T("current_language"),
-			},
+		var contextCmd string
+		if textfieldFocused {
+			contextCmd = i18n.T("cmd_enter_search")
+		} else {
+			contextCmd = i18n.T("cmd_change_filter")
 		}
-	}
-}
 
-func updateCommandsForSelectorFocus(kb config.Keybindings) tea.Cmd {
-	return func() tea.Msg {
 		return bottomBarUpdateMsg{
 			commands: []string{
 				i18n.Tf("cmd_quit", map[string]interface{}{"Key": kb.Quit}),
 				i18n.T("cmd_cycle_focus"),
-				i18n.T("cmd_change_filter"),
+				contextCmd,
 				i18n.Tf("cmd_bookmarks", map[string]interface{}{"Key": kb.BookmarksView}),
 				i18n.Tf("cmd_change_language", map[string]interface{}{"Key": kb.ChangeLanguage}),
 				i18n.T("current_language"),
@@ -132,7 +126,7 @@ func getNextLanguage() string {
 // Bubbletea
 
 func (m SearchModel) Init() tea.Cmd {
-	return tea.Batch(textinput.Blink, updateCommandsForTextfieldFocus(m.keybindings))
+	return tea.Batch(textinput.Blink, updateSearchCommandsCmd(m.keybindings, true))
 }
 
 func (m SearchModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -144,11 +138,11 @@ func (m SearchModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.inputModel.Focused() {
 				m.inputModel.Blur()
 				m.querySelector.Focus()
-				return m, updateCommandsForSelectorFocus(m.keybindings)
+				return m, updateSearchCommandsCmd(m.keybindings, false)
 			} else {
 				m.inputModel.Focus()
 				m.querySelector.Blur()
-				return m, updateCommandsForTextfieldFocus(m.keybindings)
+				return m, updateSearchCommandsCmd(m.keybindings, true)
 			}
 		case m.keybindings.Quit:
 			if !m.inputModel.Focused() {

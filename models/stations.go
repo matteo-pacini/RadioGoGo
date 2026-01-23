@@ -21,7 +21,6 @@ package models
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/zi0p4tch0/radiogogo/api"
@@ -162,312 +161,46 @@ func (m StationsModel) Init() tea.Cmd {
 }
 
 // Update handles incoming messages and updates the model state accordingly.
+// It delegates to specialized handlers for different message categories.
 func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-
 	var cmds []tea.Cmd
 
-	switch msg := msg.(type) {
+	// Try each handler in turn - they return (handled, model, cmd)
+	if handled, newM, cmd := m.handlePlaybackMessages(msg); handled {
+		return newM, cmd
+	}
 
-	// Playback state messages
-	case playbackStartedMsg:
-		m.currentStation = msg.station
-		m.volumeChangePending = false
-		m.currentStationSpinner = spinner.New()
-		m.currentStationSpinner.Spinner = spinner.Dot
-		m.currentStationSpinner.Style = m.theme.PrimaryText
-		return m, tea.Batch(
-			m.currentStationSpinner.Tick,
-			notifyRadioBrowserCmd(m.browser, m.currentStation),
-			updateCommandsCmd(m.viewMode, true, m.volume, m.playbackManager.VolumeIsPercentage(), m.playbackManager.IsRecording(), m.keybindings),
-			func() tea.Msg { return playbackStatusMsg{status: PlaybackPlaying} },
-		)
-	case playbackStoppedMsg:
-		m.currentStation = common.Station{}
-		m.currentStationSpinner = spinner.Model{}
-		return m, tea.Batch(
-			updateCommandsCmd(m.viewMode, false, m.volume, m.playbackManager.VolumeIsPercentage(), false, m.keybindings),
-			func() tea.Msg { return playbackStatusMsg{status: PlaybackIdle} },
-			func() tea.Msg { return recordingStatusMsg{isRecording: false} },
-		)
+	if handled, newM, cmd := m.handleErrorMessages(msg); handled {
+		return newM, cmd
+	}
 
-	// Error handling
-	case nonFatalError:
-		var cmds []tea.Cmd
-		if msg.stopPlayback {
-			cmds = append(cmds, stopStationCmd(m.playbackManager))
-		}
-		m.err = msg.err.Error()
-		cmds = append(cmds, tea.Tick(3*time.Second, func(t time.Time) tea.Msg {
-			return clearNonFatalError{}
-		}))
+	if handled, newM, cmd := m.handleVolumeMessages(msg); handled {
+		return newM, cmd
+	}
 
-		return m, tea.Sequence(cmds...)
-	case clearNonFatalError:
-		m.err = ""
-		return m, nil
+	if handled, newM, cmd := m.handleRecordingMessages(msg); handled {
+		return newM, cmd
+	}
 
-	// Volume change with debouncing
-	case volumeDebounceExpiredMsg:
-		if msg.changeID == m.pendingVolumeChangeID && m.volumeChangePending {
-			m.volumeChangePending = false
-			station := m.playbackManager.CurrentStation()
-			if station.StationUuid != uuid.Nil {
-				return m, restartPlaybackWithVolumeCmd(m.playbackManager, station, m.volume)
-			}
-		}
-		return m, nil
-	case volumeRestartCompleteMsg:
-		m.currentStation = msg.station
-		return m, func() tea.Msg { return playbackStatusMsg{status: PlaybackPlaying} }
-	case volumeRestartFailedMsg:
-		m.err = i18n.Tf("error_volume_change", map[string]interface{}{"Error": msg.err})
-		return m, tea.Tick(3*time.Second, func(t time.Time) tea.Msg {
-			return clearNonFatalError{}
-		})
+	if handled, newM, cmd := m.handleBookmarkMessages(msg); handled {
+		return newM, cmd
+	}
 
-	// Recording state messages
-	case recordingStartedMsg:
-		return m, tea.Batch(
-			updateCommandsCmd(m.viewMode, true, m.volume, m.playbackManager.VolumeIsPercentage(), true, m.keybindings),
-			func() tea.Msg { return recordingStatusMsg{isRecording: true} },
-		)
-	case recordingStoppedMsg:
-		return m, tea.Batch(
-			updateCommandsCmd(m.viewMode, true, m.volume, m.playbackManager.VolumeIsPercentage(), false, m.keybindings),
-			func() tea.Msg { return recordingStatusMsg{isRecording: false} },
-		)
-	case recordingErrorMsg:
-		m.err = i18n.Tf("error_recording", map[string]interface{}{"Error": msg.err})
-		return m, tea.Tick(3*time.Second, func(t time.Time) tea.Msg {
-			return clearNonFatalError{}
-		})
+	if handled, newM, cmd := m.handleHiddenStationMessages(msg); handled {
+		return newM, cmd
+	}
 
-	// Bookmark and hidden station messages
-	case bookmarkToggledMsg:
-		cursor := m.stationsTable.Cursor()
-		// If in bookmarks mode, refresh the list (station may have been unbookmarked)
-		if m.viewMode == viewModeBookmarks {
-			// Save cursor to restore after fetch completes
-			m.savedCursor = cursor
-			return m, fetchBookmarksCmd(m.browser, m.storage)
+	// Handle key messages
+	if keyMsg, ok := msg.(tea.KeyMsg); ok {
+		handled, newM, cmd := m.handleKeyMessage(keyMsg)
+		if handled {
+			return newM, cmd
 		}
-		// Otherwise just refresh table to update star prefix
-		m.stationsTable = newStationsTableModel(m.theme, m.stations, m.storage)
-		m.stationsTable.SetCursor(cursor)
-		return m, nil
-	case stationHiddenMsg:
-		// Remove hidden station from current view
-		newStations := make([]common.Station, 0, len(m.stations)-1)
-		for _, s := range m.stations {
-			if s.StationUuid != msg.station.StationUuid {
-				newStations = append(newStations, s)
-			}
+		// Navigation keys return cmd but don't fully handle the message
+		if cmd != nil {
+			cmds = append(cmds, cmd)
 		}
-		m.stations = newStations
-		m.stationsTable = newStationsTableModel(m.theme, m.stations, m.storage)
-		// Restore cursor position (adjust if past end)
-		if msg.cursor >= len(m.stations) && len(m.stations) > 0 {
-			m.stationsTable.SetCursor(len(m.stations) - 1)
-		} else {
-			m.stationsTable.SetCursor(msg.cursor)
-		}
-		return m, func() tea.Msg {
-			return stationCursorMovedMsg{
-				offset:        m.stationsTable.Cursor(),
-				totalStations: len(m.stations),
-			}
-		}
-	case bookmarksFetchedMsg:
-		// Save current state before switching to bookmarks (only if coming from search results)
-		cursorToRestore := 0
-		if m.viewMode == viewModeSearchResults {
-			m.savedStations = m.stations
-			m.savedCursor = m.stationsTable.Cursor()
-		} else {
-			// Already in bookmarks mode (refreshing after unbookmark), restore cursor
-			cursorToRestore = m.savedCursor
-		}
-		// Switch to bookmarks view
-		m.viewMode = viewModeBookmarks
-		m.stations = msg.stations
-		m.stationsTable = newStationsTableModel(m.theme, m.stations, m.storage)
-		// Restore cursor if valid
-		if cursorToRestore > 0 && cursorToRestore < len(m.stations) {
-			m.stationsTable.SetCursor(cursorToRestore)
-		} else if cursorToRestore >= len(m.stations) && len(m.stations) > 0 {
-			m.stationsTable.SetCursor(len(m.stations) - 1)
-		}
-		return m, tea.Batch(
-			updateCommandsCmd(m.viewMode, m.playbackManager.IsPlaying(), m.volume, m.playbackManager.VolumeIsPercentage(), m.playbackManager.IsRecording(), m.keybindings),
-			func() tea.Msg {
-				return stationCursorMovedMsg{
-					offset:        m.stationsTable.Cursor(),
-					totalStations: len(m.stations),
-				}
-			},
-		)
-	case bookmarksFetchFailedMsg:
-		m.err = i18n.Tf("error_load_bookmarks", map[string]interface{}{"Error": msg.err})
-		return m, tea.Tick(3*time.Second, func(t time.Time) tea.Msg {
-			return clearNonFatalError{}
-		})
-	case hiddenFetchedMsg:
-		m.hiddenStations = msg.stations
-		m.hiddenModalCursor = 0
-		m.showHiddenModal = true
-		return m, nil
-	case hiddenFetchFailedMsg:
-		m.err = i18n.Tf("error_load_hidden", map[string]interface{}{"Error": msg.err})
-		return m, tea.Tick(3*time.Second, func(t time.Time) tea.Msg {
-			return clearNonFatalError{}
-		})
-	case stationUnhiddenMsg:
-		// Mark that we need to refetch when modal closes
-		m.needsRefetch = true
-
-		// Remove from modal list
-		newHidden := make([]common.Station, 0, len(m.hiddenStations)-1)
-		for _, s := range m.hiddenStations {
-			if s.StationUuid != msg.station.StationUuid {
-				newHidden = append(newHidden, s)
-			}
-		}
-		m.hiddenStations = newHidden
-		if m.hiddenModalCursor >= len(m.hiddenStations) && len(m.hiddenStations) > 0 {
-			m.hiddenModalCursor = len(m.hiddenStations) - 1
-		}
-		if len(m.hiddenStations) == 0 {
-			m.showHiddenModal = false
-			// Trigger refetch now that modal is closed
-			if m.needsRefetch {
-				m.needsRefetch = false
-				return m, refetchStationsCmd(m.browser, m.lastQuery, m.lastQueryText)
-			}
-		}
-		return m, nil
-	case stationsRefetchedMsg:
-		// Filter hidden stations and update the view
-		filtered := make([]common.Station, 0, len(msg.stations))
-		for _, s := range msg.stations {
-			if !m.storage.IsHidden(s.StationUuid) {
-				filtered = append(filtered, s)
-			}
-		}
-		m.stations = filtered
-		m.stationsTable = newStationsTableModel(m.theme, m.stations, m.storage)
-		return m, func() tea.Msg {
-			return stationCursorMovedMsg{
-				offset:        m.stationsTable.Cursor(),
-				totalStations: len(m.stations),
-			}
-		}
-	case stationsRefetchFailedMsg:
-		m.err = i18n.Tf("error_refresh_stations", map[string]interface{}{"Error": msg.err})
-		return m, tea.Tick(3*time.Second, func(t time.Time) tea.Msg {
-			return clearNonFatalError{}
-		})
-
-	// Key event handling
-	case tea.KeyMsg:
-		// Handle modal input first (captures all keys when modal is open)
-		if handled, cmd := m.handleHiddenModalInput(msg); handled {
-			return m, cmd
-		}
-
-		key := msg.String()
-		switch {
-		case key == "up" || key == "down" || key == m.keybindings.NavigateDown || key == m.keybindings.NavigateUp:
-			cmds = append(cmds, func() tea.Msg {
-				return stationCursorMovedMsg{
-					offset:        m.stationsTable.Cursor(),
-					totalStations: len(m.stations),
-				}
-			})
-		case key == m.keybindings.StopPlayback:
-			return m, func() tea.Msg {
-				err := m.playbackManager.StopStation()
-				if err != nil {
-					return nonFatalError{stopPlayback: false, err: err}
-				}
-				return playbackStoppedMsg{}
-			}
-		case key == m.keybindings.Quit:
-			return m, tea.Sequence(stopStationCmd(m.playbackManager), quitCmd)
-		case key == m.keybindings.Search:
-			return m, func() tea.Msg {
-				return switchToSearchModelMsg{}
-			}
-		case key == m.keybindings.VolumeDown:
-			return m, m.handleVolumeDecrease()
-		case key == m.keybindings.VolumeUp:
-			return m, m.handleVolumeIncrease()
-		case key == m.keybindings.Record:
-			return m, m.handleRecordingToggle()
-		case key == m.keybindings.BookmarkToggle:
-			// Toggle bookmark on selected station
-			if len(m.stations) == 0 {
-				return m, nil
-			}
-			station := m.stations[m.stationsTable.Cursor()]
-			return m, toggleBookmarkCmd(m.storage, station)
-		case key == m.keybindings.HideStation:
-			// Hide station (only in search results mode)
-			if m.viewMode != viewModeSearchResults {
-				return m, nil
-			}
-			if len(m.stations) == 0 {
-				return m, nil
-			}
-			station := m.stations[m.stationsTable.Cursor()]
-			return m, hideStationCmd(m.storage, station, m.stationsTable.Cursor())
-		case key == m.keybindings.BookmarksView:
-			// Toggle view mode (search results <-> bookmarks)
-			// Stop playback when switching views
-			if m.viewMode == viewModeSearchResults {
-				return m, tea.Sequence(
-					stopStationCmd(m.playbackManager),
-					fetchBookmarksCmd(m.browser, m.storage),
-				)
-			} else {
-				// Return from bookmarks to previous stations (or search if none saved)
-				if len(m.savedStations) > 0 {
-					// Stop playback
-					m.playbackManager.StopStation()
-					m.currentStation = common.Station{}
-					m.currentStationSpinner = spinner.Model{}
-
-					m.viewMode = viewModeSearchResults
-					m.stations = m.savedStations
-					m.stationsTable = newStationsTableModel(m.theme, m.stations, m.storage)
-					m.stationsTable.SetCursor(m.savedCursor)
-					m.savedStations = nil
-					m.savedCursor = 0
-					return m, tea.Batch(
-						updateCommandsCmd(m.viewMode, false, m.volume, m.playbackManager.VolumeIsPercentage(), false, m.keybindings),
-						func() tea.Msg { return playbackStatusMsg{status: PlaybackIdle} },
-						func() tea.Msg {
-							return stationCursorMovedMsg{
-								offset:        m.stationsTable.Cursor(),
-								totalStations: len(m.stations),
-							}
-						},
-					)
-				}
-				return m, func() tea.Msg { return switchToSearchModelMsg{} }
-			}
-		case key == m.keybindings.ManageHidden:
-			// Open hidden stations modal (only in search results mode)
-			if m.viewMode != viewModeSearchResults {
-				return m, nil
-			}
-			return m, fetchHiddenStationsCmd(m.browser, m.storage)
-		case key == "enter":
-			if len(m.stations) == 0 {
-				return m, nil
-			}
-			station := m.stations[m.stationsTable.Cursor()]
-			return m, playStationCmd(m.playbackManager, station, m.volume)
-		}
+		m = newM
 	}
 
 	// Update spinner if playing
@@ -480,74 +213,9 @@ func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// Update table
 	newStationsTable, cmd := m.stationsTable.Update(msg)
 	m.stationsTable = newStationsTable
-
 	cmds = append(cmds, cmd)
 
 	return m, tea.Batch(cmds...)
-}
-
-// handleVolumeDecrease handles the volume decrease key press with debouncing.
-func (m *StationsModel) handleVolumeDecrease() tea.Cmd {
-	if m.volume > m.playbackManager.VolumeMin() {
-		m.volume -= 10
-		if m.playbackManager.IsPlaying() {
-			changeID := time.Now().UnixNano()
-			m.pendingVolumeChangeID = changeID
-			m.volumeChangePending = true
-			return tea.Batch(
-				updateCommandsCmd(m.viewMode, true, m.volume, m.playbackManager.VolumeIsPercentage(), m.playbackManager.IsRecording(), m.keybindings),
-				startVolumeDebounceCmd(changeID),
-				func() tea.Msg { return playbackStatusMsg{status: PlaybackRestarting} },
-			)
-		}
-		return updateCommandsCmd(m.viewMode, false, m.volume, m.playbackManager.VolumeIsPercentage(), false, m.keybindings)
-	}
-	return nil
-}
-
-// handleVolumeIncrease handles the volume increase key press with debouncing.
-func (m *StationsModel) handleVolumeIncrease() tea.Cmd {
-	if m.volume < m.playbackManager.VolumeMax() {
-		m.volume += 10
-		if m.playbackManager.IsPlaying() {
-			changeID := time.Now().UnixNano()
-			m.pendingVolumeChangeID = changeID
-			m.volumeChangePending = true
-			return tea.Batch(
-				updateCommandsCmd(m.viewMode, true, m.volume, m.playbackManager.VolumeIsPercentage(), m.playbackManager.IsRecording(), m.keybindings),
-				startVolumeDebounceCmd(changeID),
-				func() tea.Msg { return playbackStatusMsg{status: PlaybackRestarting} },
-			)
-		}
-		return updateCommandsCmd(m.viewMode, false, m.volume, m.playbackManager.VolumeIsPercentage(), false, m.keybindings)
-	}
-	return nil
-}
-
-// handleRecordingToggle handles the recording toggle key press.
-func (m *StationsModel) handleRecordingToggle() tea.Cmd {
-	// Only allow recording if something is playing
-	if !m.playbackManager.IsPlaying() {
-		return nil
-	}
-
-	// Toggle recording
-	if m.playbackManager.IsRecording() {
-		return stopRecordingCmd(m.playbackManager)
-	}
-
-	// Check if ffmpeg is available
-	if !m.playbackManager.IsRecordingAvailable() {
-		m.err = m.playbackManager.RecordingNotAvailableErrorString()
-		return tea.Tick(3*time.Second, func(t time.Time) tea.Msg {
-			return clearNonFatalError{}
-		})
-	}
-
-	// Generate filename and start recording
-	station := m.playbackManager.CurrentStation()
-	filename := playback.GenerateRecordingFilename(station.Name, station.Codec)
-	return startRecordingCmd(m.playbackManager, filename)
 }
 
 // View renders the stations view.

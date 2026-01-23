@@ -11,16 +11,95 @@ import (
 	"github.com/zi0p4tch0/radiogogo/i18n"
 )
 
-// FFPlayPlaybackManager represents a playback manager for FFPlay.
-type FFPlayPlaybackManager struct {
-	nowPlaying     *exec.Cmd
-	currentStation common.Station
-	nowRecording   *exec.Cmd
-	recordingPath  string
+// CommandExecutor defines an interface for executing commands.
+// This allows for dependency injection and easier testing.
+type CommandExecutor interface {
+	// Command creates a new Cmd with the given name and args.
+	Command(name string, args ...string) Cmd
+	// LookPath searches for an executable in PATH.
+	LookPath(file string) (string, error)
 }
 
+// Cmd represents an executable command.
+type Cmd interface {
+	// Start starts the command but doesn't wait for it to complete.
+	Start() error
+	// Run runs the command and waits for it to complete.
+	Run() error
+	// Process returns the underlying process once started.
+	Process() Process
+	// SetStderr sets the stderr writer.
+	SetStderr(w *os.File)
+	// SetStdout sets the stdout writer.
+	SetStdout(w *os.File)
+}
+
+// Process represents a running process.
+type Process interface {
+	// Kill causes the process to exit immediately.
+	Kill() error
+	// Signal sends a signal to the process.
+	Signal(sig os.Signal) error
+	// Wait waits for the process to exit.
+	Wait() (*os.ProcessState, error)
+	// Pid returns the process ID.
+	Pid() int
+}
+
+// realCommandExecutor is the production implementation using os/exec.
+type realCommandExecutor struct{}
+
+func (e *realCommandExecutor) Command(name string, args ...string) Cmd {
+	return &realCmd{cmd: exec.Command(name, args...)}
+}
+
+func (e *realCommandExecutor) LookPath(file string) (string, error) {
+	return exec.LookPath(file)
+}
+
+// realCmd wraps exec.Cmd to implement the Cmd interface.
+type realCmd struct {
+	cmd *exec.Cmd
+}
+
+func (c *realCmd) Start() error        { return c.cmd.Start() }
+func (c *realCmd) Run() error          { return c.cmd.Run() }
+func (c *realCmd) Process() Process    { return &realProcess{proc: c.cmd.Process} }
+func (c *realCmd) SetStderr(w *os.File) { c.cmd.Stderr = w }
+func (c *realCmd) SetStdout(w *os.File) { c.cmd.Stdout = w }
+
+// realProcess wraps os.Process to implement the Process interface.
+type realProcess struct {
+	proc *os.Process
+}
+
+func (p *realProcess) Kill() error                       { return p.proc.Kill() }
+func (p *realProcess) Signal(sig os.Signal) error        { return p.proc.Signal(sig) }
+func (p *realProcess) Wait() (*os.ProcessState, error)   { return p.proc.Wait() }
+func (p *realProcess) Pid() int                          { return p.proc.Pid }
+
+// FFPlayPlaybackManager represents a playback manager for FFPlay.
+type FFPlayPlaybackManager struct {
+	nowPlaying     Cmd
+	currentStation common.Station
+	nowRecording   Cmd
+	recordingPath  string
+	executor       CommandExecutor
+}
+
+// NewFFPlaybackManager creates a new FFPlayPlaybackManager with the default command executor.
 func NewFFPlaybackManager() PlaybackManagerService {
-	return &FFPlayPlaybackManager{}
+	return &FFPlayPlaybackManager{
+		executor: &realCommandExecutor{},
+	}
+}
+
+// NewFFPlaybackManagerWithExecutor creates a new FFPlayPlaybackManager with a custom command executor.
+// This is primarily useful for testing.
+func NewFFPlaybackManagerWithExecutor(executor CommandExecutor) *FFPlayPlaybackManager {
+	return &FFPlayPlaybackManager{
+		executor: executor,
+	}
 }
 
 func (d FFPlayPlaybackManager) Name() string {
@@ -32,7 +111,7 @@ func (d FFPlayPlaybackManager) IsPlaying() bool {
 }
 
 func (d FFPlayPlaybackManager) IsAvailable() bool {
-	_, err := exec.LookPath("ffplay")
+	_, err := d.executor.LookPath("ffplay")
 	return err == nil
 }
 
@@ -45,7 +124,7 @@ func (d *FFPlayPlaybackManager) PlayStation(station common.Station, volume int) 
 	if err != nil {
 		return err
 	}
-	cmd := exec.Command("ffplay", "-nodisp", "-volume", fmt.Sprintf("%d", volume), station.Url.URL.String())
+	cmd := d.executor.Command("ffplay", "-nodisp", "-volume", fmt.Sprintf("%d", volume), station.Url.URL.String())
 	err = cmd.Start()
 	if err != nil {
 		return err
@@ -72,19 +151,19 @@ func (d *FFPlayPlaybackManager) StopStation() error {
 	if d.nowPlaying != nil {
 		if runtime.GOOS == "windows" {
 			// Windows: taskkill /T kills entire process tree, /F forces termination
-			killCmd := exec.Command("taskkill", "/T", "/F", "/PID", fmt.Sprintf("%d", d.nowPlaying.Process.Pid))
+			killCmd := d.executor.Command("taskkill", "/T", "/F", "/PID", fmt.Sprintf("%d", d.nowPlaying.Process().Pid()))
 			if err := killCmd.Run(); err != nil {
 				return err
 			}
 		} else {
 			// Unix/macOS: SIGKILL is sufficient for single-process termination
-			if err := d.nowPlaying.Process.Kill(); err != nil {
+			if err := d.nowPlaying.Process().Kill(); err != nil {
 				return err
 			}
 		}
 
 		// Wait for process to be reaped to avoid zombie processes
-		_, err := d.nowPlaying.Process.Wait()
+		_, err := d.nowPlaying.Process().Wait()
 		if err != nil {
 			return err
 		}
@@ -115,7 +194,7 @@ func (d FFPlayPlaybackManager) CurrentStation() common.Station {
 }
 
 func (d FFPlayPlaybackManager) IsRecordingAvailable() bool {
-	_, err := exec.LookPath("ffmpeg")
+	_, err := d.executor.LookPath("ffmpeg")
 	return err == nil
 }
 
@@ -139,11 +218,11 @@ func (d *FFPlayPlaybackManager) StartRecording(outputPath string) error {
 
 	// Start ffmpeg recording: ffmpeg -i <stream_url> -c copy output.ext
 	// Use -y to overwrite existing files without prompting
-	cmd := exec.Command("ffmpeg", "-y", "-i", d.currentStation.Url.URL.String(), "-c", "copy", outputPath)
+	cmd := d.executor.Command("ffmpeg", "-y", "-i", d.currentStation.Url.URL.String(), "-c", "copy", outputPath)
 
 	// Suppress ffmpeg's stderr output (it's verbose)
-	cmd.Stderr = nil
-	cmd.Stdout = nil
+	cmd.SetStderr(nil)
+	cmd.SetStdout(nil)
 
 	err := cmd.Start()
 	if err != nil {
@@ -172,22 +251,22 @@ func (d *FFPlayPlaybackManager) StopRecording() (string, error) {
 
 	if runtime.GOOS == "windows" {
 		// Windows: Force kill - ffmpeg doesn't handle signals well on Windows
-		killCmd := exec.Command("taskkill", "/T", "/F", "/PID", fmt.Sprintf("%d", d.nowRecording.Process.Pid))
+		killCmd := d.executor.Command("taskkill", "/T", "/F", "/PID", fmt.Sprintf("%d", d.nowRecording.Process().Pid()))
 		if err := killCmd.Run(); err != nil {
 			return "", err
 		}
 	} else {
 		// Unix/macOS: SIGINT allows ffmpeg to finalize the output file properly
-		if err := d.nowRecording.Process.Signal(os.Interrupt); err != nil {
+		if err := d.nowRecording.Process().Signal(os.Interrupt); err != nil {
 			// Fallback to SIGKILL if SIGINT fails (process may be unresponsive)
-			if err := d.nowRecording.Process.Kill(); err != nil {
+			if err := d.nowRecording.Process().Kill(); err != nil {
 				return "", err
 			}
 		}
 	}
 
 	// Wait for process to be reaped (ignore errors as process may have already exited)
-	_, _ = d.nowRecording.Process.Wait()
+	_, _ = d.nowRecording.Process().Wait()
 
 	d.nowRecording = nil
 	d.recordingPath = ""

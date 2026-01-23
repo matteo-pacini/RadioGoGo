@@ -257,3 +257,217 @@ func TestBrowserImplGetStationsByUUIDs(t *testing.T) {
 		assert.Contains(t, err.Error(), "500")
 	})
 }
+
+func TestBrowserImpl_ErrorHandling(t *testing.T) {
+	t.Run("GetStations handles network error", func(t *testing.T) {
+		mockHttpClient := mocks.MockHttpClient{
+			DoFunc: func(req *http.Request) (*http.Response, error) {
+				return nil, &networkError{message: "connection refused"}
+			},
+		}
+
+		browser, err := NewRadioBrowserWithDependencies(&mockHttpClient)
+		assert.NoError(t, err)
+
+		_, err = browser.GetStations(common.StationQueryByName, "test", "name", false, 0, 10, true)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "connection refused")
+	})
+
+	t.Run("GetStations handles HTTP 400 Bad Request", func(t *testing.T) {
+		mockHttpClient := mocks.MockHttpClient{
+			DoFunc: func(req *http.Request) (*http.Response, error) {
+				responseBody := io.NopCloser(bytes.NewReader([]byte(`{"error": "bad request"}`)))
+				return &http.Response{
+					StatusCode: 400,
+					Body:       responseBody,
+				}, nil
+			},
+		}
+
+		browser, err := NewRadioBrowserWithDependencies(&mockHttpClient)
+		assert.NoError(t, err)
+
+		_, err = browser.GetStations(common.StationQueryByName, "test", "name", false, 0, 10, true)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "400")
+	})
+
+	t.Run("GetStations handles HTTP 500 Internal Server Error", func(t *testing.T) {
+		mockHttpClient := mocks.MockHttpClient{
+			DoFunc: func(req *http.Request) (*http.Response, error) {
+				responseBody := io.NopCloser(bytes.NewReader([]byte(`Internal Server Error`)))
+				return &http.Response{
+					StatusCode: 500,
+					Body:       responseBody,
+				}, nil
+			},
+		}
+
+		browser, err := NewRadioBrowserWithDependencies(&mockHttpClient)
+		assert.NoError(t, err)
+
+		_, err = browser.GetStations(common.StationQueryByName, "test", "name", false, 0, 10, true)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "500")
+	})
+
+	t.Run("GetStations handles HTTP 503 Service Unavailable", func(t *testing.T) {
+		mockHttpClient := mocks.MockHttpClient{
+			DoFunc: func(req *http.Request) (*http.Response, error) {
+				responseBody := io.NopCloser(bytes.NewReader([]byte(`Service Unavailable`)))
+				return &http.Response{
+					StatusCode: 503,
+					Body:       responseBody,
+				}, nil
+			},
+		}
+
+		browser, err := NewRadioBrowserWithDependencies(&mockHttpClient)
+		assert.NoError(t, err)
+
+		_, err = browser.GetStations(common.StationQueryByName, "test", "name", false, 0, 10, true)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "503")
+	})
+
+	t.Run("GetStations handles malformed JSON response", func(t *testing.T) {
+		mockHttpClient := mocks.MockHttpClient{
+			DoFunc: func(req *http.Request) (*http.Response, error) {
+				responseBody := io.NopCloser(bytes.NewReader([]byte(`{invalid json`)))
+				return &http.Response{
+					StatusCode: 200,
+					Body:       responseBody,
+				}, nil
+			},
+		}
+
+		browser, err := NewRadioBrowserWithDependencies(&mockHttpClient)
+		assert.NoError(t, err)
+
+		_, err = browser.GetStations(common.StationQueryByName, "test", "name", false, 0, 10, true)
+		assert.Error(t, err)
+	})
+
+	t.Run("GetStations handles empty response", func(t *testing.T) {
+		mockHttpClient := mocks.MockHttpClient{
+			DoFunc: func(req *http.Request) (*http.Response, error) {
+				responseBody := io.NopCloser(bytes.NewReader([]byte(`[]`)))
+				return &http.Response{
+					StatusCode: 200,
+					Body:       responseBody,
+				}, nil
+			},
+		}
+
+		browser, err := NewRadioBrowserWithDependencies(&mockHttpClient)
+		assert.NoError(t, err)
+
+		stations, err := browser.GetStations(common.StationQueryByName, "test", "name", false, 0, 10, true)
+		assert.NoError(t, err)
+		assert.Empty(t, stations)
+	})
+
+	t.Run("ClickStation handles network error", func(t *testing.T) {
+		mockHttpClient := mocks.MockHttpClient{
+			DoFunc: func(req *http.Request) (*http.Response, error) {
+				return nil, &networkError{message: "timeout"}
+			},
+		}
+
+		browser, err := NewRadioBrowserWithDependencies(&mockHttpClient)
+		assert.NoError(t, err)
+
+		station := common.Station{
+			StationUuid: uuid.MustParse("941ef6f1-0699-4821-95b1-2b678e3ff62e"),
+		}
+		_, err = browser.ClickStation(station)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "timeout")
+	})
+
+	t.Run("ClickStation handles HTTP error", func(t *testing.T) {
+		mockHttpClient := mocks.MockHttpClient{
+			DoFunc: func(req *http.Request) (*http.Response, error) {
+				responseBody := io.NopCloser(bytes.NewReader([]byte(`Not Found`)))
+				return &http.Response{
+					StatusCode: 404,
+					Body:       responseBody,
+				}, nil
+			},
+		}
+
+		browser, err := NewRadioBrowserWithDependencies(&mockHttpClient)
+		assert.NoError(t, err)
+
+		station := common.Station{
+			StationUuid: uuid.MustParse("941ef6f1-0699-4821-95b1-2b678e3ff62e"),
+		}
+		_, err = browser.ClickStation(station)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "404")
+	})
+
+	t.Run("ClickStation handles malformed JSON response", func(t *testing.T) {
+		mockHttpClient := mocks.MockHttpClient{
+			DoFunc: func(req *http.Request) (*http.Response, error) {
+				responseBody := io.NopCloser(bytes.NewReader([]byte(`not json`)))
+				return &http.Response{
+					StatusCode: 200,
+					Body:       responseBody,
+				}, nil
+			},
+		}
+
+		browser, err := NewRadioBrowserWithDependencies(&mockHttpClient)
+		assert.NoError(t, err)
+
+		station := common.Station{
+			StationUuid: uuid.MustParse("941ef6f1-0699-4821-95b1-2b678e3ff62e"),
+		}
+		_, err = browser.ClickStation(station)
+		assert.Error(t, err)
+	})
+
+	t.Run("GetStationsByUUIDs handles network error", func(t *testing.T) {
+		mockHttpClient := mocks.MockHttpClient{
+			DoFunc: func(req *http.Request) (*http.Response, error) {
+				return nil, &networkError{message: "dns lookup failed"}
+			},
+		}
+
+		browser, err := NewRadioBrowserWithDependencies(&mockHttpClient)
+		assert.NoError(t, err)
+
+		_, err = browser.GetStationsByUUIDs([]uuid.UUID{uuid.New()})
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "dns lookup failed")
+	})
+
+	t.Run("GetStationsByUUIDs handles malformed JSON response", func(t *testing.T) {
+		mockHttpClient := mocks.MockHttpClient{
+			DoFunc: func(req *http.Request) (*http.Response, error) {
+				responseBody := io.NopCloser(bytes.NewReader([]byte(`[{broken}`)))
+				return &http.Response{
+					StatusCode: 200,
+					Body:       responseBody,
+				}, nil
+			},
+		}
+
+		browser, err := NewRadioBrowserWithDependencies(&mockHttpClient)
+		assert.NoError(t, err)
+
+		_, err = browser.GetStationsByUUIDs([]uuid.UUID{uuid.New()})
+		assert.Error(t, err)
+	})
+}
+
+// networkError is a test helper for simulating network errors
+type networkError struct {
+	message string
+}
+
+func (e *networkError) Error() string {
+	return e.message
+}

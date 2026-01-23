@@ -196,142 +196,18 @@ func (m Model) Init() tea.Cmd {
 // It processes global events (window resize, quit) and delegates state-specific
 // messages to the appropriate child model.
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-
-	// Top-level messages
-	switch msg := msg.(type) {
-	case stationCursorMovedMsg:
-		m.headerModel.totalStations = msg.totalStations
-		m.headerModel.stationOffset = msg.offset
-		return m, nil
-	case playbackStatusMsg:
-		newHeaderModel, cmd := m.headerModel.Update(msg)
-		m.headerModel = newHeaderModel.(HeaderModel)
-		return m, cmd
-	case recordingStatusMsg:
-		newHeaderModel, cmd := m.headerModel.Update(msg)
-		m.headerModel = newHeaderModel.(HeaderModel)
-		return m, cmd
-	case tea.WindowSizeMsg:
-		m.width = msg.Width
-		m.height = msg.Height
-		m.headerModel.width = msg.Width
-
-		tooSmall := m.width < minTerminalWidth || m.height < minTerminalHeight
-
-		if tooSmall && m.state != terminalTooSmallState {
-			m.previousState = m.state
-			m.state = terminalTooSmallState
-			return m, nil
-		}
-
-		if !tooSmall && m.state == terminalTooSmallState {
-			m.state = m.previousState
-		}
-
-		switch m.state {
-		case searchState:
-			childHeight := m.height - 2 // 1 header + 1 bottom bar row
-			m.searchModel.SetWidthAndHeight(m.width, childHeight)
-		case loadingState:
-			childHeight := m.height - 2 // 1 header + 1 bottom bar row
-			m.loadingModel.SetWidthAndHeight(m.width, childHeight)
-		case stationsState:
-			childHeight := m.height - 3 // 1 header + 2 bottom bar rows
-			m.stationsModel.SetWidthAndHeight(m.width, childHeight)
-		case errorState:
-			childHeight := m.height - 2 // 1 header + 1 bottom bar row
-			m.errorModel.SetWidthAndHeight(m.width, childHeight)
-		}
-		return m, nil
-	case quitMsg:
-		return m, tea.Quit
-	case bottomBarUpdateMsg:
-		m.bottomBarCommands = msg.commands
-		m.bottomBarSecondaryCommands = msg.secondaryCommands
-		return m, nil
-	case languageChangedMsg:
-		// Update config and save
-		m.config.Language = msg.lang
-		_ = m.config.Save(config.ConfigFile())
-
-		// Switch i18n language
-		_ = i18n.SetLanguage(msg.lang)
-
-		// Recreate search model to refresh all strings
-		m.searchModel = NewSearchModel(m.theme, m.browser, m.storage, m.config.Keybindings)
-		m.searchModel.SetWidthAndHeight(m.width, m.height-2)
-		return m, m.searchModel.Init()
+	// Handle global messages (cursor, playback status, window resize, etc.)
+	if handled, newM, cmd := m.handleGlobalMessages(msg); handled {
+		return newM, cmd
 	}
 
-	// State transitions
-
-	switch msg := msg.(type) {
-	case switchToSearchModelMsg:
-		// Stop any playing audio when returning to search
-		if m.playbackManager != nil {
-			m.playbackManager.StopStation()
-		}
-		m.headerModel.showOffset = false
-		m.headerModel.playbackStatus = PlaybackIdle // Reset playback indicator
-		m.headerModel.isRecording = false           // Reset recording indicator
-		m.bottomBarSecondaryCommands = nil          // Clear two-row bar
-		m.searchModel = NewSearchModel(m.theme, m.browser, m.storage, m.config.Keybindings)
-		m.searchModel.SetWidthAndHeight(m.width, m.height-2) // 1 header + 1 bottom bar row
-		m.state = searchState
-		return m, m.searchModel.Init()
-	case switchToLoadingModelMsg:
-		m.headerModel.showOffset = false
-		m.bottomBarSecondaryCommands = nil // Clear two-row bar
-		m.loadingModel = NewLoadingModel(m.theme, m.browser, msg.query, msg.queryText)
-		m.loadingModel.SetWidthAndHeight(m.width, m.height-2) // 1 header + 1 bottom bar row
-		m.state = loadingState
-		return m, m.loadingModel.Init()
-	case switchToStationsModelMsg:
-		m.headerModel.showOffset = true
-		// Filter out hidden stations before displaying
-		filteredStations := filterHiddenStations(msg.stations, m.storage)
-		m.stationsModel = NewStationsModel(m.theme, m.browser, m.playbackManager, m.storage, filteredStations, viewModeSearchResults, msg.query, msg.queryText, m.config.Keybindings)
-		m.stationsModel.SetWidthAndHeight(m.width, m.height-3) // 1 header + 2 bottom bar rows
-		m.state = stationsState
-		return m, m.stationsModel.Init()
-	case switchToBookmarksMsg:
-		m.headerModel.showOffset = true
-		// Bookmarks don't need refetch - they're managed separately
-		m.stationsModel = NewStationsModel(m.theme, m.browser, m.playbackManager, m.storage, msg.stations, viewModeBookmarks, "", "", m.config.Keybindings)
-		m.stationsModel.SetWidthAndHeight(m.width, m.height-3) // 1 header + 2 bottom bar rows
-		m.state = stationsState
-		return m, m.stationsModel.Init()
-	case switchToErrorModelMsg:
-		m.headerModel.showOffset = false
-		m.bottomBarSecondaryCommands = nil // Clear two-row bar
-		m.errorModel = NewErrorModel(m.theme, msg.err, msg.recoverable, m.config.Keybindings)
-		m.errorModel.SetWidthAndHeight(m.width, m.height-2) // 1 header + 1 bottom bar row
-		m.state = errorState
-		return m, m.errorModel.Init()
+	// Handle state transitions
+	if handled, newM, cmd := m.handleStateTransitions(msg); handled {
+		return newM, cmd
 	}
 
-	// State handling
-
-	switch m.state {
-	case searchState:
-		newSearchModel, cmd := m.searchModel.Update(msg)
-		m.searchModel = newSearchModel.(SearchModel)
-		return m, cmd
-	case loadingState:
-		newLoadingModel, cmd := m.loadingModel.Update(msg)
-		m.loadingModel = newLoadingModel.(LoadingModel)
-		return m, cmd
-	case stationsState:
-		newStationsModel, cmd := m.stationsModel.Update(msg)
-		m.stationsModel = newStationsModel.(StationsModel)
-		return m, cmd
-	case errorState:
-		newErrorModel, cmd := m.errorModel.Update(msg)
-		m.errorModel = newErrorModel.(ErrorModel)
-		return m, cmd
-	}
-
-	return m, nil
+	// Delegate to current state
+	return m.delegateToCurrentState(msg)
 }
 
 // View renders the current UI based on the active state.

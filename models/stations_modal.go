@@ -26,6 +26,9 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+// modalNameMaxLength is the maximum length for station names in the hidden stations modal.
+const modalNameMaxLength = 40
+
 // handleHiddenModalInput processes keyboard input when the hidden stations modal is open.
 // Returns true if the input was handled (modal is showing), false otherwise.
 func (m *StationsModel) handleHiddenModalInput(msg tea.KeyMsg) (bool, tea.Cmd) {
@@ -82,21 +85,15 @@ func (m StationsModel) renderWithModal(baseView string) string {
 			}
 			// Truncate long station names to fit in modal
 			name := station.Name
-			if len(name) > 40 {
-				name = name[:37] + "..."
+			if len(name) > modalNameMaxLength {
+				name = name[:modalNameMaxLength-3] + "..."
 			}
 			modalContent += cursor + name + "\n"
 		}
 	}
 	modalContent += "\n" + m.theme.TertiaryText.Render(i18n.Tf("hidden_modal_help", map[string]interface{}{"ManageHiddenKey": m.keybindings.ManageHidden}))
 
-	modalStyle := lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(lipgloss.Color(m.theme.SecondaryColor)).
-		Padding(1, 2).
-		Width(50)
-
-	modal := modalStyle.Render(modalContent)
+	modal := m.theme.ModalStyle.Render(modalContent)
 
 	// Center the modal on the screen
 	return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, modal)

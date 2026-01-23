@@ -198,28 +198,30 @@ func TestSearchModel_Update(t *testing.T) {
 	})
 
 }
-func TestUpdateCommandsForTextfieldFocus(t *testing.T) {
-	expectedCommands := []string{"q: quit", "tab: cycle focus", "enter: search", "B: bookmarks", "L: language", "EN"}
+func TestUpdateSearchCommandsCmd(t *testing.T) {
+	t.Run("textfield focused shows search command", func(t *testing.T) {
+		expectedCommands := []string{"q: quit", "tab: cycle focus", "enter: search", "B: bookmarks", "L: language", "EN"}
 
-	cmd := updateCommandsForTextfieldFocus(testSearchKeybindings)
-	msg := cmd()
+		cmd := updateSearchCommandsCmd(testSearchKeybindings, true)
+		msg := cmd()
 
-	updateMsg, ok := msg.(bottomBarUpdateMsg)
+		updateMsg, ok := msg.(bottomBarUpdateMsg)
 
-	assert.True(t, ok)
-	assert.Equal(t, expectedCommands, updateMsg.commands)
-}
+		assert.True(t, ok)
+		assert.Equal(t, expectedCommands, updateMsg.commands)
+	})
 
-func TestUpdateCommandsForSelectorFocus(t *testing.T) {
-	expectedCommands := []string{"q: quit", "tab: cycle focus", "↑/↓: change filter", "B: bookmarks", "L: language", "EN"}
+	t.Run("selector focused shows filter command", func(t *testing.T) {
+		expectedCommands := []string{"q: quit", "tab: cycle focus", "↑/↓: change filter", "B: bookmarks", "L: language", "EN"}
 
-	cmd := updateCommandsForSelectorFocus(testSearchKeybindings)
-	msg := cmd()
+		cmd := updateSearchCommandsCmd(testSearchKeybindings, false)
+		msg := cmd()
 
-	updateMsg, ok := msg.(bottomBarUpdateMsg)
+		updateMsg, ok := msg.(bottomBarUpdateMsg)
 
-	assert.True(t, ok)
-	assert.Equal(t, expectedCommands, updateMsg.commands)
+		assert.True(t, ok)
+		assert.Equal(t, expectedCommands, updateMsg.commands)
+	})
 }
 
 func TestGetNextLanguage(t *testing.T) {

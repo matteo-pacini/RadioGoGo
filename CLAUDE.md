@@ -59,6 +59,40 @@ RadioGoGo is a **state machine TUI application** with these states:
 5. **errorState** - Shows error messages
 6. **terminalTooSmallState** - Displays when terminal is below minimum size (115x29)
 
+### State Transitions
+
+```
+┌──────────┐  ffplay available   ┌─────────────┐
+│ bootState│───────────────────>│ searchState │<──────────────────┐
+└──────────┘                     └─────────────┘                   │
+      │                                │                           │
+      │ ffplay not available          │ enter search              │ quit/search key
+      v                                v                           │
+┌──────────┐                     ┌──────────────┐   error     ┌────────────┐
+│errorState│<────────────────────│ loadingState │───────────>│ errorState │
+└──────────┘                     └──────────────┘             └────────────┘
+                                       │                           │
+                                       │ success                   │ recoverable
+                                       v                           │
+                                 ┌───────────────┐                 │
+                                 │ stationsState │─────────────────┘
+                                 └───────────────┘
+                                       │
+                                       │ (any state)
+                                       v
+                                 ┌──────────────────────┐
+                                 │ terminalTooSmallState│
+                                 └──────────────────────┘
+```
+
+**Valid State Transitions:**
+- `bootState` -> `searchState` (FFplay available) or `errorState` (not available)
+- `searchState` -> `loadingState` (enter search) or `stationsState` (view bookmarks)
+- `loadingState` -> `stationsState` (success) or `errorState` (failure)
+- `stationsState` -> `searchState` (search key pressed)
+- `errorState` -> `searchState` (recoverable error, user presses key)
+- Any state -> `terminalTooSmallState` (terminal resized below minimum)
+
 ### Package Structure
 
 - **`main.go`** - Entry point: loads config, creates model, runs BubbleTea program
@@ -131,6 +165,55 @@ RadioGoGo is a **state machine TUI application** with these states:
 - Version defined as `var` in `data/version.go` for ldflags injection
 - Local builds show "dev", release builds show actual version
 - Release script injects version: `-ldflags="-s -w -X github.com/zi0p4tch0/radiogogo/data.Version=$1"`
+
+### Error Handling Patterns
+
+**Fatal vs Non-Fatal Errors:**
+- **Fatal errors** (e.g., FFplay not installed) -> `errorState` with `recoverable: false`
+- **Non-fatal errors** (e.g., API timeout, playback failure) -> Display in current view, auto-clear after 3 seconds
+
+**Error Message Flow:**
+```go
+// Non-fatal errors are displayed as transient messages
+case nonFatalError:
+    m.err = msg.err.Error()
+    return m, tea.Tick(3*time.Second, func(t time.Time) tea.Msg {
+        return clearNonFatalError{}
+    })
+```
+
+**API Error Handling:**
+- HTTP 4xx/5xx responses return error with status code
+- Network errors propagate the underlying error
+- JSON parsing errors are returned as-is
+
+### Common Developer Pitfalls
+
+1. **Inline lipgloss styles** - Always use `theme.go` styles. Never write `lipgloss.NewStyle()` in view code.
+
+2. **Blocking in commands** - Commands run synchronously. For async operations, return a `tea.Cmd` that produces a message:
+   ```go
+   // WRONG: blocks the UI
+   func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+       stations, _ := browser.GetStations(...) // Blocking!
+   }
+
+   // CORRECT: async via command
+   return m, func() tea.Msg {
+       stations, err := browser.GetStations(...)
+       return stationsLoadedMsg{stations: stations, err: err}
+   }
+   ```
+
+3. **Type assertions without guards** - Child model Update() returns `tea.Model`. Always type-assert safely:
+   ```go
+   newModel, cmd := m.childModel.Update(msg)
+   m.childModel = newModel.(ChildModel) // Safe if Update always returns same type
+   ```
+
+4. **Forgetting to update child dimensions** - When handling `tea.WindowSizeMsg`, update ALL child models' dimensions.
+
+5. **Not stopping playback on state transitions** - Always call `m.playbackManager.StopStation()` when transitioning away from stations view.
 
 ### Key Dependencies
 

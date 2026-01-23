@@ -38,6 +38,7 @@ type Theme struct {
 	ErrorText     lipgloss.Style
 
 	StationsTableStyle table.Styles
+	ModalStyle         lipgloss.Style
 
 	// Color values for dynamic styling
 	SecondaryColor string
@@ -85,6 +86,12 @@ func NewTheme(config config.Config) Theme {
 		Background(lipgloss.Color(config.Theme.PrimaryColor)).
 		Bold(false)
 
+	modalStyle := lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(lipgloss.Color(config.Theme.SecondaryColor)).
+		Padding(1, 2).
+		Width(50)
+
 	return Theme{
 		PrimaryBlock:       primaryBlock,
 		SecondaryBlock:     secondaryBlock,
@@ -94,6 +101,7 @@ func NewTheme(config config.Config) Theme {
 		TertiaryText:       tertiaryText,
 		ErrorText:          errorText,
 		StationsTableStyle: stationsTableStyles,
+		ModalStyle:         modalStyle,
 		SecondaryColor:     config.Theme.SecondaryColor,
 	}
 }

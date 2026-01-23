@@ -390,3 +390,155 @@ func TestModel_Update(t *testing.T) {
 	})
 
 }
+
+// TestModel_StateTransitionWorkflows tests complete navigation paths through the state machine.
+func TestModel_StateTransitionWorkflows(t *testing.T) {
+
+	t.Run("boot -> search -> loading -> stations workflow", func(t *testing.T) {
+		browser := mocks.MockRadioBrowserService{}
+		playbackManager := mocks.MockPlaybackManagerService{
+			IsAvailableResult: true,
+		}
+
+		model := NewModel(config.Config{}, &browser, &playbackManager, &mocks.MockStationStorageService{})
+		assert.Equal(t, bootState, model.state)
+
+		// Init triggers playback check
+		cmd := model.Init()
+		assert.NotNil(t, cmd)
+		msg := cmd()
+		assert.IsType(t, switchToSearchModelMsg{}, msg)
+
+		// Transition to search state
+		newModel, _ := model.Update(msg)
+		model = newModel.(Model)
+		assert.Equal(t, searchState, model.state)
+
+		// Simulate search submission -> loading
+		loadingMsg := switchToLoadingModelMsg{queryText: "jazz"}
+		newModel, _ = model.Update(loadingMsg)
+		model = newModel.(Model)
+		assert.Equal(t, loadingState, model.state)
+		assert.Equal(t, "jazz", model.loadingModel.queryText)
+
+		// Simulate successful search -> stations
+		stationsMsg := switchToStationsModelMsg{}
+		newModel, _ = model.Update(stationsMsg)
+		model = newModel.(Model)
+		assert.Equal(t, stationsState, model.state)
+	})
+
+	t.Run("boot -> search -> loading -> error -> search workflow (error recovery)", func(t *testing.T) {
+		browser := mocks.MockRadioBrowserService{}
+		playbackManager := mocks.MockPlaybackManagerService{
+			IsAvailableResult: true,
+		}
+
+		model := NewModel(config.Config{}, &browser, &playbackManager, &mocks.MockStationStorageService{})
+
+		// Boot -> Search
+		cmd := model.Init()
+		msg := cmd()
+		newModel, _ := model.Update(msg)
+		model = newModel.(Model)
+		assert.Equal(t, searchState, model.state)
+
+		// Search -> Loading
+		loadingMsg := switchToLoadingModelMsg{queryText: "test"}
+		newModel, _ = model.Update(loadingMsg)
+		model = newModel.(Model)
+		assert.Equal(t, loadingState, model.state)
+
+		// Loading -> Error (API failure)
+		errorMsg := switchToErrorModelMsg{err: "Network error", recoverable: true}
+		newModel, _ = model.Update(errorMsg)
+		model = newModel.(Model)
+		assert.Equal(t, errorState, model.state)
+		assert.Equal(t, "Network error", model.errorModel.message)
+		assert.True(t, model.errorModel.recoverable)
+
+		// Error -> Search (recovery)
+		searchMsg := switchToSearchModelMsg{}
+		newModel, _ = model.Update(searchMsg)
+		model = newModel.(Model)
+		assert.Equal(t, searchState, model.state)
+	})
+
+	t.Run("stations -> search -> loading -> stations workflow (new search)", func(t *testing.T) {
+		browser := mocks.MockRadioBrowserService{}
+		playbackManager := mocks.MockPlaybackManagerService{
+			IsAvailableResult: true,
+		}
+
+		model := NewModel(config.Config{}, &browser, &playbackManager, &mocks.MockStationStorageService{})
+		model.state = stationsState
+
+		// Return to search
+		searchMsg := switchToSearchModelMsg{}
+		newModel, _ := model.Update(searchMsg)
+		model = newModel.(Model)
+		assert.Equal(t, searchState, model.state)
+
+		// New search
+		loadingMsg := switchToLoadingModelMsg{queryText: "rock"}
+		newModel, _ = model.Update(loadingMsg)
+		model = newModel.(Model)
+		assert.Equal(t, loadingState, model.state)
+		assert.Equal(t, "rock", model.loadingModel.queryText)
+
+		// Results loaded
+		stationsMsg := switchToStationsModelMsg{}
+		newModel, _ = model.Update(stationsMsg)
+		model = newModel.(Model)
+		assert.Equal(t, stationsState, model.state)
+	})
+
+	t.Run("terminal resize during workflow preserves state", func(t *testing.T) {
+		browser := mocks.MockRadioBrowserService{}
+		playbackManager := mocks.MockPlaybackManagerService{
+			IsAvailableResult: true,
+		}
+
+		model := NewModel(config.Config{}, &browser, &playbackManager, &mocks.MockStationStorageService{})
+		model.state = stationsState
+
+		// Resize to too small
+		smallMsg := tea.WindowSizeMsg{Width: 50, Height: 20}
+		newModel, _ := model.Update(smallMsg)
+		model = newModel.(Model)
+		assert.Equal(t, terminalTooSmallState, model.state)
+		assert.Equal(t, stationsState, model.previousState)
+
+		// Continue working during small state (should be ignored)
+		loadingMsg := switchToLoadingModelMsg{queryText: "ignored"}
+		newModel, _ = model.Update(loadingMsg)
+		model = newModel.(Model)
+		// State transition should still happen even in terminalTooSmallState
+		assert.Equal(t, loadingState, model.state)
+
+		// Resize back to adequate
+		adequateMsg := tea.WindowSizeMsg{Width: 120, Height: 50}
+		newModel, _ = model.Update(adequateMsg)
+		model = newModel.(Model)
+		// Should restore to loadingState (current state after the transition)
+		assert.Equal(t, loadingState, model.state)
+	})
+
+	t.Run("fatal error prevents recovery", func(t *testing.T) {
+		browser := mocks.MockRadioBrowserService{}
+		playbackManager := mocks.MockPlaybackManagerService{
+			IsAvailableResult: false,
+		}
+
+		model := NewModel(config.Config{}, &browser, &playbackManager, &mocks.MockStationStorageService{})
+
+		// Init fails due to no playback
+		cmd := model.Init()
+		msg := cmd()
+		assert.IsType(t, switchToErrorModelMsg{}, msg)
+
+		errorMsg := msg.(switchToErrorModelMsg)
+		assert.False(t, errorMsg.recoverable)
+	})
+
+}
