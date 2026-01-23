@@ -144,7 +144,7 @@ type Model struct {
 }
 
 // NewDefaultModel creates a new Model with production dependencies (real API client,
-// FFplay playback manager, and file-based storage). Returns an error if any
+// FFplay playback manager, and SQLite-based storage). Returns an error if any
 // dependency initialization fails.
 func NewDefaultModel(config config.Config) (Model, error) {
 
@@ -155,7 +155,7 @@ func NewDefaultModel(config config.Config) (Model, error) {
 
 	playbackManager := playback.NewFFPlaybackManager()
 
-	storageService, err := storage.NewFileStorage()
+	storageService, err := storage.NewSQLiteStorage()
 	if err != nil {
 		return Model{}, err
 	}

@@ -110,7 +110,7 @@ RadioGoGo is a **state machine TUI application** with these states:
   - `keybindings.go` - Keybindings struct with validation and reserved keys
 - **`common/`** - Shared data models (Station, StationQuery, URL types)
 - **`playback/`** - Audio playback via FFplay and recording via FFmpeg
-- **`storage/`** - Persistent storage for bookmarks and hidden stations
+- **`storage/`** - SQLite-based persistent storage for bookmarks and hidden stations
 - **`data/`** - Version information and user agent string
 - **`i18n/`** - Internationalization support using go-i18n:
   - `i18n.go` - Core functions: T(), Tf(), Tn(), SetLanguage()
@@ -224,6 +224,7 @@ case nonFatalError:
 - `github.com/stretchr/testify` - Testing assertions
 - `github.com/google/uuid` - UUID handling for station IDs
 - `github.com/nicksnyder/go-i18n/v2` - Internationalization and pluralization
+- `modernc.org/sqlite` - Pure Go SQLite driver (no CGO required)
 
 ## Testing
 
