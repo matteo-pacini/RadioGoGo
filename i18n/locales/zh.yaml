@@ -63,12 +63,16 @@ header_name:
   other: "名称"
 header_country:
   other: "国家"
-header_languages:
-  other: "语言"
+header_bitrate:
+  other: "比特率"
 header_codecs:
   other: "编解码器"
+header_clicks:
+  other: "点击"
 header_votes:
   other: "投票"
+header_status:
+  other: "状态"
 
 # Status messages
 now_playing:

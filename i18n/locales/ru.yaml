@@ -63,12 +63,16 @@ header_name:
   other: "Название"
 header_country:
   other: "Страна"
-header_languages:
-  other: "Язык(и)"
+header_bitrate:
+  other: "Битрейт"
 header_codecs:
-  other: "Кодек(и)"
+  other: "Кодек"
+header_clicks:
+  other: "Клики"
 header_votes:
   other: "Голоса"
+header_status:
+  other: "Статус"
 
 # Status messages
 now_playing:

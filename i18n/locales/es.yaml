@@ -63,12 +63,16 @@ header_name:
   other: "Nombre"
 header_country:
   other: "País"
-header_languages:
-  other: "Idioma(s)"
+header_bitrate:
+  other: "Bitrate"
 header_codecs:
-  other: "Códec(s)"
+  other: "Códec"
+header_clicks:
+  other: "Clics"
 header_votes:
   other: "Votos"
+header_status:
+  other: "Estado"
 
 # Status messages
 now_playing:

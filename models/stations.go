@@ -120,12 +120,18 @@ func newStationsTableModel(theme Theme, stations []common.Station, storage stora
 		if storage != nil && storage.IsBookmarked(station.StationUuid) {
 			name = "⭐ " + name
 		}
+		status := "✗"
+		if station.LastCheckOk {
+			status = "✓"
+		}
 		rows[i] = table.Row{
 			name,
 			station.CountryCode,
-			station.LanguagesCodes,
+			fmt.Sprintf("%d", station.Bitrate),
 			station.Codec,
+			fmt.Sprintf("%d", station.ClickCount),
 			fmt.Sprintf("%d", station.Votes),
+			status,
 		}
 	}
 
@@ -133,9 +139,11 @@ func newStationsTableModel(theme Theme, stations []common.Station, storage stora
 		table.WithColumns([]table.Column{
 			{Title: i18n.T("header_name"), Width: 30},
 			{Title: i18n.T("header_country"), Width: 10},
-			{Title: i18n.T("header_languages"), Width: 15},
-			{Title: i18n.T("header_codecs"), Width: 15},
-			{Title: i18n.T("header_votes"), Width: 10},
+			{Title: i18n.T("header_bitrate"), Width: 8},
+			{Title: i18n.T("header_codecs"), Width: 10},
+			{Title: i18n.T("header_clicks"), Width: 8},
+			{Title: i18n.T("header_votes"), Width: 8},
+			{Title: i18n.T("header_status"), Width: 6},
 		}),
 		table.WithRows(rows),
 		table.WithFocused(true),

@@ -63,12 +63,16 @@ header_name:
   other: "Όνομα"
 header_country:
   other: "Χώρα"
-header_languages:
-  other: "Γλώσσα(-ες)"
+header_bitrate:
+  other: "Ρυθμός"
 header_codecs:
   other: "Κωδικοπ."
+header_clicks:
+  other: "Κλικ"
 header_votes:
   other: "Ψήφοι"
+header_status:
+  other: "Κατάστ."
 
 # Status messages
 now_playing:
