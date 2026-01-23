@@ -1,0 +1,243 @@
+# RadioGoGo Russian Locale File
+
+# Language indicator
+current_language:
+  other: "RU"
+cmd_change_language:
+  other: "L: язык"
+
+# Search view
+search_placeholder:
+  other: "Название"
+filter_label:
+  other: "Фильтр:"
+search_title:
+  other: "Поиск радио {{.Type}}"
+
+# Commands - Search
+cmd_quit:
+  other: "q: выход"
+cmd_cycle_focus:
+  other: "tab: переключить"
+cmd_search:
+  other: "s: поиск"
+cmd_enter_search:
+  other: "enter: поиск"
+cmd_bookmarks:
+  other: "B: закладки"
+cmd_change_filter:
+  other: "↑/↓: изменить фильтр"
+
+# Commands - Stations
+cmd_back:
+  other: "B: назад"
+cmd_enter_play:
+  other: "enter: воспроизвести"
+cmd_move:
+  other: "↑/↓: перемещение"
+cmd_record:
+  other: "r: запись"
+cmd_stop_record:
+  other: "r: стоп запись"
+cmd_stop:
+  other: "ctrl+k: стоп"
+cmd_volume:
+  other: "9/0: громкость"
+cmd_bookmark:
+  other: "b: закладка"
+cmd_hide:
+  other: "h: скрыть"
+cmd_manage_hidden:
+  other: "H: управл. скрытыми"
+
+# Volume display
+volume_mute:
+  other: "без звука"
+volume_display:
+  other: "громк.: {{.Volume}}"
+volume_display_percent:
+  other: "громк.: {{.Volume}}%"
+
+# Table headers
+header_name:
+  other: "Название"
+header_country:
+  other: "Страна"
+header_languages:
+  other: "Язык(и)"
+header_codecs:
+  other: "Кодек(и)"
+header_votes:
+  other: "Голоса"
+
+# Status messages
+now_playing:
+  other: "Воспроизводится: {{.Name}}"
+select_station:
+  other: "Выберите станцию и нажмите Enter для воспроизведения"
+no_bookmarks:
+  other: "Пока нет закладок! Нажмите 'B' чтобы вернуться и добавить станции в закладки."
+no_stations:
+  other: "Станции не найдены, попробуйте другой поиск!"
+
+# Loading
+loading:
+  other: "Загрузка радиостанций..."
+
+# Errors
+error_volume_change:
+  other: "Ошибка изменения громкости: {{.Error}}"
+error_recording:
+  other: "Ошибка записи: {{.Error}}"
+error_load_bookmarks:
+  other: "Не удалось загрузить закладки: {{.Error}}"
+error_load_hidden:
+  other: "Не удалось загрузить скрытые станции: {{.Error}}"
+error_refresh_stations:
+  other: "Не удалось обновить станции: {{.Error}}"
+error_ffplay_required:
+  other: "RadioGoGo требует установки \"ffplay\" (часть \"ffmpeg\") и его наличия в PATH."
+error_ffmpeg_required:
+  other: "Для записи требуется установка \"ffmpeg\" и его наличие в PATH."
+error_no_station_playing:
+  other: "невозможно начать запись: нет воспроизводимой станции"
+error_start_recording:
+  other: "не удалось начать запись"
+
+# Error view
+error_recoverable:
+  other: "Нажмите Enter для повтора или \"q\" для выхода."
+error_quitting:
+  other: "Выход через {{.Seconds}} секунд (или нажмите \"q\" для выхода сейчас)..."
+
+# Terminal too small
+terminal_too_small:
+  other: "Терминал слишком мал!"
+terminal_min_size:
+  other: "Минимальный размер: {{.MinWidth}}x{{.MinHeight}}"
+terminal_current_size:
+  other: "Текущий размер: {{.Width}}x{{.Height}}"
+
+# Boot
+initializing:
+  other: "Инициализация..."
+
+# Hidden stations modal
+hidden_stations_title:
+  other: "Скрытые станции"
+no_hidden_stations:
+  other: "Нет скрытых станций"
+hidden_modal_help:
+  other: "Enter: показать | Esc/H: закрыть"
+
+# Filter types
+filter_by_uuid:
+  other: "По UUID"
+filter_by_name:
+  other: "По названию"
+filter_by_name_exact:
+  other: "По точному названию"
+filter_by_codec:
+  other: "По кодеку"
+filter_by_codec_exact:
+  other: "По точному кодеку"
+filter_by_country:
+  other: "По стране"
+filter_by_country_exact:
+  other: "По точной стране"
+filter_by_country_code_exact:
+  other: "По точному коду страны"
+filter_by_state:
+  other: "По региону"
+filter_by_state_exact:
+  other: "По точному региону"
+filter_by_language:
+  other: "По языку"
+filter_by_language_exact:
+  other: "По точному языку"
+filter_by_tag:
+  other: "По тегу"
+filter_by_tag_exact:
+  other: "По точному тегу"
+filter_none:
+  other: "Нет"
+
+# Filter examples
+filter_example_by_name:
+  other: |
+    Примеры:
+    - "BBC Radio" находит станции с "BBC Radio" в названии.
+    - "Italia" находит станции с "Italia" в названии.
+    - "Romance" находит станции с "Romance" в названии.
+filter_example_by_name_exact:
+  other: |
+    Примеры:
+    - "BBC Radio 1" находит станции с названием "BBC Radio 1".
+    - "Radio Italia" находит станции с названием "Radio Italia".
+    - "Radio Romance" находит станции с названием "Radio Romance".
+filter_example_by_codec:
+  other: |
+    Примеры:
+    - "mp3" находит станции с "mp3" в кодеке.
+    - "aac" находит станции с "aac" в кодеке.
+    - "ogg" находит станции с "ogg" в кодеке.
+filter_example_by_codec_exact:
+  other: |
+    Примеры:
+    - "mp3" находит станции с кодеком "mp3".
+    - "aac" находит станции с кодеком "aac".
+    - "ogg" находит станции с кодеком "ogg".
+filter_example_by_country:
+  other: |
+    Примеры:
+    - "Italy" находит станции с "Italy" в стране.
+    - "United" находит станции с "United" в стране.
+    - "Republic" находит станции с "Republic" в стране.
+filter_example_by_country_exact:
+  other: |
+    Примеры:
+    - "Italy" находит станции со страной "Italy".
+    - "Spain" находит станции со страной "Spain".
+    - "Ireland" находит станции со страной "Ireland".
+filter_example_by_country_code_exact:
+  other: |
+    Примеры:
+    - "IT" находит станции с кодом страны "IT".
+    - "US" находит станции с кодом страны "US".
+    - "GB" находит станции с кодом страны "GB".
+filter_example_by_state:
+  other: |
+    Примеры:
+    - "Lombardy" находит станции с "Lombardy" в регионе.
+    - "California" находит станции с "California" в регионе.
+    - "New York" находит станции с "New York" в регионе.
+filter_example_by_state_exact:
+  other: |
+    Примеры:
+    - "Lombardy" находит станции с регионом "Lombardy".
+    - "California" находит станции с регионом "California".
+    - "New York" находит станции с регионом "New York".
+filter_example_by_language:
+  other: |
+    Примеры (требуются строчные буквы):
+    - "italian" находит станции с "italian" в языке.
+    - "english" находит станции с "english" в языке.
+    - "spanish" находит станции с "spanish" в языке.
+filter_example_by_language_exact:
+  other: |
+    Примеры (требуются строчные буквы):
+    - "italian" находит станции с языком "italian".
+    - "english" находит станции с языком "english".
+    - "spanish" находит станции с языком "spanish".
+filter_example_by_tag:
+  other: |
+    Примеры:
+    - "rock" находит станции с "rock" в тегах.
+    - "jazz" находит станции с "jazz" в тегах.
+    - "pop" находит станции с "pop" в тегах.
+filter_example_by_tag_exact:
+  other: |
+    Примеры:
+    - "rock" находит станции с тегом "rock".
+    - "jazz" находит станции с тегом "jazz".
+    - "pop" находит станции с тегом "pop".

@@ -1,0 +1,243 @@
+# RadioGoGo Spanish Locale File
+
+# Language indicator
+current_language:
+  other: "ES"
+cmd_change_language:
+  other: "L: idioma"
+
+# Search view
+search_placeholder:
+  other: "Nombre"
+filter_label:
+  other: "Filtro:"
+search_title:
+  other: "Buscar radio {{.Type}}"
+
+# Commands - Search
+cmd_quit:
+  other: "q: salir"
+cmd_cycle_focus:
+  other: "tab: cambiar foco"
+cmd_search:
+  other: "s: buscar"
+cmd_enter_search:
+  other: "enter: buscar"
+cmd_bookmarks:
+  other: "B: favoritos"
+cmd_change_filter:
+  other: "↑/↓: cambiar filtro"
+
+# Commands - Stations
+cmd_back:
+  other: "B: volver"
+cmd_enter_play:
+  other: "enter: reproducir"
+cmd_move:
+  other: "↑/↓: mover"
+cmd_record:
+  other: "r: grabar"
+cmd_stop_record:
+  other: "r: parar grab"
+cmd_stop:
+  other: "ctrl+k: parar"
+cmd_volume:
+  other: "9/0: vol"
+cmd_bookmark:
+  other: "b: favorito"
+cmd_hide:
+  other: "h: ocultar"
+cmd_manage_hidden:
+  other: "H: gestionar ocultas"
+
+# Volume display
+volume_mute:
+  other: "silencio"
+volume_display:
+  other: "vol: {{.Volume}}"
+volume_display_percent:
+  other: "vol: {{.Volume}}%"
+
+# Table headers
+header_name:
+  other: "Nombre"
+header_country:
+  other: "País"
+header_languages:
+  other: "Idioma(s)"
+header_codecs:
+  other: "Códec(s)"
+header_votes:
+  other: "Votos"
+
+# Status messages
+now_playing:
+  other: "Reproduciendo: {{.Name}}"
+select_station:
+  other: "Selecciona una emisora y pulsa enter para reproducir"
+no_bookmarks:
+  other: "¡Aún no hay favoritos! Pulsa 'B' para volver y añadir emisoras a favoritos."
+no_stations:
+  other: "No se encontraron emisoras, ¡prueba otra búsqueda!"
+
+# Loading
+loading:
+  other: "Obteniendo emisoras de radio..."
+
+# Errors
+error_volume_change:
+  other: "Error al cambiar el volumen: {{.Error}}"
+error_recording:
+  other: "Error de grabación: {{.Error}}"
+error_load_bookmarks:
+  other: "Error al cargar favoritos: {{.Error}}"
+error_load_hidden:
+  other: "Error al cargar emisoras ocultas: {{.Error}}"
+error_refresh_stations:
+  other: "Error al actualizar emisoras: {{.Error}}"
+error_ffplay_required:
+  other: "RadioGoGo requiere que \"ffplay\" (parte de \"ffmpeg\") esté instalado y disponible en tu PATH."
+error_ffmpeg_required:
+  other: "La grabación requiere que \"ffmpeg\" esté instalado y disponible en tu PATH."
+error_no_station_playing:
+  other: "no se puede iniciar la grabación: no hay ninguna emisora reproduciéndose"
+error_start_recording:
+  other: "error al iniciar la grabación"
+
+# Error view
+error_recoverable:
+  other: "Pulsa Enter para reintentar o \"q\" para salir."
+error_quitting:
+  other: "Saliendo en {{.Seconds}} segundos (o pulsa \"q\" para salir ahora)..."
+
+# Terminal too small
+terminal_too_small:
+  other: "¡Terminal demasiado pequeño!"
+terminal_min_size:
+  other: "Tamaño mínimo: {{.MinWidth}}x{{.MinHeight}}"
+terminal_current_size:
+  other: "Tamaño actual: {{.Width}}x{{.Height}}"
+
+# Boot
+initializing:
+  other: "Inicializando..."
+
+# Hidden stations modal
+hidden_stations_title:
+  other: "Emisoras Ocultas"
+no_hidden_stations:
+  other: "No hay emisoras ocultas"
+hidden_modal_help:
+  other: "Enter: mostrar | Esc/H: cerrar"
+
+# Filter types
+filter_by_uuid:
+  other: "Por UUID"
+filter_by_name:
+  other: "Por Nombre"
+filter_by_name_exact:
+  other: "Por Nombre Exacto"
+filter_by_codec:
+  other: "Por Códec"
+filter_by_codec_exact:
+  other: "Por Códec Exacto"
+filter_by_country:
+  other: "Por País"
+filter_by_country_exact:
+  other: "Por País Exacto"
+filter_by_country_code_exact:
+  other: "Por Código de País Exacto"
+filter_by_state:
+  other: "Por Estado/Provincia"
+filter_by_state_exact:
+  other: "Por Estado/Provincia Exacto"
+filter_by_language:
+  other: "Por Idioma"
+filter_by_language_exact:
+  other: "Por Idioma Exacto"
+filter_by_tag:
+  other: "Por Etiqueta"
+filter_by_tag_exact:
+  other: "Por Etiqueta Exacta"
+filter_none:
+  other: "Ninguno"
+
+# Filter examples
+filter_example_by_name:
+  other: |
+    Ejemplos:
+    - "BBC Radio" coincide con emisoras que tienen "BBC Radio" en su nombre.
+    - "Italia" coincide con emisoras que tienen "Italia" en su nombre.
+    - "Romance" coincide con emisoras que tienen "Romance" en su nombre.
+filter_example_by_name_exact:
+  other: |
+    Ejemplos:
+    - "BBC Radio 1" coincide con emisoras cuyo nombre es "BBC Radio 1".
+    - "Radio Italia" coincide con emisoras cuyo nombre es "Radio Italia".
+    - "Radio Romance" coincide con emisoras cuyo nombre es "Radio Romance".
+filter_example_by_codec:
+  other: |
+    Ejemplos:
+    - "mp3" coincide con emisoras que tienen "mp3" en su códec.
+    - "aac" coincide con emisoras que tienen "aac" en su códec.
+    - "ogg" coincide con emisoras que tienen "ogg" en su códec.
+filter_example_by_codec_exact:
+  other: |
+    Ejemplos:
+    - "mp3" coincide con emisoras cuyo códec es "mp3".
+    - "aac" coincide con emisoras cuyo códec es "aac".
+    - "ogg" coincide con emisoras cuyo códec es "ogg".
+filter_example_by_country:
+  other: |
+    Ejemplos:
+    - "Italy" coincide con emisoras que tienen "Italy" en su país.
+    - "United" coincide con emisoras que tienen "United" en su país.
+    - "Republic" coincide con emisoras que tienen "Republic" en su país.
+filter_example_by_country_exact:
+  other: |
+    Ejemplos:
+    - "Italy" coincide con emisoras cuyo país es "Italy".
+    - "Spain" coincide con emisoras cuyo país es "Spain".
+    - "Ireland" coincide con emisoras cuyo país es "Ireland".
+filter_example_by_country_code_exact:
+  other: |
+    Ejemplos:
+    - "IT" coincide con emisoras cuyo código de país es "IT".
+    - "US" coincide con emisoras cuyo código de país es "US".
+    - "GB" coincide con emisoras cuyo código de país es "GB".
+filter_example_by_state:
+  other: |
+    Ejemplos:
+    - "Lombardy" coincide con emisoras que tienen "Lombardy" en su estado.
+    - "California" coincide con emisoras que tienen "California" en su estado.
+    - "New York" coincide con emisoras que tienen "New York" en su estado.
+filter_example_by_state_exact:
+  other: |
+    Ejemplos:
+    - "Lombardy" coincide con emisoras cuyo estado es "Lombardy".
+    - "California" coincide con emisoras cuyo estado es "California".
+    - "New York" coincide con emisoras cuyo estado es "New York".
+filter_example_by_language:
+  other: |
+    Ejemplos (se requiere minúsculas):
+    - "italian" coincide con emisoras que tienen "italian" en su idioma.
+    - "english" coincide con emisoras que tienen "english" en su idioma.
+    - "spanish" coincide con emisoras que tienen "spanish" en su idioma.
+filter_example_by_language_exact:
+  other: |
+    Ejemplos (se requiere minúsculas):
+    - "italian" coincide con emisoras cuyo idioma es "italian".
+    - "english" coincide con emisoras cuyo idioma es "english".
+    - "spanish" coincide con emisoras cuyo idioma es "spanish".
+filter_example_by_tag:
+  other: |
+    Ejemplos:
+    - "rock" coincide con emisoras que tienen "rock" en sus etiquetas.
+    - "jazz" coincide con emisoras que tienen "jazz" en sus etiquetas.
+    - "pop" coincide con emisoras que tienen "pop" en sus etiquetas.
+filter_example_by_tag_exact:
+  other: |
+    Ejemplos:
+    - "rock" coincide con emisoras que tienen "rock" como etiqueta.
+    - "jazz" coincide con emisoras que tienen "jazz" como etiqueta.
+    - "pop" coincide con emisoras que tienen "pop" como etiqueta.

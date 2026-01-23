@@ -1,0 +1,243 @@
+# RadioGoGo Japanese Locale File
+
+# Language indicator
+current_language:
+  other: "日本語"
+cmd_change_language:
+  other: "L: 言語"
+
+# Search view
+search_placeholder:
+  other: "名前"
+filter_label:
+  other: "フィルター:"
+search_title:
+  other: "ラジオを検索 {{.Type}}"
+
+# Commands - Search
+cmd_quit:
+  other: "q: 終了"
+cmd_cycle_focus:
+  other: "tab: フォーカス切替"
+cmd_search:
+  other: "s: 検索"
+cmd_enter_search:
+  other: "enter: 検索"
+cmd_bookmarks:
+  other: "B: ブックマーク"
+cmd_change_filter:
+  other: "↑/↓: フィルター変更"
+
+# Commands - Stations
+cmd_back:
+  other: "B: 戻る"
+cmd_enter_play:
+  other: "enter: 再生"
+cmd_move:
+  other: "↑/↓: 移動"
+cmd_record:
+  other: "r: 録音"
+cmd_stop_record:
+  other: "r: 録音停止"
+cmd_stop:
+  other: "ctrl+k: 停止"
+cmd_volume:
+  other: "9/0: 音量"
+cmd_bookmark:
+  other: "b: ブックマーク"
+cmd_hide:
+  other: "h: 非表示"
+cmd_manage_hidden:
+  other: "H: 非表示管理"
+
+# Volume display
+volume_mute:
+  other: "ミュート"
+volume_display:
+  other: "音量: {{.Volume}}"
+volume_display_percent:
+  other: "音量: {{.Volume}}%"
+
+# Table headers
+header_name:
+  other: "名前"
+header_country:
+  other: "国"
+header_languages:
+  other: "言語"
+header_codecs:
+  other: "コーデック"
+header_votes:
+  other: "投票"
+
+# Status messages
+now_playing:
+  other: "再生中: {{.Name}}"
+select_station:
+  other: "放送局を選択してEnterキーで再生"
+no_bookmarks:
+  other: "ブックマークがありません！'B'を押して戻り、放送局をブックマークしてください。"
+no_stations:
+  other: "放送局が見つかりません。別の検索をお試しください！"
+
+# Loading
+loading:
+  other: "放送局を取得中..."
+
+# Errors
+error_volume_change:
+  other: "音量変更に失敗しました: {{.Error}}"
+error_recording:
+  other: "録音エラー: {{.Error}}"
+error_load_bookmarks:
+  other: "ブックマークの読み込みに失敗しました: {{.Error}}"
+error_load_hidden:
+  other: "非表示の放送局の読み込みに失敗しました: {{.Error}}"
+error_refresh_stations:
+  other: "放送局の更新に失敗しました: {{.Error}}"
+error_ffplay_required:
+  other: "RadioGoGoを使用するには \"ffplay\"（\"ffmpeg\" の一部）がインストールされ、PATHに設定されている必要があります。"
+error_ffmpeg_required:
+  other: "録音には \"ffmpeg\" がインストールされ、PATHに設定されている必要があります。"
+error_no_station_playing:
+  other: "録音を開始できません：再生中の放送局がありません"
+error_start_recording:
+  other: "録音の開始に失敗しました"
+
+# Error view
+error_recoverable:
+  other: "Enterキーで再試行、または \"q\" で終了します。"
+error_quitting:
+  other: "{{.Seconds}}秒後に終了します（または \"q\" で今すぐ終了）..."
+
+# Terminal too small
+terminal_too_small:
+  other: "ターミナルが小さすぎます！"
+terminal_min_size:
+  other: "最小サイズ: {{.MinWidth}}x{{.MinHeight}}"
+terminal_current_size:
+  other: "現在のサイズ: {{.Width}}x{{.Height}}"
+
+# Boot
+initializing:
+  other: "初期化中..."
+
+# Hidden stations modal
+hidden_stations_title:
+  other: "非表示の放送局"
+no_hidden_stations:
+  other: "非表示の放送局はありません"
+hidden_modal_help:
+  other: "Enter: 表示 | Esc/H: 閉じる"
+
+# Filter types
+filter_by_uuid:
+  other: "UUIDで"
+filter_by_name:
+  other: "名前で"
+filter_by_name_exact:
+  other: "正確な名前で"
+filter_by_codec:
+  other: "コーデックで"
+filter_by_codec_exact:
+  other: "正確なコーデックで"
+filter_by_country:
+  other: "国で"
+filter_by_country_exact:
+  other: "正確な国で"
+filter_by_country_code_exact:
+  other: "正確な国コードで"
+filter_by_state:
+  other: "州/県で"
+filter_by_state_exact:
+  other: "正確な州/県で"
+filter_by_language:
+  other: "言語で"
+filter_by_language_exact:
+  other: "正確な言語で"
+filter_by_tag:
+  other: "タグで"
+filter_by_tag_exact:
+  other: "正確なタグで"
+filter_none:
+  other: "なし"
+
+# Filter examples
+filter_example_by_name:
+  other: |
+    例:
+    - "BBC Radio" は名前に "BBC Radio" を含む放送局に一致します。
+    - "Italia" は名前に "Italia" を含む放送局に一致します。
+    - "Romance" は名前に "Romance" を含む放送局に一致します。
+filter_example_by_name_exact:
+  other: |
+    例:
+    - "BBC Radio 1" は名前が "BBC Radio 1" の放送局に一致します。
+    - "Radio Italia" は名前が "Radio Italia" の放送局に一致します。
+    - "Radio Romance" は名前が "Radio Romance" の放送局に一致します。
+filter_example_by_codec:
+  other: |
+    例:
+    - "mp3" はコーデックに "mp3" を含む放送局に一致します。
+    - "aac" はコーデックに "aac" を含む放送局に一致します。
+    - "ogg" はコーデックに "ogg" を含む放送局に一致します。
+filter_example_by_codec_exact:
+  other: |
+    例:
+    - "mp3" はコーデックが "mp3" の放送局に一致します。
+    - "aac" はコーデックが "aac" の放送局に一致します。
+    - "ogg" はコーデックが "ogg" の放送局に一致します。
+filter_example_by_country:
+  other: |
+    例:
+    - "Italy" は国名に "Italy" を含む放送局に一致します。
+    - "United" は国名に "United" を含む放送局に一致します。
+    - "Republic" は国名に "Republic" を含む放送局に一致します。
+filter_example_by_country_exact:
+  other: |
+    例:
+    - "Italy" は国が "Italy" の放送局に一致します。
+    - "Spain" は国が "Spain" の放送局に一致します。
+    - "Ireland" は国が "Ireland" の放送局に一致します。
+filter_example_by_country_code_exact:
+  other: |
+    例:
+    - "IT" は国コードが "IT" の放送局に一致します。
+    - "US" は国コードが "US" の放送局に一致します。
+    - "GB" は国コードが "GB" の放送局に一致します。
+filter_example_by_state:
+  other: |
+    例:
+    - "Lombardy" は州/県に "Lombardy" を含む放送局に一致します。
+    - "California" は州/県に "California" を含む放送局に一致します。
+    - "New York" は州/県に "New York" を含む放送局に一致します。
+filter_example_by_state_exact:
+  other: |
+    例:
+    - "Lombardy" は州/県が "Lombardy" の放送局に一致します。
+    - "California" は州/県が "California" の放送局に一致します。
+    - "New York" は州/県が "New York" の放送局に一致します。
+filter_example_by_language:
+  other: |
+    例（小文字が必要）:
+    - "italian" は言語に "italian" を含む放送局に一致します。
+    - "english" は言語に "english" を含む放送局に一致します。
+    - "spanish" は言語に "spanish" を含む放送局に一致します。
+filter_example_by_language_exact:
+  other: |
+    例（小文字が必要）:
+    - "italian" は言語が "italian" の放送局に一致します。
+    - "english" は言語が "english" の放送局に一致します。
+    - "spanish" は言語が "spanish" の放送局に一致します。
+filter_example_by_tag:
+  other: |
+    例:
+    - "rock" はタグに "rock" を含む放送局に一致します。
+    - "jazz" はタグに "jazz" を含む放送局に一致します。
+    - "pop" はタグに "pop" を含む放送局に一致します。
+filter_example_by_tag_exact:
+  other: |
+    例:
+    - "rock" はタグに "rock" がある放送局に一致します。
+    - "jazz" はタグに "jazz" がある放送局に一致します。
+    - "pop" はタグに "pop" がある放送局に一致します。

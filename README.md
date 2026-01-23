@@ -20,6 +20,7 @@ A terminal UI for browsing and playing internet radio stations. Built with Go us
 - Bookmark favorite stations for quick access
 - Hide unwanted stations from search results
 - Cross-platform (Linux, macOS, Windows, *BSD)
+- Multi-language UI (English, German, Greek, Spanish, Italian, Japanese, Portuguese, Russian, Chinese)
 
 ## How It Works
 
@@ -46,6 +47,7 @@ The header shows two status indicators:
 | `h` | Hide station from results |
 | `H` | Manage hidden stations |
 | `s` | Back to search |
+| `L` | Cycle UI language (search screen) |
 | `q` | Quit |
 
 ## Recording
@@ -140,6 +142,18 @@ theme:
     tertiaryColor: '#4e4e4e'
     errorColor: '#ff0000'
 ```
+
+### Language
+
+Set the UI language:
+
+```yaml
+language: en
+```
+
+Available: `de` (German), `el` (Greek), `en` (English), `es` (Spanish), `it` (Italian), `ja` (Japanese), `pt` (Portuguese), `ru` (Russian), `zh` (Chinese)
+
+Press `L` on the search screen to cycle through languages.
 
 Example alternate theme:
 

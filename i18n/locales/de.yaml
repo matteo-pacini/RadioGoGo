@@ -1,0 +1,243 @@
+# RadioGoGo German Locale File
+
+# Language indicator
+current_language:
+  other: "DE"
+cmd_change_language:
+  other: "L: Sprache"
+
+# Search view
+search_placeholder:
+  other: "Name"
+filter_label:
+  other: "Filter:"
+search_title:
+  other: "Radio suchen {{.Type}}"
+
+# Commands - Search
+cmd_quit:
+  other: "q: Beenden"
+cmd_cycle_focus:
+  other: "tab: Fokus wechseln"
+cmd_search:
+  other: "s: Suchen"
+cmd_enter_search:
+  other: "enter: Suchen"
+cmd_bookmarks:
+  other: "B: Lesezeichen"
+cmd_change_filter:
+  other: "↑/↓: Filter ändern"
+
+# Commands - Stations
+cmd_back:
+  other: "B: Zurück"
+cmd_enter_play:
+  other: "enter: Abspielen"
+cmd_move:
+  other: "↑/↓: Bewegen"
+cmd_record:
+  other: "r: Aufnehmen"
+cmd_stop_record:
+  other: "r: Aufn. stoppen"
+cmd_stop:
+  other: "ctrl+k: Stoppen"
+cmd_volume:
+  other: "9/0: Lautst."
+cmd_bookmark:
+  other: "b: Lesezeichen"
+cmd_hide:
+  other: "h: Ausblenden"
+cmd_manage_hidden:
+  other: "H: Ausgeblendete"
+
+# Volume display
+volume_mute:
+  other: "stumm"
+volume_display:
+  other: "Lautst.: {{.Volume}}"
+volume_display_percent:
+  other: "Lautst.: {{.Volume}}%"
+
+# Table headers
+header_name:
+  other: "Name"
+header_country:
+  other: "Land"
+header_languages:
+  other: "Sprache(n)"
+header_codecs:
+  other: "Codec(s)"
+header_votes:
+  other: "Stimmen"
+
+# Status messages
+now_playing:
+  other: "Spielt: {{.Name}}"
+select_station:
+  other: "Wählen Sie einen Sender und drücken Sie Enter zum Abspielen"
+no_bookmarks:
+  other: "Noch keine Lesezeichen! Drücken Sie 'B' um zurückzugehen und Sender zu speichern."
+no_stations:
+  other: "Keine Sender gefunden, versuchen Sie eine andere Suche!"
+
+# Loading
+loading:
+  other: "Lade Radiosender..."
+
+# Errors
+error_volume_change:
+  other: "Lautstärkeänderung fehlgeschlagen: {{.Error}}"
+error_recording:
+  other: "Aufnahmefehler: {{.Error}}"
+error_load_bookmarks:
+  other: "Lesezeichen konnten nicht geladen werden: {{.Error}}"
+error_load_hidden:
+  other: "Ausgeblendete Sender konnten nicht geladen werden: {{.Error}}"
+error_refresh_stations:
+  other: "Sender konnten nicht aktualisiert werden: {{.Error}}"
+error_ffplay_required:
+  other: "RadioGoGo erfordert, dass \"ffplay\" (Teil von \"ffmpeg\") installiert und im PATH verfügbar ist."
+error_ffmpeg_required:
+  other: "Aufnahme erfordert, dass \"ffmpeg\" installiert und im PATH verfügbar ist."
+error_no_station_playing:
+  other: "Aufnahme kann nicht gestartet werden: kein Sender wird abgespielt"
+error_start_recording:
+  other: "Aufnahme konnte nicht gestartet werden"
+
+# Error view
+error_recoverable:
+  other: "Drücken Sie Enter zum Wiederholen oder \"q\" zum Beenden."
+error_quitting:
+  other: "Beenden in {{.Seconds}} Sekunden (oder drücken Sie \"q\" zum sofortigen Beenden)..."
+
+# Terminal too small
+terminal_too_small:
+  other: "Terminal zu klein!"
+terminal_min_size:
+  other: "Mindestgröße: {{.MinWidth}}x{{.MinHeight}}"
+terminal_current_size:
+  other: "Aktuelle Größe: {{.Width}}x{{.Height}}"
+
+# Boot
+initializing:
+  other: "Initialisiere..."
+
+# Hidden stations modal
+hidden_stations_title:
+  other: "Ausgeblendete Sender"
+no_hidden_stations:
+  other: "Keine ausgeblendeten Sender"
+hidden_modal_help:
+  other: "Enter: Einblenden | Esc/H: Schließen"
+
+# Filter types
+filter_by_uuid:
+  other: "Nach UUID"
+filter_by_name:
+  other: "Nach Name"
+filter_by_name_exact:
+  other: "Nach genauem Namen"
+filter_by_codec:
+  other: "Nach Codec"
+filter_by_codec_exact:
+  other: "Nach genauem Codec"
+filter_by_country:
+  other: "Nach Land"
+filter_by_country_exact:
+  other: "Nach genauem Land"
+filter_by_country_code_exact:
+  other: "Nach genauem Ländercode"
+filter_by_state:
+  other: "Nach Bundesland"
+filter_by_state_exact:
+  other: "Nach genauem Bundesland"
+filter_by_language:
+  other: "Nach Sprache"
+filter_by_language_exact:
+  other: "Nach genauer Sprache"
+filter_by_tag:
+  other: "Nach Tag"
+filter_by_tag_exact:
+  other: "Nach genauem Tag"
+filter_none:
+  other: "Keiner"
+
+# Filter examples
+filter_example_by_name:
+  other: |
+    Beispiele:
+    - "BBC Radio" findet Sender mit "BBC Radio" im Namen.
+    - "Italia" findet Sender mit "Italia" im Namen.
+    - "Romance" findet Sender mit "Romance" im Namen.
+filter_example_by_name_exact:
+  other: |
+    Beispiele:
+    - "BBC Radio 1" findet Sender mit dem Namen "BBC Radio 1".
+    - "Radio Italia" findet Sender mit dem Namen "Radio Italia".
+    - "Radio Romance" findet Sender mit dem Namen "Radio Romance".
+filter_example_by_codec:
+  other: |
+    Beispiele:
+    - "mp3" findet Sender mit "mp3" im Codec.
+    - "aac" findet Sender mit "aac" im Codec.
+    - "ogg" findet Sender mit "ogg" im Codec.
+filter_example_by_codec_exact:
+  other: |
+    Beispiele:
+    - "mp3" findet Sender mit Codec "mp3".
+    - "aac" findet Sender mit Codec "aac".
+    - "ogg" findet Sender mit Codec "ogg".
+filter_example_by_country:
+  other: |
+    Beispiele:
+    - "Italy" findet Sender mit "Italy" im Land.
+    - "United" findet Sender mit "United" im Land.
+    - "Republic" findet Sender mit "Republic" im Land.
+filter_example_by_country_exact:
+  other: |
+    Beispiele:
+    - "Italy" findet Sender mit Land "Italy".
+    - "Spain" findet Sender mit Land "Spain".
+    - "Ireland" findet Sender mit Land "Ireland".
+filter_example_by_country_code_exact:
+  other: |
+    Beispiele:
+    - "IT" findet Sender mit Ländercode "IT".
+    - "US" findet Sender mit Ländercode "US".
+    - "GB" findet Sender mit Ländercode "GB".
+filter_example_by_state:
+  other: |
+    Beispiele:
+    - "Lombardy" findet Sender mit "Lombardy" im Bundesland.
+    - "California" findet Sender mit "California" im Bundesland.
+    - "New York" findet Sender mit "New York" im Bundesland.
+filter_example_by_state_exact:
+  other: |
+    Beispiele:
+    - "Lombardy" findet Sender mit Bundesland "Lombardy".
+    - "California" findet Sender mit Bundesland "California".
+    - "New York" findet Sender mit Bundesland "New York".
+filter_example_by_language:
+  other: |
+    Beispiele (Kleinschreibung erforderlich):
+    - "italian" findet Sender mit "italian" in der Sprache.
+    - "english" findet Sender mit "english" in der Sprache.
+    - "spanish" findet Sender mit "spanish" in der Sprache.
+filter_example_by_language_exact:
+  other: |
+    Beispiele (Kleinschreibung erforderlich):
+    - "italian" findet Sender mit Sprache "italian".
+    - "english" findet Sender mit Sprache "english".
+    - "spanish" findet Sender mit Sprache "spanish".
+filter_example_by_tag:
+  other: |
+    Beispiele:
+    - "rock" findet Sender mit "rock" in den Tags.
+    - "jazz" findet Sender mit "jazz" in den Tags.
+    - "pop" findet Sender mit "pop" in den Tags.
+filter_example_by_tag_exact:
+  other: |
+    Beispiele:
+    - "rock" findet Sender mit Tag "rock".
+    - "jazz" findet Sender mit Tag "jazz".
+    - "pop" findet Sender mit Tag "pop".

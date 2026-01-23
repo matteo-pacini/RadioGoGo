@@ -1,0 +1,243 @@
+# RadioGoGo Greek Locale File
+
+# Language indicator
+current_language:
+  other: "EL"
+cmd_change_language:
+  other: "L: γλώσσα"
+
+# Search view
+search_placeholder:
+  other: "Όνομα"
+filter_label:
+  other: "Φίλτρο:"
+search_title:
+  other: "Αναζήτηση ραδιοφώνου {{.Type}}"
+
+# Commands - Search
+cmd_quit:
+  other: "q: έξοδος"
+cmd_cycle_focus:
+  other: "tab: εναλλαγή"
+cmd_search:
+  other: "s: αναζήτηση"
+cmd_enter_search:
+  other: "enter: αναζήτηση"
+cmd_bookmarks:
+  other: "B: σελιδοδείκτες"
+cmd_change_filter:
+  other: "↑/↓: αλλαγή φίλτρου"
+
+# Commands - Stations
+cmd_back:
+  other: "B: πίσω"
+cmd_enter_play:
+  other: "enter: αναπαραγωγή"
+cmd_move:
+  other: "↑/↓: μετακίνηση"
+cmd_record:
+  other: "r: εγγραφή"
+cmd_stop_record:
+  other: "r: διακοπή εγγρ."
+cmd_stop:
+  other: "ctrl+k: διακοπή"
+cmd_volume:
+  other: "9/0: ένταση"
+cmd_bookmark:
+  other: "b: σελιδοδείκτης"
+cmd_hide:
+  other: "h: απόκρυψη"
+cmd_manage_hidden:
+  other: "H: διαχ. κρυφών"
+
+# Volume display
+volume_mute:
+  other: "σίγαση"
+volume_display:
+  other: "ένταση: {{.Volume}}"
+volume_display_percent:
+  other: "ένταση: {{.Volume}}%"
+
+# Table headers
+header_name:
+  other: "Όνομα"
+header_country:
+  other: "Χώρα"
+header_languages:
+  other: "Γλώσσα(-ες)"
+header_codecs:
+  other: "Κωδικοπ."
+header_votes:
+  other: "Ψήφοι"
+
+# Status messages
+now_playing:
+  other: "Παίζει: {{.Name}}"
+select_station:
+  other: "Επιλέξτε σταθμό και πατήστε Enter για αναπαραγωγή"
+no_bookmarks:
+  other: "Δεν υπάρχουν σελιδοδείκτες! Πατήστε 'B' για να επιστρέψετε και να προσθέσετε σταθμούς."
+no_stations:
+  other: "Δεν βρέθηκαν σταθμοί, δοκιμάστε άλλη αναζήτηση!"
+
+# Loading
+loading:
+  other: "Φόρτωση ραδιοφωνικών σταθμών..."
+
+# Errors
+error_volume_change:
+  other: "Αποτυχία αλλαγής έντασης: {{.Error}}"
+error_recording:
+  other: "Σφάλμα εγγραφής: {{.Error}}"
+error_load_bookmarks:
+  other: "Αποτυχία φόρτωσης σελιδοδεικτών: {{.Error}}"
+error_load_hidden:
+  other: "Αποτυχία φόρτωσης κρυφών σταθμών: {{.Error}}"
+error_refresh_stations:
+  other: "Αποτυχία ανανέωσης σταθμών: {{.Error}}"
+error_ffplay_required:
+  other: "Το RadioGoGo απαιτεί το \"ffplay\" (μέρος του \"ffmpeg\") να είναι εγκατεστημένο και διαθέσιμο στο PATH."
+error_ffmpeg_required:
+  other: "Η εγγραφή απαιτεί το \"ffmpeg\" να είναι εγκατεστημένο και διαθέσιμο στο PATH."
+error_no_station_playing:
+  other: "δεν είναι δυνατή η έναρξη εγγραφής: δεν παίζει κανένας σταθμός"
+error_start_recording:
+  other: "αποτυχία έναρξης εγγραφής"
+
+# Error view
+error_recoverable:
+  other: "Πατήστε Enter για επανάληψη ή \"q\" για έξοδο."
+error_quitting:
+  other: "Έξοδος σε {{.Seconds}} δευτερόλεπτα (ή πατήστε \"q\" για άμεση έξοδο)..."
+
+# Terminal too small
+terminal_too_small:
+  other: "Το τερματικό είναι πολύ μικρό!"
+terminal_min_size:
+  other: "Ελάχιστο μέγεθος: {{.MinWidth}}x{{.MinHeight}}"
+terminal_current_size:
+  other: "Τρέχον μέγεθος: {{.Width}}x{{.Height}}"
+
+# Boot
+initializing:
+  other: "Αρχικοποίηση..."
+
+# Hidden stations modal
+hidden_stations_title:
+  other: "Κρυφοί Σταθμοί"
+no_hidden_stations:
+  other: "Δεν υπάρχουν κρυφοί σταθμοί"
+hidden_modal_help:
+  other: "Enter: εμφάνιση | Esc/H: κλείσιμο"
+
+# Filter types
+filter_by_uuid:
+  other: "Με UUID"
+filter_by_name:
+  other: "Με Όνομα"
+filter_by_name_exact:
+  other: "Με Ακριβές Όνομα"
+filter_by_codec:
+  other: "Με Κωδικοποιητή"
+filter_by_codec_exact:
+  other: "Με Ακριβή Κωδικοποιητή"
+filter_by_country:
+  other: "Με Χώρα"
+filter_by_country_exact:
+  other: "Με Ακριβή Χώρα"
+filter_by_country_code_exact:
+  other: "Με Ακριβή Κωδικό Χώρας"
+filter_by_state:
+  other: "Με Περιφέρεια"
+filter_by_state_exact:
+  other: "Με Ακριβή Περιφέρεια"
+filter_by_language:
+  other: "Με Γλώσσα"
+filter_by_language_exact:
+  other: "Με Ακριβή Γλώσσα"
+filter_by_tag:
+  other: "Με Ετικέτα"
+filter_by_tag_exact:
+  other: "Με Ακριβή Ετικέτα"
+filter_none:
+  other: "Κανένα"
+
+# Filter examples
+filter_example_by_name:
+  other: |
+    Παραδείγματα:
+    - "BBC Radio" βρίσκει σταθμούς με "BBC Radio" στο όνομα.
+    - "Italia" βρίσκει σταθμούς με "Italia" στο όνομα.
+    - "Romance" βρίσκει σταθμούς με "Romance" στο όνομα.
+filter_example_by_name_exact:
+  other: |
+    Παραδείγματα:
+    - "BBC Radio 1" βρίσκει σταθμούς με όνομα "BBC Radio 1".
+    - "Radio Italia" βρίσκει σταθμούς με όνομα "Radio Italia".
+    - "Radio Romance" βρίσκει σταθμούς με όνομα "Radio Romance".
+filter_example_by_codec:
+  other: |
+    Παραδείγματα:
+    - "mp3" βρίσκει σταθμούς με "mp3" στον κωδικοποιητή.
+    - "aac" βρίσκει σταθμούς με "aac" στον κωδικοποιητή.
+    - "ogg" βρίσκει σταθμούς με "ogg" στον κωδικοποιητή.
+filter_example_by_codec_exact:
+  other: |
+    Παραδείγματα:
+    - "mp3" βρίσκει σταθμούς με κωδικοποιητή "mp3".
+    - "aac" βρίσκει σταθμούς με κωδικοποιητή "aac".
+    - "ogg" βρίσκει σταθμούς με κωδικοποιητή "ogg".
+filter_example_by_country:
+  other: |
+    Παραδείγματα:
+    - "Italy" βρίσκει σταθμούς με "Italy" στη χώρα.
+    - "United" βρίσκει σταθμούς με "United" στη χώρα.
+    - "Republic" βρίσκει σταθμούς με "Republic" στη χώρα.
+filter_example_by_country_exact:
+  other: |
+    Παραδείγματα:
+    - "Italy" βρίσκει σταθμούς με χώρα "Italy".
+    - "Spain" βρίσκει σταθμούς με χώρα "Spain".
+    - "Ireland" βρίσκει σταθμούς με χώρα "Ireland".
+filter_example_by_country_code_exact:
+  other: |
+    Παραδείγματα:
+    - "IT" βρίσκει σταθμούς με κωδικό χώρας "IT".
+    - "US" βρίσκει σταθμούς με κωδικό χώρας "US".
+    - "GB" βρίσκει σταθμούς με κωδικό χώρας "GB".
+filter_example_by_state:
+  other: |
+    Παραδείγματα:
+    - "Lombardy" βρίσκει σταθμούς με "Lombardy" στην περιφέρεια.
+    - "California" βρίσκει σταθμούς με "California" στην περιφέρεια.
+    - "New York" βρίσκει σταθμούς με "New York" στην περιφέρεια.
+filter_example_by_state_exact:
+  other: |
+    Παραδείγματα:
+    - "Lombardy" βρίσκει σταθμούς με περιφέρεια "Lombardy".
+    - "California" βρίσκει σταθμούς με περιφέρεια "California".
+    - "New York" βρίσκει σταθμούς με περιφέρεια "New York".
+filter_example_by_language:
+  other: |
+    Παραδείγματα (απαιτούνται πεζά):
+    - "italian" βρίσκει σταθμούς με "italian" στη γλώσσα.
+    - "english" βρίσκει σταθμούς με "english" στη γλώσσα.
+    - "spanish" βρίσκει σταθμούς με "spanish" στη γλώσσα.
+filter_example_by_language_exact:
+  other: |
+    Παραδείγματα (απαιτούνται πεζά):
+    - "italian" βρίσκει σταθμούς με γλώσσα "italian".
+    - "english" βρίσκει σταθμούς με γλώσσα "english".
+    - "spanish" βρίσκει σταθμούς με γλώσσα "spanish".
+filter_example_by_tag:
+  other: |
+    Παραδείγματα:
+    - "rock" βρίσκει σταθμούς με "rock" στις ετικέτες.
+    - "jazz" βρίσκει σταθμούς με "jazz" στις ετικέτες.
+    - "pop" βρίσκει σταθμούς με "pop" στις ετικέτες.
+filter_example_by_tag_exact:
+  other: |
+    Παραδείγματα:
+    - "rock" βρίσκει σταθμούς με ετικέτα "rock".
+    - "jazz" βρίσκει σταθμούς με ετικέτα "jazz".
+    - "pop" βρίσκει σταθμούς με ετικέτα "pop".

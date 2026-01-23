@@ -78,7 +78,7 @@ RadioGoGo is a **state machine TUI application** with these states:
 - **`data/`** - Version information and user agent string
 - **`i18n/`** - Internationalization support using go-i18n:
   - `i18n.go` - Core functions: T(), Tf(), Tn(), SetLanguage()
-  - `locales/*.yaml` - Translation files (en.yaml, it.yaml)
+  - `locales/*.yaml` - Translation files (de, el, en, es, it, ja, pt, ru, zh)
 - **`mocks/`** - Test mocks for interfaces
 
 ### Key Patterns
@@ -108,7 +108,7 @@ RadioGoGo is a **state machine TUI application** with these states:
 - YAML-based with platform-aware paths:
   - Windows: `%LOCALAPPDATA%\radiogogo\config.yaml`
   - Others: `~/.config/radiogogo/config.yaml`
-- `language` field controls UI language (default: "en", available: "en", "it")
+- `language` field controls UI language (default: "en", available: de, el, en, es, it, ja, pt, ru, zh)
 
 **Internationalization (i18n):**
 - All user-facing strings use `i18n.T("message_id")` or `i18n.Tf()` for templates

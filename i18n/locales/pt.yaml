@@ -1,0 +1,243 @@
+# RadioGoGo Portuguese Locale File
+
+# Language indicator
+current_language:
+  other: "PT"
+cmd_change_language:
+  other: "L: idioma"
+
+# Search view
+search_placeholder:
+  other: "Nome"
+filter_label:
+  other: "Filtro:"
+search_title:
+  other: "Pesquisar rádio {{.Type}}"
+
+# Commands - Search
+cmd_quit:
+  other: "q: sair"
+cmd_cycle_focus:
+  other: "tab: alternar foco"
+cmd_search:
+  other: "s: pesquisar"
+cmd_enter_search:
+  other: "enter: pesquisar"
+cmd_bookmarks:
+  other: "B: favoritos"
+cmd_change_filter:
+  other: "↑/↓: alterar filtro"
+
+# Commands - Stations
+cmd_back:
+  other: "B: voltar"
+cmd_enter_play:
+  other: "enter: reproduzir"
+cmd_move:
+  other: "↑/↓: mover"
+cmd_record:
+  other: "r: gravar"
+cmd_stop_record:
+  other: "r: parar grav"
+cmd_stop:
+  other: "ctrl+k: parar"
+cmd_volume:
+  other: "9/0: vol"
+cmd_bookmark:
+  other: "b: favorito"
+cmd_hide:
+  other: "h: ocultar"
+cmd_manage_hidden:
+  other: "H: gerir ocultas"
+
+# Volume display
+volume_mute:
+  other: "mudo"
+volume_display:
+  other: "vol: {{.Volume}}"
+volume_display_percent:
+  other: "vol: {{.Volume}}%"
+
+# Table headers
+header_name:
+  other: "Nome"
+header_country:
+  other: "País"
+header_languages:
+  other: "Idioma(s)"
+header_codecs:
+  other: "Codec(s)"
+header_votes:
+  other: "Votos"
+
+# Status messages
+now_playing:
+  other: "A reproduzir: {{.Name}}"
+select_station:
+  other: "Selecione uma estação e pressione enter para reproduzir"
+no_bookmarks:
+  other: "Ainda não há favoritos! Pressione 'B' para voltar e adicionar estações aos favoritos."
+no_stations:
+  other: "Nenhuma estação encontrada, tente outra pesquisa!"
+
+# Loading
+loading:
+  other: "A obter estações de rádio..."
+
+# Errors
+error_volume_change:
+  other: "Falha ao alterar volume: {{.Error}}"
+error_recording:
+  other: "Erro de gravação: {{.Error}}"
+error_load_bookmarks:
+  other: "Falha ao carregar favoritos: {{.Error}}"
+error_load_hidden:
+  other: "Falha ao carregar estações ocultas: {{.Error}}"
+error_refresh_stations:
+  other: "Falha ao atualizar estações: {{.Error}}"
+error_ffplay_required:
+  other: "RadioGoGo requer que \"ffplay\" (parte do \"ffmpeg\") esteja instalado e disponível no seu PATH."
+error_ffmpeg_required:
+  other: "A gravação requer que \"ffmpeg\" esteja instalado e disponível no seu PATH."
+error_no_station_playing:
+  other: "não é possível iniciar a gravação: nenhuma estação está a reproduzir"
+error_start_recording:
+  other: "falha ao iniciar a gravação"
+
+# Error view
+error_recoverable:
+  other: "Pressione Enter para tentar novamente ou \"q\" para sair."
+error_quitting:
+  other: "A sair em {{.Seconds}} segundos (ou pressione \"q\" para sair agora)..."
+
+# Terminal too small
+terminal_too_small:
+  other: "Terminal muito pequeno!"
+terminal_min_size:
+  other: "Tamanho mínimo: {{.MinWidth}}x{{.MinHeight}}"
+terminal_current_size:
+  other: "Tamanho atual: {{.Width}}x{{.Height}}"
+
+# Boot
+initializing:
+  other: "A inicializar..."
+
+# Hidden stations modal
+hidden_stations_title:
+  other: "Estações Ocultas"
+no_hidden_stations:
+  other: "Sem estações ocultas"
+hidden_modal_help:
+  other: "Enter: mostrar | Esc/H: fechar"
+
+# Filter types
+filter_by_uuid:
+  other: "Por UUID"
+filter_by_name:
+  other: "Por Nome"
+filter_by_name_exact:
+  other: "Por Nome Exato"
+filter_by_codec:
+  other: "Por Codec"
+filter_by_codec_exact:
+  other: "Por Codec Exato"
+filter_by_country:
+  other: "Por País"
+filter_by_country_exact:
+  other: "Por País Exato"
+filter_by_country_code_exact:
+  other: "Por Código de País Exato"
+filter_by_state:
+  other: "Por Estado"
+filter_by_state_exact:
+  other: "Por Estado Exato"
+filter_by_language:
+  other: "Por Idioma"
+filter_by_language_exact:
+  other: "Por Idioma Exato"
+filter_by_tag:
+  other: "Por Tag"
+filter_by_tag_exact:
+  other: "Por Tag Exata"
+filter_none:
+  other: "Nenhum"
+
+# Filter examples
+filter_example_by_name:
+  other: |
+    Exemplos:
+    - "BBC Radio" corresponde a estações com "BBC Radio" no nome.
+    - "Italia" corresponde a estações com "Italia" no nome.
+    - "Romance" corresponde a estações com "Romance" no nome.
+filter_example_by_name_exact:
+  other: |
+    Exemplos:
+    - "BBC Radio 1" corresponde a estações com nome "BBC Radio 1".
+    - "Radio Italia" corresponde a estações com nome "Radio Italia".
+    - "Radio Romance" corresponde a estações com nome "Radio Romance".
+filter_example_by_codec:
+  other: |
+    Exemplos:
+    - "mp3" corresponde a estações com "mp3" no codec.
+    - "aac" corresponde a estações com "aac" no codec.
+    - "ogg" corresponde a estações com "ogg" no codec.
+filter_example_by_codec_exact:
+  other: |
+    Exemplos:
+    - "mp3" corresponde a estações com codec "mp3".
+    - "aac" corresponde a estações com codec "aac".
+    - "ogg" corresponde a estações com codec "ogg".
+filter_example_by_country:
+  other: |
+    Exemplos:
+    - "Italy" corresponde a estações com "Italy" no país.
+    - "United" corresponde a estações com "United" no país.
+    - "Republic" corresponde a estações com "Republic" no país.
+filter_example_by_country_exact:
+  other: |
+    Exemplos:
+    - "Italy" corresponde a estações com país "Italy".
+    - "Spain" corresponde a estações com país "Spain".
+    - "Ireland" corresponde a estações com país "Ireland".
+filter_example_by_country_code_exact:
+  other: |
+    Exemplos:
+    - "IT" corresponde a estações com código de país "IT".
+    - "US" corresponde a estações com código de país "US".
+    - "GB" corresponde a estações com código de país "GB".
+filter_example_by_state:
+  other: |
+    Exemplos:
+    - "Lombardy" corresponde a estações com "Lombardy" no estado.
+    - "California" corresponde a estações com "California" no estado.
+    - "New York" corresponde a estações com "New York" no estado.
+filter_example_by_state_exact:
+  other: |
+    Exemplos:
+    - "Lombardy" corresponde a estações com estado "Lombardy".
+    - "California" corresponde a estações com estado "California".
+    - "New York" corresponde a estações com estado "New York".
+filter_example_by_language:
+  other: |
+    Exemplos (minúsculas obrigatórias):
+    - "italian" corresponde a estações com "italian" no idioma.
+    - "english" corresponde a estações com "english" no idioma.
+    - "spanish" corresponde a estações com "spanish" no idioma.
+filter_example_by_language_exact:
+  other: |
+    Exemplos (minúsculas obrigatórias):
+    - "italian" corresponde a estações com idioma "italian".
+    - "english" corresponde a estações com idioma "english".
+    - "spanish" corresponde a estações com idioma "spanish".
+filter_example_by_tag:
+  other: |
+    Exemplos:
+    - "rock" corresponde a estações com "rock" nas tags.
+    - "jazz" corresponde a estações com "jazz" nas tags.
+    - "pop" corresponde a estações com "pop" nas tags.
+filter_example_by_tag_exact:
+  other: |
+    Exemplos:
+    - "rock" corresponde a estações com tag "rock".
+    - "jazz" corresponde a estações com tag "jazz".
+    - "pop" corresponde a estações com tag "pop".

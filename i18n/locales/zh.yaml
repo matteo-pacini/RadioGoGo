@@ -1,0 +1,243 @@
+# RadioGoGo Simplified Chinese Locale File
+
+# Language indicator
+current_language:
+  other: "中文"
+cmd_change_language:
+  other: "L: 语言"
+
+# Search view
+search_placeholder:
+  other: "名称"
+filter_label:
+  other: "筛选:"
+search_title:
+  other: "搜索电台 {{.Type}}"
+
+# Commands - Search
+cmd_quit:
+  other: "q: 退出"
+cmd_cycle_focus:
+  other: "tab: 切换焦点"
+cmd_search:
+  other: "s: 搜索"
+cmd_enter_search:
+  other: "enter: 搜索"
+cmd_bookmarks:
+  other: "B: 收藏夹"
+cmd_change_filter:
+  other: "↑/↓: 更改筛选"
+
+# Commands - Stations
+cmd_back:
+  other: "B: 返回"
+cmd_enter_play:
+  other: "enter: 播放"
+cmd_move:
+  other: "↑/↓: 移动"
+cmd_record:
+  other: "r: 录制"
+cmd_stop_record:
+  other: "r: 停止录制"
+cmd_stop:
+  other: "ctrl+k: 停止"
+cmd_volume:
+  other: "9/0: 音量"
+cmd_bookmark:
+  other: "b: 收藏"
+cmd_hide:
+  other: "h: 隐藏"
+cmd_manage_hidden:
+  other: "H: 管理隐藏"
+
+# Volume display
+volume_mute:
+  other: "静音"
+volume_display:
+  other: "音量: {{.Volume}}"
+volume_display_percent:
+  other: "音量: {{.Volume}}%"
+
+# Table headers
+header_name:
+  other: "名称"
+header_country:
+  other: "国家"
+header_languages:
+  other: "语言"
+header_codecs:
+  other: "编解码器"
+header_votes:
+  other: "投票"
+
+# Status messages
+now_playing:
+  other: "正在播放: {{.Name}}"
+select_station:
+  other: "选择一个电台并按回车键播放"
+no_bookmarks:
+  other: "还没有收藏！按 'B' 返回并收藏一些电台。"
+no_stations:
+  other: "未找到电台，请尝试其他搜索！"
+
+# Loading
+loading:
+  other: "正在获取电台..."
+
+# Errors
+error_volume_change:
+  other: "音量调节失败: {{.Error}}"
+error_recording:
+  other: "录制错误: {{.Error}}"
+error_load_bookmarks:
+  other: "加载收藏夹失败: {{.Error}}"
+error_load_hidden:
+  other: "加载隐藏电台失败: {{.Error}}"
+error_refresh_stations:
+  other: "刷新电台失败: {{.Error}}"
+error_ffplay_required:
+  other: "RadioGoGo 需要安装 \"ffplay\"（\"ffmpeg\" 的一部分）并在 PATH 中可用。"
+error_ffmpeg_required:
+  other: "录制功能需要安装 \"ffmpeg\" 并在 PATH 中可用。"
+error_no_station_playing:
+  other: "无法开始录制：没有正在播放的电台"
+error_start_recording:
+  other: "启动录制失败"
+
+# Error view
+error_recoverable:
+  other: "按回车键重试或按 \"q\" 退出。"
+error_quitting:
+  other: "将在 {{.Seconds}} 秒后退出（或按 \"q\" 立即退出）..."
+
+# Terminal too small
+terminal_too_small:
+  other: "终端太小！"
+terminal_min_size:
+  other: "最小尺寸: {{.MinWidth}}x{{.MinHeight}}"
+terminal_current_size:
+  other: "当前尺寸: {{.Width}}x{{.Height}}"
+
+# Boot
+initializing:
+  other: "正在初始化..."
+
+# Hidden stations modal
+hidden_stations_title:
+  other: "隐藏的电台"
+no_hidden_stations:
+  other: "没有隐藏的电台"
+hidden_modal_help:
+  other: "Enter: 取消隐藏 | Esc/H: 关闭"
+
+# Filter types
+filter_by_uuid:
+  other: "按 UUID"
+filter_by_name:
+  other: "按名称"
+filter_by_name_exact:
+  other: "按精确名称"
+filter_by_codec:
+  other: "按编解码器"
+filter_by_codec_exact:
+  other: "按精确编解码器"
+filter_by_country:
+  other: "按国家"
+filter_by_country_exact:
+  other: "按精确国家"
+filter_by_country_code_exact:
+  other: "按精确国家代码"
+filter_by_state:
+  other: "按州/省"
+filter_by_state_exact:
+  other: "按精确州/省"
+filter_by_language:
+  other: "按语言"
+filter_by_language_exact:
+  other: "按精确语言"
+filter_by_tag:
+  other: "按标签"
+filter_by_tag_exact:
+  other: "按精确标签"
+filter_none:
+  other: "无"
+
+# Filter examples
+filter_example_by_name:
+  other: |
+    示例:
+    - "BBC Radio" 匹配名称中包含 "BBC Radio" 的电台。
+    - "Italia" 匹配名称中包含 "Italia" 的电台。
+    - "Romance" 匹配名称中包含 "Romance" 的电台。
+filter_example_by_name_exact:
+  other: |
+    示例:
+    - "BBC Radio 1" 匹配名称为 "BBC Radio 1" 的电台。
+    - "Radio Italia" 匹配名称为 "Radio Italia" 的电台。
+    - "Radio Romance" 匹配名称为 "Radio Romance" 的电台。
+filter_example_by_codec:
+  other: |
+    示例:
+    - "mp3" 匹配编解码器包含 "mp3" 的电台。
+    - "aac" 匹配编解码器包含 "aac" 的电台。
+    - "ogg" 匹配编解码器包含 "ogg" 的电台。
+filter_example_by_codec_exact:
+  other: |
+    示例:
+    - "mp3" 匹配编解码器为 "mp3" 的电台。
+    - "aac" 匹配编解码器为 "aac" 的电台。
+    - "ogg" 匹配编解码器为 "ogg" 的电台。
+filter_example_by_country:
+  other: |
+    示例:
+    - "Italy" 匹配国家名称中包含 "Italy" 的电台。
+    - "United" 匹配国家名称中包含 "United" 的电台。
+    - "Republic" 匹配国家名称中包含 "Republic" 的电台。
+filter_example_by_country_exact:
+  other: |
+    示例:
+    - "Italy" 匹配国家为 "Italy" 的电台。
+    - "Spain" 匹配国家为 "Spain" 的电台。
+    - "Ireland" 匹配国家为 "Ireland" 的电台。
+filter_example_by_country_code_exact:
+  other: |
+    示例:
+    - "IT" 匹配国家代码为 "IT" 的电台。
+    - "US" 匹配国家代码为 "US" 的电台。
+    - "GB" 匹配国家代码为 "GB" 的电台。
+filter_example_by_state:
+  other: |
+    示例:
+    - "Lombardy" 匹配州/省中包含 "Lombardy" 的电台。
+    - "California" 匹配州/省中包含 "California" 的电台。
+    - "New York" 匹配州/省中包含 "New York" 的电台。
+filter_example_by_state_exact:
+  other: |
+    示例:
+    - "Lombardy" 匹配州/省为 "Lombardy" 的电台。
+    - "California" 匹配州/省为 "California" 的电台。
+    - "New York" 匹配州/省为 "New York" 的电台。
+filter_example_by_language:
+  other: |
+    示例（需要小写）:
+    - "italian" 匹配语言中包含 "italian" 的电台。
+    - "english" 匹配语言中包含 "english" 的电台。
+    - "spanish" 匹配语言中包含 "spanish" 的电台。
+filter_example_by_language_exact:
+  other: |
+    示例（需要小写）:
+    - "italian" 匹配语言为 "italian" 的电台。
+    - "english" 匹配语言为 "english" 的电台。
+    - "spanish" 匹配语言为 "spanish" 的电台。
+filter_example_by_tag:
+  other: |
+    示例:
+    - "rock" 匹配标签中包含 "rock" 的电台。
+    - "jazz" 匹配标签中包含 "jazz" 的电台。
+    - "pop" 匹配标签中包含 "pop" 的电台。
+filter_example_by_tag_exact:
+  other: |
+    示例:
+    - "rock" 匹配标签中有 "rock" 的电台。
+    - "jazz" 匹配标签中有 "jazz" 的电台。
+    - "pop" 匹配标签中有 "pop" 的电台。
