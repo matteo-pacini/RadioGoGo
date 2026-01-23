@@ -46,6 +46,7 @@ func (m StationsModel) handlePlaybackMessages(msg tea.Msg) (bool, StationsModel,
 			notifyRadioBrowserCmd(m.browser, m.currentStation),
 			updateCommandsCmd(m.viewMode, true, m.volume, m.playbackManager.VolumeIsPercentage(), m.playbackManager.IsRecording(), m.keybindings),
 			func() tea.Msg { return playbackStatusMsg{status: PlaybackPlaying} },
+			func() tea.Msg { return recordingStatusMsg{isRecording: false} },
 		)
 	case playbackStoppedMsg:
 		m.currentStation = common.Station{}
