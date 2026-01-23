@@ -19,7 +19,7 @@
 
 package data
 
-const (
-	Version   = "0.3.4"
+var (
+	Version   = "dev"
 	UserAgent = "radiogogo/" + Version
 )

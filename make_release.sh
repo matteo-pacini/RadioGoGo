@@ -56,7 +56,7 @@ for target in "${TARGETS[@]}"; do
     fi
 
     echo "Building for $GOOS/$GOARCH"
-    CGO_ENABLED=0 GOOS=$GOOS GOARCH=$GOARCH go build -o $OUTPUT
+    CGO_ENABLED=0 GOOS=$GOOS GOARCH=$GOARCH go build -ldflags="-s -w -X github.com/zi0p4tch0/radiogogo/data.Version=$1" -o $OUTPUT
 
     zip -j "bin/radiogogo_$1_${GOOS}_${GOARCH}.zip" $OUTPUT
     rm -rf $OUTPUT

@@ -96,7 +96,11 @@ func (m HeaderModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m HeaderModel) View() string {
 
 	header := m.theme.PrimaryBlock.Render("radiogogo")
-	version := m.theme.SecondaryBlock.Render(fmt.Sprintf("v%s", data.Version))
+	versionStr := data.Version
+	if versionStr != "dev" {
+		versionStr = "v" + versionStr
+	}
+	version := m.theme.SecondaryBlock.Render(versionStr)
 
 	// In non-stations views (search, loading, error), show minimal header
 	if !m.showOffset {
