@@ -225,7 +225,7 @@ func (m StationsModel) View() string {
 	if len(m.stations) == 0 {
 		var emptyMsg string
 		if m.viewMode == viewModeBookmarks {
-			emptyMsg = i18n.T("no_bookmarks")
+			emptyMsg = i18n.Tf("no_bookmarks", map[string]interface{}{"BookmarksKey": m.keybindings.BookmarksView})
 		} else {
 			emptyMsg = i18n.T("no_stations")
 		}
