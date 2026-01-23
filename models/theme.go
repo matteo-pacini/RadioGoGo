@@ -36,6 +36,7 @@ type Theme struct {
 	SecondaryText lipgloss.Style
 	TertiaryText  lipgloss.Style
 	ErrorText     lipgloss.Style
+	SuccessText   lipgloss.Style
 
 	StationsTableStyle table.Styles
 	ModalStyle         lipgloss.Style
@@ -73,6 +74,9 @@ func NewTheme(config config.Config) Theme {
 	errorText := lipgloss.NewStyle().
 		Foreground(lipgloss.Color(config.Theme.ErrorColor))
 
+	successText := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#50FA7B"))
+
 	stationsTableStyles := table.DefaultStyles()
 	stationsTableStyles.Header = stationsTableStyles.Header.
 		BorderStyle(lipgloss.NormalBorder()).
@@ -100,6 +104,7 @@ func NewTheme(config config.Config) Theme {
 		SecondaryText:      secondaryText,
 		TertiaryText:       tertiaryText,
 		ErrorText:          errorText,
+		SuccessText:        successText,
 		StationsTableStyle: stationsTableStyles,
 		ModalStyle:         modalStyle,
 		SecondaryColor:     config.Theme.SecondaryColor,

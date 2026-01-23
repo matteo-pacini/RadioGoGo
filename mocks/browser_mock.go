@@ -38,6 +38,8 @@ type MockRadioBrowserService struct {
 	ClickStationFunc func(station common.Station) (common.ClickStationResponse, error)
 
 	GetStationsByUUIDsFunc func(uuids []uuid.UUID) ([]common.Station, error)
+
+	VoteStationFunc func(station common.Station) (common.VoteStationResponse, error)
 }
 
 func (m *MockRadioBrowserService) GetStations(
@@ -61,4 +63,11 @@ func (m *MockRadioBrowserService) GetStationsByUUIDs(uuids []uuid.UUID) ([]commo
 		return m.GetStationsByUUIDsFunc(uuids)
 	}
 	return []common.Station{}, nil
+}
+
+func (m *MockRadioBrowserService) VoteStation(station common.Station) (common.VoteStationResponse, error) {
+	if m.VoteStationFunc != nil {
+		return m.VoteStationFunc(station)
+	}
+	return common.VoteStationResponse{Ok: true}, nil
 }

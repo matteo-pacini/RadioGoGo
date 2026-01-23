@@ -20,6 +20,8 @@
 package storage
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 )
 
@@ -42,4 +44,11 @@ type StationStorageService interface {
 	RemoveHidden(stationUUID uuid.UUID) error
 	// IsHidden returns true if the station is hidden.
 	IsHidden(stationUUID uuid.UUID) bool
+
+	// GetLastVoteTimestamp returns the last global vote timestamp.
+	// Returns the timestamp and true if found, zero time and false if not.
+	// RadioBrowser API enforces a 10-minute cooldown per IP for all votes.
+	GetLastVoteTimestamp() (time.Time, bool)
+	// SetLastVoteTimestamp records the last global vote timestamp.
+	SetLastVoteTimestamp(timestamp time.Time) error
 }

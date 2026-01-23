@@ -40,6 +40,7 @@ type Keybindings struct {
 	NavigateDown   string `yaml:"navigateDown"`
 	NavigateUp     string `yaml:"navigateUp"`
 	StopPlayback   string `yaml:"stopPlayback"`
+	Vote           string `yaml:"vote"`
 }
 
 // reservedKeys contains keys that cannot be remapped because they would break
@@ -83,6 +84,7 @@ func NewDefaultKeybindings() Keybindings {
 		NavigateDown:   "j",
 		NavigateUp:     "k",
 		StopPlayback:   "ctrl+k",
+		Vote:           "v",
 	}
 }
 
@@ -128,6 +130,7 @@ func (k Keybindings) Validate() (Keybindings, []ValidationWarning) {
 		{"navigateDown", &result.NavigateDown, defaults.NavigateDown},
 		{"navigateUp", &result.NavigateUp, defaults.NavigateUp},
 		{"stopPlayback", &result.StopPlayback, defaults.StopPlayback},
+		{"vote", &result.Vote, defaults.Vote},
 	}
 
 	// Check for reserved keys

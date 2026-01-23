@@ -6,6 +6,18 @@ current_language:
 cmd_change_language:
   other: "{{.Key}}: язык"
 
+# Vote
+cmd_vote:
+  other: "{{.Key}}: голос"
+vote_success:
+  other: "Голос успешно записан!"
+error_vote:
+  other: "{{.Error}}"
+error_vote_cooldown:
+  one: "Пожалуйста, подождите {{.Minutes}} минуту перед повторным голосованием."
+  few: "Пожалуйста, подождите {{.Minutes}} минуты перед повторным голосованием."
+  other: "Пожалуйста, подождите {{.Minutes}} минут перед повторным голосованием."
+
 # Search view
 search_placeholder:
   other: "Название"
@@ -57,6 +69,12 @@ volume_display:
   other: "громк.: {{.Volume}}"
 volume_display_percent:
   other: "громк.: {{.Volume}}%"
+
+# Header indicators
+header_play:
+  other: "воспроизведение"
+header_recording:
+  other: "запись"
 
 # Table headers
 header_name:

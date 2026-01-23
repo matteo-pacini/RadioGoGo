@@ -82,6 +82,9 @@ type StationsModel struct {
 	playbackManager playback.PlaybackManagerService
 	width           int
 	height          int
+
+	// Temporary success message (shown in green)
+	successMsg string
 }
 
 // NewStationsModel creates a new StationsModel with the given dependencies and stations.
@@ -198,6 +201,10 @@ func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return newM, cmd
 	}
 
+	if handled, newM, cmd := m.handleVoteMessages(msg); handled {
+		return newM, cmd
+	}
+
 	// Handle key messages
 	if keyMsg, ok := msg.(tea.KeyMsg); ok {
 		handled, newM, cmd := m.handleKeyMessage(keyMsg)
@@ -246,8 +253,13 @@ func (m StationsModel) View() string {
 	}
 
 	// Show status bar (with blank line above)
+	// Priority: success message > error message > now playing > default
 	var statusBar string
-	if m.currentStation.StationUuid != uuid.Nil {
+	if m.successMsg != "" {
+		statusBar = m.theme.SuccessText.Render(m.successMsg)
+	} else if m.err != "" {
+		statusBar = m.theme.ErrorText.Render(m.err)
+	} else if m.currentStation.StationUuid != uuid.Nil {
 		statusBar = m.currentStationSpinner.View() + " " +
 			m.theme.SecondaryText.Bold(true).Render(i18n.Tf("now_playing", map[string]interface{}{"Name": m.currentStation.Name})) +
 			" " + m.currentStationSpinner.View()
@@ -255,11 +267,6 @@ func (m StationsModel) View() string {
 		statusBar = m.theme.TertiaryText.Render(i18n.T("select_station"))
 	}
 	v += "\n" + statusBar
-
-	// Show error if any
-	if m.err != "" {
-		v += m.theme.ErrorText.Render(m.err) + "\n"
-	}
 
 	// Add filler to push bottom bar to the bottom
 	// m.height is the space allocated for stations view (terminal height - header - bottom bar)

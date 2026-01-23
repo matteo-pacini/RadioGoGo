@@ -25,6 +25,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/zi0p4tch0/radiogogo/data"
+	"github.com/zi0p4tch0/radiogogo/i18n"
 	"github.com/zi0p4tch0/radiogogo/playback"
 )
 
@@ -128,7 +129,7 @@ func (m HeaderModel) View() string {
 	// Build indicator piece by piece to maintain consistent background
 	playbackIndicator := baseStyle.Copy().PaddingLeft(2).Render("(") +
 		playbackDotStyle.Render("●") +
-		baseStyle.Copy().PaddingRight(2).Render(") "+m.playerName)
+		baseStyle.Copy().PaddingRight(2).Render(") "+i18n.T("header_play"))
 
 	// Recording status indicator: (●) rec
 	// Color indicates: not recording (white), recording (red)
@@ -142,7 +143,7 @@ func (m HeaderModel) View() string {
 	recDotStyle := baseStyle.Copy().Foreground(recDotColor)
 	recIndicator := baseStyle.Render("(") +
 		recDotStyle.Render("●") +
-		baseStyle.Copy().PaddingRight(2).Render(") rec")
+		baseStyle.Copy().PaddingRight(2).Render(") "+i18n.T("header_recording"))
 
 	// Compose left and right sections
 	leftHeader := header + version + playbackIndicator + recIndicator

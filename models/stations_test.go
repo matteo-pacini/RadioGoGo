@@ -20,6 +20,7 @@
 package models
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/google/uuid"
@@ -284,6 +285,162 @@ func TestStationsModel_CustomHideKey(t *testing.T) {
 		assert.NotNil(t, cmd)
 		msg := cmd()
 		assert.IsType(t, stationHiddenMsg{}, msg)
+	})
+}
+
+// executeSequenceCommands extracts and executes commands from a tea.Sequence message
+// using reflection since sequenceMsg is an unexported type (it's a []Cmd slice).
+func executeSequenceCommands(msg tea.Msg) {
+	seqValue := reflect.ValueOf(msg)
+	if seqValue.Kind() == reflect.Slice {
+		for i := 0; i < seqValue.Len(); i++ {
+			cmdVal := seqValue.Index(i)
+			if cmd, ok := cmdVal.Interface().(tea.Cmd); ok && cmd != nil {
+				cmd()
+			}
+		}
+	}
+}
+
+func TestHideStation_StopsPlaybackWhenHidingPlayingStation(t *testing.T) {
+	station := createTestStation("Test Radio")
+	stations := []common.Station{station}
+
+	t.Run("hiding playing station stops playback", func(t *testing.T) {
+		stopStationCalled := false
+
+		mockPM := &mocks.MockPlaybackManagerService{
+			NameResult:          "ffplay",
+			IsAvailableResult:   true,
+			VolumeDefaultResult: 50,
+			VolumeMaxResult:     100,
+			IsPlayingResult:     true,
+			IsRecordingResult:   false,
+			StopStationFunc: func() error {
+				stopStationCalled = true
+				return nil
+			},
+		}
+		mockStorage := &mocks.MockStationStorageService{}
+
+		model := NewStationsModel(
+			Theme{},
+			nil,
+			mockPM,
+			mockStorage,
+			stations,
+			viewModeSearchResults,
+			"",
+			"",
+			defaultStationsKeybindings,
+		)
+		// Set current station to simulate it's playing
+		model.currentStation = station
+
+		input := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("h")}
+		_, cmd := model.Update(input)
+
+		assert.NotNil(t, cmd)
+
+		// Execute the returned command to get the sequence message
+		msg := cmd()
+		// Execute all commands in the sequence using reflection
+		executeSequenceCommands(msg)
+
+		assert.True(t, stopStationCalled, "StopStation should be called when hiding playing station")
+	})
+
+	t.Run("hiding non-playing station does not stop playback", func(t *testing.T) {
+		stopStationCalled := false
+
+		mockPM := &mocks.MockPlaybackManagerService{
+			NameResult:          "ffplay",
+			IsAvailableResult:   true,
+			VolumeDefaultResult: 50,
+			VolumeMaxResult:     100,
+			IsPlayingResult:     false,
+			StopStationFunc: func() error {
+				stopStationCalled = true
+				return nil
+			},
+		}
+		mockStorage := &mocks.MockStationStorageService{}
+
+		model := NewStationsModel(
+			Theme{},
+			nil,
+			mockPM,
+			mockStorage,
+			stations,
+			viewModeSearchResults,
+			"",
+			"",
+			defaultStationsKeybindings,
+		)
+		// currentStation is zero value (not playing)
+
+		input := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("h")}
+		_, cmd := model.Update(input)
+
+		assert.NotNil(t, cmd)
+		msg := cmd()
+		assert.IsType(t, stationHiddenMsg{}, msg)
+		assert.False(t, stopStationCalled, "StopStation should not be called when hiding non-playing station")
+	})
+}
+
+func TestHideStation_StopsRecordingAndPlaybackWhenHidingRecordingStation(t *testing.T) {
+	station := createTestStation("Test Radio")
+	stations := []common.Station{station}
+
+	t.Run("hiding recording station stops both recording and playback", func(t *testing.T) {
+		stopStationCalled := false
+		stopRecordingCalled := false
+
+		mockPM := &mocks.MockPlaybackManagerService{
+			NameResult:          "ffplay",
+			IsAvailableResult:   true,
+			VolumeDefaultResult: 50,
+			VolumeMaxResult:     100,
+			IsPlayingResult:     true,
+			IsRecordingResult:   true,
+			StopStationFunc: func() error {
+				stopStationCalled = true
+				return nil
+			},
+			StopRecordingFunc: func() (string, error) {
+				stopRecordingCalled = true
+				return "/tmp/recording.mp3", nil
+			},
+		}
+		mockStorage := &mocks.MockStationStorageService{}
+
+		model := NewStationsModel(
+			Theme{},
+			nil,
+			mockPM,
+			mockStorage,
+			stations,
+			viewModeSearchResults,
+			"",
+			"",
+			defaultStationsKeybindings,
+		)
+		// Set current station to simulate it's playing and recording
+		model.currentStation = station
+
+		input := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("h")}
+		_, cmd := model.Update(input)
+
+		assert.NotNil(t, cmd)
+
+		// Execute the returned command to get the sequence message
+		msg := cmd()
+		// Execute all commands in the sequence using reflection
+		executeSequenceCommands(msg)
+
+		assert.True(t, stopRecordingCalled, "StopRecording should be called when hiding recording station")
+		assert.True(t, stopStationCalled, "StopStation should be called when hiding recording station")
 	})
 }
 

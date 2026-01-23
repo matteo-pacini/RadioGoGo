@@ -245,6 +245,13 @@ func (m StationsModel) handleHiddenStationMessages(msg tea.Msg) (bool, StationsM
 		}
 		m.stations = filtered
 		m.stationsTable = newStationsTableModel(m.theme, m.stations, m.storage)
+		// Restore cursor position (used by vote success and unhide)
+		if m.savedCursor > 0 && m.savedCursor < len(m.stations) {
+			m.stationsTable.SetCursor(m.savedCursor)
+		} else if m.savedCursor >= len(m.stations) && len(m.stations) > 0 {
+			m.stationsTable.SetCursor(len(m.stations) - 1)
+		}
+		m.savedCursor = 0
 		return true, m, func() tea.Msg {
 			return stationCursorMovedMsg{
 				offset:        m.stationsTable.Cursor(),
@@ -257,6 +264,42 @@ func (m StationsModel) handleHiddenStationMessages(msg tea.Msg) (bool, StationsM
 		return true, m, tea.Tick(3*time.Second, func(t time.Time) tea.Msg {
 			return clearNonFatalError{}
 		})
+	}
+	return false, m, nil
+}
+
+// clearSuccessMsg clears the success message from the status bar.
+type clearSuccessMsg struct{}
+
+// handleVoteMessages handles voting-related messages.
+// Returns (handled, model, cmd) where handled indicates if the message was processed.
+func (m StationsModel) handleVoteMessages(msg tea.Msg) (bool, StationsModel, tea.Cmd) {
+	switch msg := msg.(type) {
+	case voteSucceededMsg:
+		m.successMsg = i18n.T("vote_success")
+		m.savedCursor = msg.cursor
+		return true, m, tea.Batch(
+			refetchStationsCmd(m.browser, m.lastQuery, m.lastQueryText),
+			tea.Tick(3*time.Second, func(t time.Time) tea.Msg {
+				return clearSuccessMsg{}
+			}),
+		)
+
+	case voteFailedMsg:
+		m.err = i18n.Tf("error_vote", map[string]interface{}{"Error": msg.err})
+		return true, m, tea.Tick(3*time.Second, func(t time.Time) tea.Msg {
+			return clearNonFatalError{}
+		})
+
+	case voteCooldownMsg:
+		m.err = i18n.Tfn("error_vote_cooldown", msg.remainingMinutes, map[string]interface{}{"Minutes": msg.remainingMinutes})
+		return true, m, tea.Tick(3*time.Second, func(t time.Time) tea.Msg {
+			return clearNonFatalError{}
+		})
+
+	case clearSuccessMsg:
+		m.successMsg = ""
+		return true, m, nil
 	}
 	return false, m, nil
 }
@@ -318,6 +361,20 @@ func (m StationsModel) handleKeyMessage(msg tea.KeyMsg) (bool, StationsModel, te
 			return true, m, nil
 		}
 		station := m.stations[m.stationsTable.Cursor()]
+		// If hiding the currently playing station, stop playback (and recording if active)
+		if m.currentStation.StationUuid == station.StationUuid {
+			if m.playbackManager.IsRecording() {
+				return true, m, tea.Sequence(
+					stopRecordingCmd(m.playbackManager),
+					stopStationCmd(m.playbackManager),
+					hideStationCmd(m.storage, station, m.stationsTable.Cursor()),
+				)
+			}
+			return true, m, tea.Sequence(
+				stopStationCmd(m.playbackManager),
+				hideStationCmd(m.storage, station, m.stationsTable.Cursor()),
+			)
+		}
 		return true, m, hideStationCmd(m.storage, station, m.stationsTable.Cursor())
 
 	case key == m.keybindings.BookmarksView:
@@ -328,6 +385,13 @@ func (m StationsModel) handleKeyMessage(msg tea.KeyMsg) (bool, StationsModel, te
 			return true, m, nil
 		}
 		return true, m, fetchHiddenStationsCmd(m.browser, m.storage)
+
+	case key == m.keybindings.Vote:
+		if m.viewMode != viewModeSearchResults || len(m.stations) == 0 {
+			return true, m, nil
+		}
+		station := m.stations[m.stationsTable.Cursor()]
+		return true, m, voteStationCmd(m.browser, m.storage, station, m.stationsTable.Cursor())
 
 	case key == "enter":
 		if len(m.stations) == 0 {
