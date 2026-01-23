@@ -63,12 +63,16 @@ header_name:
   other: "Nome"
 header_country:
   other: "Paese"
-header_languages:
-  other: "Lingua/e"
+header_bitrate:
+  other: "Bitrate"
 header_codecs:
   other: "Codec"
+header_clicks:
+  other: "Clic"
 header_votes:
   other: "Voti"
+header_status:
+  other: "Stato"
 
 # Status messages
 now_playing:

@@ -63,12 +63,16 @@ header_name:
   other: "名前"
 header_country:
   other: "国"
-header_languages:
-  other: "言語"
+header_bitrate:
+  other: "ビットレート"
 header_codecs:
   other: "コーデック"
+header_clicks:
+  other: "クリック"
 header_votes:
   other: "投票"
+header_status:
+  other: "状態"
 
 # Status messages
 now_playing:
