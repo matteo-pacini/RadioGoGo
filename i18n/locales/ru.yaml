@@ -4,7 +4,7 @@
 current_language:
   other: "RU"
 cmd_change_language:
-  other: "L: язык"
+  other: "{{.Key}}: язык"
 
 # Search view
 search_placeholder:
@@ -16,39 +16,39 @@ search_title:
 
 # Commands - Search
 cmd_quit:
-  other: "q: выход"
+  other: "{{.Key}}: выход"
 cmd_cycle_focus:
   other: "tab: переключить"
 cmd_search:
-  other: "s: поиск"
+  other: "{{.Key}}: поиск"
 cmd_enter_search:
   other: "enter: поиск"
 cmd_bookmarks:
-  other: "B: закладки"
+  other: "{{.Key}}: закладки"
 cmd_change_filter:
   other: "↑/↓: изменить фильтр"
 
 # Commands - Stations
 cmd_back:
-  other: "B: назад"
+  other: "{{.Key}}: назад"
 cmd_enter_play:
   other: "enter: воспроизвести"
 cmd_move:
   other: "↑/↓: перемещение"
 cmd_record:
-  other: "r: запись"
+  other: "{{.Key}}: запись"
 cmd_stop_record:
-  other: "r: стоп запись"
+  other: "{{.Key}}: стоп запись"
 cmd_stop:
-  other: "ctrl+k: стоп"
+  other: "{{.Key}}: стоп"
 cmd_volume:
-  other: "9/0: громкость"
+  other: "{{.VolumeDown}}/{{.VolumeUp}}: громкость"
 cmd_bookmark:
-  other: "b: закладка"
+  other: "{{.Key}}: закладка"
 cmd_hide:
-  other: "h: скрыть"
+  other: "{{.Key}}: скрыть"
 cmd_manage_hidden:
-  other: "H: управл. скрытыми"
+  other: "{{.Key}}: управл. скрытыми"
 
 # Volume display
 volume_mute:
@@ -76,7 +76,7 @@ now_playing:
 select_station:
   other: "Выберите станцию и нажмите Enter для воспроизведения"
 no_bookmarks:
-  other: "Пока нет закладок! Нажмите 'B' чтобы вернуться и добавить станции в закладки."
+  other: "Пока нет закладок! Нажмите '{{.BookmarksKey}}' чтобы вернуться и добавить станции в закладки."
 no_stations:
   other: "Станции не найдены, попробуйте другой поиск!"
 
@@ -106,9 +106,9 @@ error_start_recording:
 
 # Error view
 error_recoverable:
-  other: "Нажмите Enter для повтора или \"q\" для выхода."
+  other: "Нажмите Enter для повтора или \"{{.QuitKey}}\" для выхода."
 error_quitting:
-  other: "Выход через {{.Seconds}} секунд (или нажмите \"q\" для выхода сейчас)..."
+  other: "Выход через {{.Seconds}} секунд (или нажмите \"{{.QuitKey}}\" для выхода сейчас)..."
 
 # Terminal too small
 terminal_too_small:
@@ -128,7 +128,7 @@ hidden_stations_title:
 no_hidden_stations:
   other: "Нет скрытых станций"
 hidden_modal_help:
-  other: "Enter: показать | Esc/H: закрыть"
+  other: "Enter: показать | Esc/{{.ManageHiddenKey}}: закрыть"
 
 # Filter types
 filter_by_uuid:

@@ -22,6 +22,7 @@ package models
 import (
 	"time"
 
+	"github.com/zi0p4tch0/radiogogo/config"
 	"github.com/zi0p4tch0/radiogogo/i18n"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -39,7 +40,8 @@ type quitTickMsg struct{}
 // Model
 
 type ErrorModel struct {
-	theme Theme
+	theme       Theme
+	keybindings config.Keybindings
 
 	message     string
 	recoverable bool
@@ -49,10 +51,11 @@ type ErrorModel struct {
 	height    int
 }
 
-func NewErrorModel(theme Theme, err string, recoverable bool) ErrorModel {
+func NewErrorModel(theme Theme, err string, recoverable bool, keybindings config.Keybindings) ErrorModel {
 
 	return ErrorModel{
 		theme:       theme,
+		keybindings: keybindings,
 		message:     err,
 		recoverable: recoverable,
 	}
@@ -69,10 +72,11 @@ func (m ErrorModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "q":
+		key := msg.String()
+		switch {
+		case key == m.keybindings.Quit:
 			return m, quitCmd
-		case "enter", "esc":
+		case key == "enter" || key == "esc":
 			if m.recoverable {
 				return m, func() tea.Msg { return switchToSearchModelMsg{} }
 			}
@@ -99,9 +103,9 @@ func (m ErrorModel) View() string {
 
 	var message string
 	if m.recoverable {
-		message = m.message + "\n\n" + i18n.T("error_recoverable")
+		message = m.message + "\n\n" + i18n.Tf("error_recoverable", map[string]interface{}{"QuitKey": m.keybindings.Quit})
 	} else {
-		message = m.message + "\n\n" + i18n.Tf("error_quitting", map[string]interface{}{"Seconds": quitTicks - m.tickCount})
+		message = m.message + "\n\n" + i18n.Tf("error_quitting", map[string]interface{}{"Seconds": quitTicks - m.tickCount, "QuitKey": m.keybindings.Quit})
 	}
 
 	return "\n" + m.theme.ErrorText.Render(message) + "\n\n"

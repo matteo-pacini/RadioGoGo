@@ -33,34 +33,35 @@ func (m *StationsModel) handleHiddenModalInput(msg tea.KeyMsg) (bool, tea.Cmd) {
 		return false, nil
 	}
 
-	switch msg.String() {
-	case "up", "k":
+	key := msg.String()
+	switch {
+	case key == "up" || key == m.keybindings.NavigateUp:
 		if m.hiddenModalCursor > 0 {
 			m.hiddenModalCursor--
 		}
 		return true, nil
-	case "down", "j":
+	case key == "down" || key == m.keybindings.NavigateDown:
 		if m.hiddenModalCursor < len(m.hiddenStations)-1 {
 			m.hiddenModalCursor++
 		}
 		return true, nil
-	case "enter":
+	case key == "enter":
 		if len(m.hiddenStations) > 0 {
 			station := m.hiddenStations[m.hiddenModalCursor]
 			return true, unhideStationCmd(m.storage, station)
 		}
 		return true, nil
-	case "esc", "H", "q":
+	case key == "esc" || key == m.keybindings.ManageHidden || key == m.keybindings.Quit:
 		m.showHiddenModal = false
 		// Trigger refetch if any stations were unhidden
 		if m.needsRefetch {
 			m.needsRefetch = false
 			return true, tea.Batch(
 				refetchStationsCmd(m.browser, m.lastQuery, m.lastQueryText),
-				updateCommandsCmd(m.viewMode, m.playbackManager.IsPlaying(), m.volume, m.playbackManager.VolumeIsPercentage(), m.playbackManager.IsRecording()),
+				updateCommandsCmd(m.viewMode, m.playbackManager.IsPlaying(), m.volume, m.playbackManager.VolumeIsPercentage(), m.playbackManager.IsRecording(), m.keybindings),
 			)
 		}
-		return true, updateCommandsCmd(m.viewMode, m.playbackManager.IsPlaying(), m.volume, m.playbackManager.VolumeIsPercentage(), m.playbackManager.IsRecording())
+		return true, updateCommandsCmd(m.viewMode, m.playbackManager.IsPlaying(), m.volume, m.playbackManager.VolumeIsPercentage(), m.playbackManager.IsRecording(), m.keybindings)
 	}
 	return true, nil
 }
@@ -87,7 +88,7 @@ func (m StationsModel) renderWithModal(baseView string) string {
 			modalContent += cursor + name + "\n"
 		}
 	}
-	modalContent += "\n" + m.theme.TertiaryText.Render(i18n.T("hidden_modal_help"))
+	modalContent += "\n" + m.theme.TertiaryText.Render(i18n.Tf("hidden_modal_help", map[string]interface{}{"ManageHiddenKey": m.keybindings.ManageHidden}))
 
 	modalStyle := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).

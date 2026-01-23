@@ -16,7 +16,7 @@ A terminal UI for browsing and playing internet radio stations. Built with Go us
 - Stream playback via `ffplay`
 - Real-time volume control during playback
 - Record streams to disk via `ffmpeg`
-- Customizable color themes
+- Customizable color themes and keybindings
 - Bookmark favorite stations for quick access
 - Hide unwanted stations from search results
 - Cross-platform (Linux, macOS, Windows, *BSD)
@@ -49,6 +49,8 @@ The header shows two status indicators:
 | `s` | Back to search |
 | `L` | Cycle UI language (search screen) |
 | `q` | Quit |
+
+Most keys are customizable via config (see [Custom Keybindings](#custom-keybindings) below). Keys that cannot be changed: arrow keys, Enter, Tab, Escape, and common editing keys (Backspace, Delete, Ctrl+C, etc.).
 
 ## Recording
 
@@ -154,6 +156,31 @@ language: en
 Available: `de` (German), `el` (Greek), `en` (English), `es` (Spanish), `it` (Italian), `ja` (Japanese), `pt` (Portuguese), `ru` (Russian), `zh` (Chinese)
 
 Press `L` on the search screen to cycle through languages.
+
+### Custom Keybindings
+
+Most keys can be customized. Changes require restarting the app.
+
+```yaml
+keybindings:
+  quit: q
+  search: s
+  record: r
+  bookmarkToggle: b
+  bookmarksView: B
+  hideStation: h
+  manageHidden: H
+  changeLanguage: L
+  volumeDown: "9"
+  volumeUp: "0"
+  navigateDown: j
+  navigateUp: k
+  stopPlayback: ctrl+k
+```
+
+**Reserved keys** (cannot be remapped): arrow keys (`up`, `down`, `left`, `right`), `tab`, `enter`, `esc`, `backspace`, `delete`, `pgup`, `pgdown`, `home`, `end`, and terminal control keys (`ctrl+c`, `ctrl+z`, `ctrl+s`, `ctrl+q`, `ctrl+l`, `ctrl+a`, `ctrl+e`, `ctrl+u`, `ctrl+k`, `ctrl+w`, `ctrl+d`, `ctrl+h`).
+
+If you set an invalid key or duplicate, the app warns at startup and uses the default for that key.
 
 Example alternate theme:
 

@@ -71,7 +71,9 @@ RadioGoGo is a **state machine TUI application** with these states:
   - `layout.go` - Terminal height calculations
   - `selector.go` - Generic selector component
 - **`api/`** - RadioBrowser API client with DNS-based load balancing
-- **`config/`** - YAML configuration management with platform-specific paths
+- **`config/`** - YAML configuration management with platform-specific paths:
+  - `config.go` - Config struct with Theme and Keybindings
+  - `keybindings.go` - Keybindings struct with validation and reserved keys
 - **`common/`** - Shared data models (Station, StationQuery, URL types)
 - **`playback/`** - Audio playback via FFplay and recording via FFmpeg
 - **`storage/`** - Persistent storage for bookmarks and hidden stations
@@ -109,6 +111,15 @@ RadioGoGo is a **state machine TUI application** with these states:
   - Windows: `%LOCALAPPDATA%\radiogogo\config.yaml`
   - Others: `~/.config/radiogogo/config.yaml`
 - `language` field controls UI language (default: "en", available: de, el, en, es, it, ja, pt, ru, zh)
+- `keybindings` field allows customizing most keys (see below)
+
+**Keybindings:**
+- Defined in `config/keybindings.go` with validation
+- Reserved keys (cannot be remapped): arrows, tab, enter, esc, backspace, delete, pgup/pgdown, home/end, ctrl+c/z/s/q/l/a/e/u/k/w/d/h
+- Customizable keys: quit, search, record, bookmarkToggle, bookmarksView, hideStation, manageHidden, changeLanguage, volumeDown, volumeUp, navigateDown, navigateUp, stopPlayback
+- Validation in `main.go` warns on invalid keys and falls back to defaults
+- Command labels in i18n use template variables (e.g., `{{.Key}}`) for dynamic key display
+- Keybindings passed through models: Config -> Model -> child models (SearchModel, StationsModel, ErrorModel)
 
 **Internationalization (i18n):**
 - All user-facing strings use `i18n.T("message_id")` or `i18n.Tf()` for templates

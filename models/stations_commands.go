@@ -24,6 +24,7 @@ import (
 
 	"github.com/zi0p4tch0/radiogogo/api"
 	"github.com/zi0p4tch0/radiogogo/common"
+	"github.com/zi0p4tch0/radiogogo/config"
 	"github.com/zi0p4tch0/radiogogo/i18n"
 	"github.com/zi0p4tch0/radiogogo/playback"
 	"github.com/zi0p4tch0/radiogogo/storage"
@@ -304,15 +305,25 @@ func refetchStationsCmd(browser api.RadioBrowserService, query common.StationQue
 
 // updateCommandsCmd returns a command that updates the bottom bar with appropriate commands
 // based on the current view mode and playback state.
-func updateCommandsCmd(viewMode stationsViewMode, isPlaying bool, volume int, volumeIsPercentage bool, isRecording bool) tea.Cmd {
+func updateCommandsCmd(viewMode stationsViewMode, isPlaying bool, volume int, volumeIsPercentage bool, isRecording bool, kb config.Keybindings) tea.Cmd {
 	return func() tea.Msg {
 
 		// Row 1: Navigation and playback
 		var commands []string
 		if viewMode == viewModeSearchResults {
-			commands = []string{i18n.T("cmd_quit"), i18n.T("cmd_search"), i18n.T("cmd_enter_play"), i18n.T("cmd_move")}
+			commands = []string{
+				i18n.Tf("cmd_quit", map[string]interface{}{"Key": kb.Quit}),
+				i18n.Tf("cmd_search", map[string]interface{}{"Key": kb.Search}),
+				i18n.T("cmd_enter_play"),
+				i18n.T("cmd_move"),
+			}
 		} else {
-			commands = []string{i18n.T("cmd_quit"), i18n.T("cmd_back"), i18n.T("cmd_enter_play"), i18n.T("cmd_move")}
+			commands = []string{
+				i18n.Tf("cmd_quit", map[string]interface{}{"Key": kb.Quit}),
+				i18n.Tf("cmd_back", map[string]interface{}{"Key": kb.BookmarksView}),
+				i18n.T("cmd_enter_play"),
+				i18n.T("cmd_move"),
+			}
 		}
 
 		var volumeDisplay string
@@ -328,21 +339,39 @@ func updateCommandsCmd(viewMode stationsViewMode, isPlaying bool, volume int, vo
 
 		if isPlaying {
 			if isRecording {
-				commands = append(commands, i18n.T("cmd_stop_record"), i18n.T("cmd_stop"), i18n.T("cmd_volume"), volumeDisplay)
+				commands = append(commands,
+					i18n.Tf("cmd_stop_record", map[string]interface{}{"Key": kb.Record}),
+					i18n.Tf("cmd_stop", map[string]interface{}{"Key": kb.StopPlayback}),
+					i18n.Tf("cmd_volume", map[string]interface{}{"VolumeDown": kb.VolumeDown, "VolumeUp": kb.VolumeUp}),
+					volumeDisplay,
+				)
 			} else {
-				commands = append(commands, i18n.T("cmd_record"), i18n.T("cmd_stop"), i18n.T("cmd_volume"), volumeDisplay)
+				commands = append(commands,
+					i18n.Tf("cmd_record", map[string]interface{}{"Key": kb.Record}),
+					i18n.Tf("cmd_stop", map[string]interface{}{"Key": kb.StopPlayback}),
+					i18n.Tf("cmd_volume", map[string]interface{}{"VolumeDown": kb.VolumeDown, "VolumeUp": kb.VolumeUp}),
+					volumeDisplay,
+				)
 			}
 		} else {
-			commands = append(commands, i18n.T("cmd_volume"), volumeDisplay)
+			commands = append(commands,
+				i18n.Tf("cmd_volume", map[string]interface{}{"VolumeDown": kb.VolumeDown, "VolumeUp": kb.VolumeUp}),
+				volumeDisplay,
+			)
 		}
 
 		// Row 2: Bookmark/hide commands
 		var secondaryCommands []string
 		if viewMode == viewModeSearchResults {
-			secondaryCommands = []string{i18n.T("cmd_bookmark"), i18n.T("cmd_bookmarks"), i18n.T("cmd_hide"), i18n.T("cmd_manage_hidden")}
+			secondaryCommands = []string{
+				i18n.Tf("cmd_bookmark", map[string]interface{}{"Key": kb.BookmarkToggle}),
+				i18n.Tf("cmd_bookmarks", map[string]interface{}{"Key": kb.BookmarksView}),
+				i18n.Tf("cmd_hide", map[string]interface{}{"Key": kb.HideStation}),
+				i18n.Tf("cmd_manage_hidden", map[string]interface{}{"Key": kb.ManageHidden}),
+			}
 		} else {
 			// "B: back" is already in primary row, no hide commands in bookmarks mode
-			secondaryCommands = []string{i18n.T("cmd_bookmark")}
+			secondaryCommands = []string{i18n.Tf("cmd_bookmark", map[string]interface{}{"Key": kb.BookmarkToggle})}
 		}
 
 		return bottomBarUpdateMsg{

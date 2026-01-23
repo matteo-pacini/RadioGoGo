@@ -4,7 +4,7 @@
 current_language:
   other: "EN"
 cmd_change_language:
-  other: "L: language"
+  other: "{{.Key}}: language"
 
 # Search view
 search_placeholder:
@@ -16,39 +16,39 @@ search_title:
 
 # Commands - Search
 cmd_quit:
-  other: "q: quit"
+  other: "{{.Key}}: quit"
 cmd_cycle_focus:
   other: "tab: cycle focus"
 cmd_search:
-  other: "s: search"
+  other: "{{.Key}}: search"
 cmd_enter_search:
   other: "enter: search"
 cmd_bookmarks:
-  other: "B: bookmarks"
+  other: "{{.Key}}: bookmarks"
 cmd_change_filter:
   other: "↑/↓: change filter"
 
 # Commands - Stations
 cmd_back:
-  other: "B: back"
+  other: "{{.Key}}: back"
 cmd_enter_play:
   other: "enter: play"
 cmd_move:
   other: "↑/↓: move"
 cmd_record:
-  other: "r: record"
+  other: "{{.Key}}: record"
 cmd_stop_record:
-  other: "r: stop rec"
+  other: "{{.Key}}: stop rec"
 cmd_stop:
-  other: "ctrl+k: stop"
+  other: "{{.Key}}: stop"
 cmd_volume:
-  other: "9/0: vol"
+  other: "{{.VolumeDown}}/{{.VolumeUp}}: vol"
 cmd_bookmark:
-  other: "b: bookmark"
+  other: "{{.Key}}: bookmark"
 cmd_hide:
-  other: "h: hide"
+  other: "{{.Key}}: hide"
 cmd_manage_hidden:
-  other: "H: manage hidden"
+  other: "{{.Key}}: manage hidden"
 
 # Volume display
 volume_mute:
@@ -76,7 +76,7 @@ now_playing:
 select_station:
   other: "Select a station and press enter to play"
 no_bookmarks:
-  other: "No bookmarks yet! Press 'B' to go back and bookmark some stations."
+  other: "No bookmarks yet! Press '{{.BookmarksKey}}' to go back and bookmark some stations."
 no_stations:
   other: "No stations found, try another search!"
 
@@ -106,9 +106,9 @@ error_start_recording:
 
 # Error view
 error_recoverable:
-  other: "Press Enter to try again or \"q\" to quit."
+  other: "Press Enter to try again or \"{{.QuitKey}}\" to quit."
 error_quitting:
-  other: "Quitting in {{.Seconds}} seconds (or press \"q\" to exit now)..."
+  other: "Quitting in {{.Seconds}} seconds (or press \"{{.QuitKey}}\" to exit now)..."
 
 # Terminal too small
 terminal_too_small:
@@ -128,7 +128,7 @@ hidden_stations_title:
 no_hidden_stations:
   other: "No hidden stations"
 hidden_modal_help:
-  other: "Enter: unhide | Esc/H: close"
+  other: "Enter: unhide | Esc/{{.ManageHiddenKey}}: close"
 
 # Filter types
 filter_by_uuid:

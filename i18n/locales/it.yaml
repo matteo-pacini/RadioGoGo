@@ -4,7 +4,7 @@
 current_language:
   other: "IT"
 cmd_change_language:
-  other: "L: lingua"
+  other: "{{.Key}}: lingua"
 
 # Search view
 search_placeholder:
@@ -16,39 +16,39 @@ search_title:
 
 # Commands - Search
 cmd_quit:
-  other: "q: esci"
+  other: "{{.Key}}: esci"
 cmd_cycle_focus:
   other: "tab: cambia focus"
 cmd_search:
-  other: "s: cerca"
+  other: "{{.Key}}: cerca"
 cmd_enter_search:
   other: "invio: cerca"
 cmd_bookmarks:
-  other: "B: preferiti"
+  other: "{{.Key}}: preferiti"
 cmd_change_filter:
   other: "↑/↓: cambia filtro"
 
 # Commands - Stations
 cmd_back:
-  other: "B: indietro"
+  other: "{{.Key}}: indietro"
 cmd_enter_play:
   other: "invio: riproduci"
 cmd_move:
   other: "↑/↓: muovi"
 cmd_record:
-  other: "r: registra"
+  other: "{{.Key}}: registra"
 cmd_stop_record:
-  other: "r: ferma reg"
+  other: "{{.Key}}: ferma reg"
 cmd_stop:
-  other: "ctrl+k: ferma"
+  other: "{{.Key}}: ferma"
 cmd_volume:
-  other: "9/0: vol"
+  other: "{{.VolumeDown}}/{{.VolumeUp}}: vol"
 cmd_bookmark:
-  other: "b: preferito"
+  other: "{{.Key}}: preferito"
 cmd_hide:
-  other: "h: nascondi"
+  other: "{{.Key}}: nascondi"
 cmd_manage_hidden:
-  other: "H: gestisci nascosti"
+  other: "{{.Key}}: gestisci nascosti"
 
 # Volume display
 volume_mute:
@@ -76,7 +76,7 @@ now_playing:
 select_station:
   other: "Seleziona una stazione e premi invio per riprodurre"
 no_bookmarks:
-  other: "Nessun preferito! Premi 'B' per tornare indietro e aggiungere stazioni ai preferiti."
+  other: "Nessun preferito! Premi '{{.BookmarksKey}}' per tornare indietro e aggiungere stazioni ai preferiti."
 no_stations:
   other: "Nessuna stazione trovata, prova un'altra ricerca!"
 
@@ -106,9 +106,9 @@ error_start_recording:
 
 # Error view
 error_recoverable:
-  other: "Premi Invio per riprovare o \"q\" per uscire."
+  other: "Premi Invio per riprovare o \"{{.QuitKey}}\" per uscire."
 error_quitting:
-  other: "Uscita tra {{.Seconds}} secondi (o premi \"q\" per uscire subito)..."
+  other: "Uscita tra {{.Seconds}} secondi (o premi \"{{.QuitKey}}\" per uscire subito)..."
 
 # Terminal too small
 terminal_too_small:
@@ -128,7 +128,7 @@ hidden_stations_title:
 no_hidden_stations:
   other: "Nessuna stazione nascosta"
 hidden_modal_help:
-  other: "Invio: mostra | Esc/H: chiudi"
+  other: "Invio: mostra | Esc/{{.ManageHiddenKey}}: chiudi"
 
 # Filter types
 filter_by_uuid:

@@ -258,7 +258,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		_ = i18n.SetLanguage(msg.lang)
 
 		// Recreate search model to refresh all strings
-		m.searchModel = NewSearchModel(m.theme, m.browser, m.storage)
+		m.searchModel = NewSearchModel(m.theme, m.browser, m.storage, m.config.Keybindings)
 		m.searchModel.SetWidthAndHeight(m.width, m.height-2)
 		return m, m.searchModel.Init()
 	}
@@ -275,7 +275,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.headerModel.playbackStatus = PlaybackIdle // Reset playback indicator
 		m.headerModel.isRecording = false           // Reset recording indicator
 		m.bottomBarSecondaryCommands = nil          // Clear two-row bar
-		m.searchModel = NewSearchModel(m.theme, m.browser, m.storage)
+		m.searchModel = NewSearchModel(m.theme, m.browser, m.storage, m.config.Keybindings)
 		m.searchModel.SetWidthAndHeight(m.width, m.height-2) // 1 header + 1 bottom bar row
 		m.state = searchState
 		return m, m.searchModel.Init()
@@ -290,21 +290,21 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.headerModel.showOffset = true
 		// Filter out hidden stations before displaying
 		filteredStations := filterHiddenStations(msg.stations, m.storage)
-		m.stationsModel = NewStationsModel(m.theme, m.browser, m.playbackManager, m.storage, filteredStations, viewModeSearchResults, msg.query, msg.queryText)
+		m.stationsModel = NewStationsModel(m.theme, m.browser, m.playbackManager, m.storage, filteredStations, viewModeSearchResults, msg.query, msg.queryText, m.config.Keybindings)
 		m.stationsModel.SetWidthAndHeight(m.width, m.height-3) // 1 header + 2 bottom bar rows
 		m.state = stationsState
 		return m, m.stationsModel.Init()
 	case switchToBookmarksMsg:
 		m.headerModel.showOffset = true
 		// Bookmarks don't need refetch - they're managed separately
-		m.stationsModel = NewStationsModel(m.theme, m.browser, m.playbackManager, m.storage, msg.stations, viewModeBookmarks, "", "")
+		m.stationsModel = NewStationsModel(m.theme, m.browser, m.playbackManager, m.storage, msg.stations, viewModeBookmarks, "", "", m.config.Keybindings)
 		m.stationsModel.SetWidthAndHeight(m.width, m.height-3) // 1 header + 2 bottom bar rows
 		m.state = stationsState
 		return m, m.stationsModel.Init()
 	case switchToErrorModelMsg:
 		m.headerModel.showOffset = false
 		m.bottomBarSecondaryCommands = nil // Clear two-row bar
-		m.errorModel = NewErrorModel(m.theme, msg.err, msg.recoverable)
+		m.errorModel = NewErrorModel(m.theme, msg.err, msg.recoverable, m.config.Keybindings)
 		m.errorModel.SetWidthAndHeight(m.width, m.height-2) // 1 header + 1 bottom bar row
 		m.state = errorState
 		return m, m.errorModel.Init()

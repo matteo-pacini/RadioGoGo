@@ -26,6 +26,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/zi0p4tch0/radiogogo/api"
 	"github.com/zi0p4tch0/radiogogo/common"
+	"github.com/zi0p4tch0/radiogogo/config"
 	"github.com/zi0p4tch0/radiogogo/i18n"
 	"github.com/zi0p4tch0/radiogogo/playback"
 	"github.com/zi0p4tch0/radiogogo/storage"
@@ -46,7 +47,8 @@ const (
 // StationsModel handles the display and interaction with a list of radio stations.
 // It manages playback, volume control, bookmarks, and hidden stations.
 type StationsModel struct {
-	theme Theme
+	theme       Theme
+	keybindings config.Keybindings
 
 	stations              []common.Station
 	stationsTable         table.Model
@@ -93,10 +95,12 @@ func NewStationsModel(
 	viewMode stationsViewMode,
 	lastQuery common.StationQuery,
 	lastQueryText string,
+	keybindings config.Keybindings,
 ) StationsModel {
 
 	return StationsModel{
 		theme:           theme,
+		keybindings:     keybindings,
 		stations:        stations,
 		stationsTable:   newStationsTableModel(theme, stations, storage),
 		volume:          playbackManager.VolumeDefault(),
@@ -147,7 +151,7 @@ func newStationsTableModel(theme Theme, stations []common.Station, storage stora
 // Init initializes the StationsModel and returns the initial command.
 func (m StationsModel) Init() tea.Cmd {
 	return tea.Batch(
-		updateCommandsCmd(m.viewMode, false, m.volume, m.playbackManager.VolumeIsPercentage(), false),
+		updateCommandsCmd(m.viewMode, false, m.volume, m.playbackManager.VolumeIsPercentage(), false, m.keybindings),
 		func() tea.Msg {
 			return stationCursorMovedMsg{
 				offset:        m.stationsTable.Cursor(),
@@ -174,14 +178,14 @@ func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, tea.Batch(
 			m.currentStationSpinner.Tick,
 			notifyRadioBrowserCmd(m.browser, m.currentStation),
-			updateCommandsCmd(m.viewMode, true, m.volume, m.playbackManager.VolumeIsPercentage(), m.playbackManager.IsRecording()),
+			updateCommandsCmd(m.viewMode, true, m.volume, m.playbackManager.VolumeIsPercentage(), m.playbackManager.IsRecording(), m.keybindings),
 			func() tea.Msg { return playbackStatusMsg{status: PlaybackPlaying} },
 		)
 	case playbackStoppedMsg:
 		m.currentStation = common.Station{}
 		m.currentStationSpinner = spinner.Model{}
 		return m, tea.Batch(
-			updateCommandsCmd(m.viewMode, false, m.volume, m.playbackManager.VolumeIsPercentage(), false),
+			updateCommandsCmd(m.viewMode, false, m.volume, m.playbackManager.VolumeIsPercentage(), false, m.keybindings),
 			func() tea.Msg { return playbackStatusMsg{status: PlaybackIdle} },
 			func() tea.Msg { return recordingStatusMsg{isRecording: false} },
 		)
@@ -224,12 +228,12 @@ func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// Recording state messages
 	case recordingStartedMsg:
 		return m, tea.Batch(
-			updateCommandsCmd(m.viewMode, true, m.volume, m.playbackManager.VolumeIsPercentage(), true),
+			updateCommandsCmd(m.viewMode, true, m.volume, m.playbackManager.VolumeIsPercentage(), true, m.keybindings),
 			func() tea.Msg { return recordingStatusMsg{isRecording: true} },
 		)
 	case recordingStoppedMsg:
 		return m, tea.Batch(
-			updateCommandsCmd(m.viewMode, true, m.volume, m.playbackManager.VolumeIsPercentage(), false),
+			updateCommandsCmd(m.viewMode, true, m.volume, m.playbackManager.VolumeIsPercentage(), false, m.keybindings),
 			func() tea.Msg { return recordingStatusMsg{isRecording: false} },
 		)
 	case recordingErrorMsg:
@@ -294,7 +298,7 @@ func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.stationsTable.SetCursor(len(m.stations) - 1)
 		}
 		return m, tea.Batch(
-			updateCommandsCmd(m.viewMode, m.playbackManager.IsPlaying(), m.volume, m.playbackManager.VolumeIsPercentage(), m.playbackManager.IsRecording()),
+			updateCommandsCmd(m.viewMode, m.playbackManager.IsPlaying(), m.volume, m.playbackManager.VolumeIsPercentage(), m.playbackManager.IsRecording(), m.keybindings),
 			func() tea.Msg {
 				return stationCursorMovedMsg{
 					offset:        m.stationsTable.Cursor(),
@@ -370,15 +374,16 @@ func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, cmd
 		}
 
-		switch msg.String() {
-		case "up", "down", "j", "k":
+		key := msg.String()
+		switch {
+		case key == "up" || key == "down" || key == m.keybindings.NavigateDown || key == m.keybindings.NavigateUp:
 			cmds = append(cmds, func() tea.Msg {
 				return stationCursorMovedMsg{
 					offset:        m.stationsTable.Cursor(),
 					totalStations: len(m.stations),
 				}
 			})
-		case "ctrl+k":
+		case key == m.keybindings.StopPlayback:
 			return m, func() tea.Msg {
 				err := m.playbackManager.StopStation()
 				if err != nil {
@@ -386,26 +391,26 @@ func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 				return playbackStoppedMsg{}
 			}
-		case "q":
+		case key == m.keybindings.Quit:
 			return m, tea.Sequence(stopStationCmd(m.playbackManager), quitCmd)
-		case "s":
+		case key == m.keybindings.Search:
 			return m, func() tea.Msg {
 				return switchToSearchModelMsg{}
 			}
-		case "9":
+		case key == m.keybindings.VolumeDown:
 			return m, m.handleVolumeDecrease()
-		case "0":
+		case key == m.keybindings.VolumeUp:
 			return m, m.handleVolumeIncrease()
-		case "r":
+		case key == m.keybindings.Record:
 			return m, m.handleRecordingToggle()
-		case "b":
+		case key == m.keybindings.BookmarkToggle:
 			// Toggle bookmark on selected station
 			if len(m.stations) == 0 {
 				return m, nil
 			}
 			station := m.stations[m.stationsTable.Cursor()]
 			return m, toggleBookmarkCmd(m.storage, station)
-		case "h":
+		case key == m.keybindings.HideStation:
 			// Hide station (only in search results mode)
 			if m.viewMode != viewModeSearchResults {
 				return m, nil
@@ -415,7 +420,7 @@ func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			station := m.stations[m.stationsTable.Cursor()]
 			return m, hideStationCmd(m.storage, station, m.stationsTable.Cursor())
-		case "B":
+		case key == m.keybindings.BookmarksView:
 			// Toggle view mode (search results <-> bookmarks)
 			// Stop playback when switching views
 			if m.viewMode == viewModeSearchResults {
@@ -438,7 +443,7 @@ func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.savedStations = nil
 					m.savedCursor = 0
 					return m, tea.Batch(
-						updateCommandsCmd(m.viewMode, false, m.volume, m.playbackManager.VolumeIsPercentage(), false),
+						updateCommandsCmd(m.viewMode, false, m.volume, m.playbackManager.VolumeIsPercentage(), false, m.keybindings),
 						func() tea.Msg { return playbackStatusMsg{status: PlaybackIdle} },
 						func() tea.Msg {
 							return stationCursorMovedMsg{
@@ -450,13 +455,13 @@ func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 				return m, func() tea.Msg { return switchToSearchModelMsg{} }
 			}
-		case "H":
+		case key == m.keybindings.ManageHidden:
 			// Open hidden stations modal (only in search results mode)
 			if m.viewMode != viewModeSearchResults {
 				return m, nil
 			}
 			return m, fetchHiddenStationsCmd(m.browser, m.storage)
-		case "enter":
+		case key == "enter":
 			if len(m.stations) == 0 {
 				return m, nil
 			}
@@ -490,12 +495,12 @@ func (m *StationsModel) handleVolumeDecrease() tea.Cmd {
 			m.pendingVolumeChangeID = changeID
 			m.volumeChangePending = true
 			return tea.Batch(
-				updateCommandsCmd(m.viewMode, true, m.volume, m.playbackManager.VolumeIsPercentage(), m.playbackManager.IsRecording()),
+				updateCommandsCmd(m.viewMode, true, m.volume, m.playbackManager.VolumeIsPercentage(), m.playbackManager.IsRecording(), m.keybindings),
 				startVolumeDebounceCmd(changeID),
 				func() tea.Msg { return playbackStatusMsg{status: PlaybackRestarting} },
 			)
 		}
-		return updateCommandsCmd(m.viewMode, false, m.volume, m.playbackManager.VolumeIsPercentage(), false)
+		return updateCommandsCmd(m.viewMode, false, m.volume, m.playbackManager.VolumeIsPercentage(), false, m.keybindings)
 	}
 	return nil
 }
@@ -509,12 +514,12 @@ func (m *StationsModel) handleVolumeIncrease() tea.Cmd {
 			m.pendingVolumeChangeID = changeID
 			m.volumeChangePending = true
 			return tea.Batch(
-				updateCommandsCmd(m.viewMode, true, m.volume, m.playbackManager.VolumeIsPercentage(), m.playbackManager.IsRecording()),
+				updateCommandsCmd(m.viewMode, true, m.volume, m.playbackManager.VolumeIsPercentage(), m.playbackManager.IsRecording(), m.keybindings),
 				startVolumeDebounceCmd(changeID),
 				func() tea.Msg { return playbackStatusMsg{status: PlaybackRestarting} },
 			)
 		}
-		return updateCommandsCmd(m.viewMode, false, m.volume, m.playbackManager.VolumeIsPercentage(), false)
+		return updateCommandsCmd(m.viewMode, false, m.volume, m.playbackManager.VolumeIsPercentage(), false, m.keybindings)
 	}
 	return nil
 }

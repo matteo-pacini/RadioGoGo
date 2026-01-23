@@ -4,7 +4,7 @@
 current_language:
   other: "中文"
 cmd_change_language:
-  other: "L: 语言"
+  other: "{{.Key}}: 语言"
 
 # Search view
 search_placeholder:
@@ -16,39 +16,39 @@ search_title:
 
 # Commands - Search
 cmd_quit:
-  other: "q: 退出"
+  other: "{{.Key}}: 退出"
 cmd_cycle_focus:
   other: "tab: 切换焦点"
 cmd_search:
-  other: "s: 搜索"
+  other: "{{.Key}}: 搜索"
 cmd_enter_search:
   other: "enter: 搜索"
 cmd_bookmarks:
-  other: "B: 收藏夹"
+  other: "{{.Key}}: 收藏夹"
 cmd_change_filter:
   other: "↑/↓: 更改筛选"
 
 # Commands - Stations
 cmd_back:
-  other: "B: 返回"
+  other: "{{.Key}}: 返回"
 cmd_enter_play:
   other: "enter: 播放"
 cmd_move:
   other: "↑/↓: 移动"
 cmd_record:
-  other: "r: 录制"
+  other: "{{.Key}}: 录制"
 cmd_stop_record:
-  other: "r: 停止录制"
+  other: "{{.Key}}: 停止录制"
 cmd_stop:
-  other: "ctrl+k: 停止"
+  other: "{{.Key}}: 停止"
 cmd_volume:
-  other: "9/0: 音量"
+  other: "{{.VolumeDown}}/{{.VolumeUp}}: 音量"
 cmd_bookmark:
-  other: "b: 收藏"
+  other: "{{.Key}}: 收藏"
 cmd_hide:
-  other: "h: 隐藏"
+  other: "{{.Key}}: 隐藏"
 cmd_manage_hidden:
-  other: "H: 管理隐藏"
+  other: "{{.Key}}: 管理隐藏"
 
 # Volume display
 volume_mute:
@@ -76,7 +76,7 @@ now_playing:
 select_station:
   other: "选择一个电台并按回车键播放"
 no_bookmarks:
-  other: "还没有收藏！按 'B' 返回并收藏一些电台。"
+  other: "还没有收藏！按 '{{.BookmarksKey}}' 返回并收藏一些电台。"
 no_stations:
   other: "未找到电台，请尝试其他搜索！"
 
@@ -106,9 +106,9 @@ error_start_recording:
 
 # Error view
 error_recoverable:
-  other: "按回车键重试或按 \"q\" 退出。"
+  other: "按回车键重试或按 \"{{.QuitKey}}\" 退出。"
 error_quitting:
-  other: "将在 {{.Seconds}} 秒后退出（或按 \"q\" 立即退出）..."
+  other: "将在 {{.Seconds}} 秒后退出（或按 \"{{.QuitKey}}\" 立即退出）..."
 
 # Terminal too small
 terminal_too_small:
@@ -128,7 +128,7 @@ hidden_stations_title:
 no_hidden_stations:
   other: "没有隐藏的电台"
 hidden_modal_help:
-  other: "Enter: 取消隐藏 | Esc/H: 关闭"
+  other: "Enter: 取消隐藏 | Esc/{{.ManageHiddenKey}}: 关闭"
 
 # Filter types
 filter_by_uuid:

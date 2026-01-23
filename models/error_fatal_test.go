@@ -22,13 +22,31 @@ package models
 import (
 	"testing"
 
+	"github.com/zi0p4tch0/radiogogo/config"
+
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/stretchr/testify/assert"
 )
 
+var testKeybindings = config.Keybindings{
+	Quit:           "q",
+	Search:         "s",
+	Record:         "r",
+	BookmarkToggle: "b",
+	BookmarksView:  "B",
+	HideStation:    "h",
+	ManageHidden:   "H",
+	ChangeLanguage: "L",
+	VolumeDown:     "9",
+	VolumeUp:       "0",
+	NavigateDown:   "j",
+	NavigateUp:     "k",
+	StopPlayback:   "ctrl+k",
+}
+
 func TestErrorModel_Init(t *testing.T) {
 
-	model := NewErrorModel(Theme{}, "this is an error", false)
+	model := NewErrorModel(Theme{}, "this is an error", false, testKeybindings)
 
 	t.Run("broadcasts a quitTickMsg", func(t *testing.T) {
 
@@ -44,7 +62,7 @@ func TestErrorModel_Init(t *testing.T) {
 
 func TestErrorModel_Update(t *testing.T) {
 
-	model := NewErrorModel(Theme{}, "this is an error", false)
+	model := NewErrorModel(Theme{}, "this is an error", false, testKeybindings)
 
 	t.Run("broadcasts a quitMsg when 'q' is pressed", func(t *testing.T) {
 
@@ -85,7 +103,7 @@ func TestErrorModel_Update(t *testing.T) {
 
 	t.Run("broadcasts switchToSearchModelMsg when 'enter' is pressed on recoverable error", func(t *testing.T) {
 
-		recoverableModel := NewErrorModel(Theme{}, "this is recoverable", true)
+		recoverableModel := NewErrorModel(Theme{}, "this is recoverable", true, testKeybindings)
 
 		input := tea.Msg(tea.KeyMsg{Type: tea.KeyEnter})
 
@@ -99,7 +117,7 @@ func TestErrorModel_Update(t *testing.T) {
 
 	t.Run("does not broadcast switchToSearchModelMsg when 'enter' is pressed on non-recoverable error", func(t *testing.T) {
 
-		nonRecoverableModel := NewErrorModel(Theme{}, "this is fatal", false)
+		nonRecoverableModel := NewErrorModel(Theme{}, "this is fatal", false, testKeybindings)
 
 		input := tea.Msg(tea.KeyMsg{Type: tea.KeyEnter})
 
@@ -110,7 +128,7 @@ func TestErrorModel_Update(t *testing.T) {
 
 	t.Run("does not auto-quit on tick for recoverable error", func(t *testing.T) {
 
-		recoverableModel := NewErrorModel(Theme{}, "this is recoverable", true)
+		recoverableModel := NewErrorModel(Theme{}, "this is recoverable", true, testKeybindings)
 		recoverableModel.tickCount = 29
 
 		_, cmd := recoverableModel.Update(quitTickMsg{})

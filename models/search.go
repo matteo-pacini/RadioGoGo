@@ -25,6 +25,7 @@ import (
 
 	"github.com/zi0p4tch0/radiogogo/api"
 	"github.com/zi0p4tch0/radiogogo/common"
+	"github.com/zi0p4tch0/radiogogo/config"
 	"github.com/zi0p4tch0/radiogogo/i18n"
 	"github.com/zi0p4tch0/radiogogo/storage"
 
@@ -36,13 +37,14 @@ type SearchModel struct {
 	theme         Theme
 	browser       api.RadioBrowserService
 	storage       storage.StationStorageService
+	keybindings   config.Keybindings
 	inputModel    textinput.Model
 	querySelector SelectorModel[common.StationQuery]
 	width         int
 	height        int
 }
 
-func NewSearchModel(theme Theme, browser api.RadioBrowserService, storage storage.StationStorageService) SearchModel {
+func NewSearchModel(theme Theme, browser api.RadioBrowserService, storage storage.StationStorageService, keybindings config.Keybindings) SearchModel {
 	i := textinput.New()
 	i.Placeholder = i18n.T("search_placeholder")
 	i.Width = 30
@@ -75,6 +77,7 @@ func NewSearchModel(theme Theme, browser api.RadioBrowserService, storage storag
 		theme:         theme,
 		browser:       browser,
 		storage:       storage,
+		keybindings:   keybindings,
 		inputModel:    i,
 		querySelector: selector,
 	}
@@ -83,29 +86,33 @@ func NewSearchModel(theme Theme, browser api.RadioBrowserService, storage storag
 
 // Commands
 
-func updateCommandsForTextfieldFocus() tea.Msg {
-	return bottomBarUpdateMsg{
-		commands: []string{
-			i18n.T("cmd_quit"),
-			i18n.T("cmd_cycle_focus"),
-			i18n.T("cmd_enter_search"),
-			i18n.T("cmd_bookmarks"),
-			i18n.T("cmd_change_language"),
-			i18n.T("current_language"),
-		},
+func updateCommandsForTextfieldFocus(kb config.Keybindings) tea.Cmd {
+	return func() tea.Msg {
+		return bottomBarUpdateMsg{
+			commands: []string{
+				i18n.Tf("cmd_quit", map[string]interface{}{"Key": kb.Quit}),
+				i18n.T("cmd_cycle_focus"),
+				i18n.T("cmd_enter_search"),
+				i18n.Tf("cmd_bookmarks", map[string]interface{}{"Key": kb.BookmarksView}),
+				i18n.Tf("cmd_change_language", map[string]interface{}{"Key": kb.ChangeLanguage}),
+				i18n.T("current_language"),
+			},
+		}
 	}
 }
 
-func updateCommandsForSelectorFocus() tea.Msg {
-	return bottomBarUpdateMsg{
-		commands: []string{
-			i18n.T("cmd_quit"),
-			i18n.T("cmd_cycle_focus"),
-			i18n.T("cmd_change_filter"),
-			i18n.T("cmd_bookmarks"),
-			i18n.T("cmd_change_language"),
-			i18n.T("current_language"),
-		},
+func updateCommandsForSelectorFocus(kb config.Keybindings) tea.Cmd {
+	return func() tea.Msg {
+		return bottomBarUpdateMsg{
+			commands: []string{
+				i18n.Tf("cmd_quit", map[string]interface{}{"Key": kb.Quit}),
+				i18n.T("cmd_cycle_focus"),
+				i18n.T("cmd_change_filter"),
+				i18n.Tf("cmd_bookmarks", map[string]interface{}{"Key": kb.BookmarksView}),
+				i18n.Tf("cmd_change_language", map[string]interface{}{"Key": kb.ChangeLanguage}),
+				i18n.T("current_language"),
+			},
+		}
 	}
 }
 
@@ -125,7 +132,7 @@ func getNextLanguage() string {
 // Bubbletea
 
 func (m SearchModel) Init() tea.Cmd {
-	return tea.Batch(textinput.Blink, updateCommandsForTextfieldFocus)
+	return tea.Batch(textinput.Blink, updateCommandsForTextfieldFocus(m.keybindings))
 }
 
 func (m SearchModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -137,19 +144,19 @@ func (m SearchModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.inputModel.Focused() {
 				m.inputModel.Blur()
 				m.querySelector.Focus()
-				return m, updateCommandsForSelectorFocus
+				return m, updateCommandsForSelectorFocus(m.keybindings)
 			} else {
 				m.inputModel.Focus()
 				m.querySelector.Blur()
-				return m, updateCommandsForTextfieldFocus
+				return m, updateCommandsForTextfieldFocus(m.keybindings)
 			}
-		case "q":
+		case m.keybindings.Quit:
 			if !m.inputModel.Focused() {
 				return m, quitCmd
 			}
-		case "B":
+		case m.keybindings.BookmarksView:
 			return m, fetchBookmarksForSearchCmd(m.browser, m.storage)
-		case "L":
+		case m.keybindings.ChangeLanguage:
 			nextLang := getNextLanguage()
 			return m, func() tea.Msg {
 				return languageChangedMsg{lang: nextLang}

@@ -27,33 +27,32 @@ import (
 )
 
 type Config struct {
-	Language string `yaml:"language"`
-	Theme    struct {
-		TextColor      string `yaml:"textColor"`
-		PrimaryColor   string `yaml:"primaryColor"`
-		SecondaryColor string `yaml:"secondaryColor"`
-		TertiaryColor  string `yaml:"tertiaryColor"`
-		ErrorColor     string `yaml:"errorColor"`
-	}
+	Language    string      `yaml:"language"`
+	Theme       Theme       `yaml:"theme"`
+	Keybindings Keybindings `yaml:"keybindings"`
+}
+
+// Theme holds the color configuration for the UI.
+type Theme struct {
+	TextColor      string `yaml:"textColor"`
+	PrimaryColor   string `yaml:"primaryColor"`
+	SecondaryColor string `yaml:"secondaryColor"`
+	TertiaryColor  string `yaml:"tertiaryColor"`
+	ErrorColor     string `yaml:"errorColor"`
 }
 
 // NewDefaultConfig returns a Config struct with default values for RadioGoGo.
 func NewDefaultConfig() Config {
 	return Config{
 		Language: "en",
-		Theme: struct {
-			TextColor      string `yaml:"textColor"`
-			PrimaryColor   string `yaml:"primaryColor"`
-			SecondaryColor string `yaml:"secondaryColor"`
-			TertiaryColor  string `yaml:"tertiaryColor"`
-			ErrorColor     string `yaml:"errorColor"`
-		}{
+		Theme: Theme{
 			TextColor:      "#ffffff",
 			PrimaryColor:   "#5a4f9f",
 			SecondaryColor: "#8b77db",
 			TertiaryColor:  "#4e4e4e",
 			ErrorColor:     "#ff0000",
 		},
+		Keybindings: NewDefaultKeybindings(),
 	}
 }
 

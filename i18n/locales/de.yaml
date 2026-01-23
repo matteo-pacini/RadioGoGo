@@ -4,7 +4,7 @@
 current_language:
   other: "DE"
 cmd_change_language:
-  other: "L: Sprache"
+  other: "{{.Key}}: Sprache"
 
 # Search view
 search_placeholder:
@@ -16,39 +16,39 @@ search_title:
 
 # Commands - Search
 cmd_quit:
-  other: "q: Beenden"
+  other: "{{.Key}}: Beenden"
 cmd_cycle_focus:
   other: "tab: Fokus wechseln"
 cmd_search:
-  other: "s: Suchen"
+  other: "{{.Key}}: Suchen"
 cmd_enter_search:
   other: "enter: Suchen"
 cmd_bookmarks:
-  other: "B: Lesezeichen"
+  other: "{{.Key}}: Lesezeichen"
 cmd_change_filter:
   other: "↑/↓: Filter ändern"
 
 # Commands - Stations
 cmd_back:
-  other: "B: Zurück"
+  other: "{{.Key}}: Zurück"
 cmd_enter_play:
   other: "enter: Abspielen"
 cmd_move:
   other: "↑/↓: Bewegen"
 cmd_record:
-  other: "r: Aufnehmen"
+  other: "{{.Key}}: Aufnehmen"
 cmd_stop_record:
-  other: "r: Aufn. stoppen"
+  other: "{{.Key}}: Aufn. stoppen"
 cmd_stop:
-  other: "ctrl+k: Stoppen"
+  other: "{{.Key}}: Stoppen"
 cmd_volume:
-  other: "9/0: Lautst."
+  other: "{{.VolumeDown}}/{{.VolumeUp}}: Lautst."
 cmd_bookmark:
-  other: "b: Lesezeichen"
+  other: "{{.Key}}: Lesezeichen"
 cmd_hide:
-  other: "h: Ausblenden"
+  other: "{{.Key}}: Ausblenden"
 cmd_manage_hidden:
-  other: "H: Ausgeblendete"
+  other: "{{.Key}}: Ausgeblendete"
 
 # Volume display
 volume_mute:
@@ -76,7 +76,7 @@ now_playing:
 select_station:
   other: "Wählen Sie einen Sender und drücken Sie Enter zum Abspielen"
 no_bookmarks:
-  other: "Noch keine Lesezeichen! Drücken Sie 'B' um zurückzugehen und Sender zu speichern."
+  other: "Noch keine Lesezeichen! Drücken Sie '{{.BookmarksKey}}' um zurückzugehen und Sender zu speichern."
 no_stations:
   other: "Keine Sender gefunden, versuchen Sie eine andere Suche!"
 
@@ -106,9 +106,9 @@ error_start_recording:
 
 # Error view
 error_recoverable:
-  other: "Drücken Sie Enter zum Wiederholen oder \"q\" zum Beenden."
+  other: "Drücken Sie Enter zum Wiederholen oder \"{{.QuitKey}}\" zum Beenden."
 error_quitting:
-  other: "Beenden in {{.Seconds}} Sekunden (oder drücken Sie \"q\" zum sofortigen Beenden)..."
+  other: "Beenden in {{.Seconds}} Sekunden (oder drücken Sie \"{{.QuitKey}}\" zum sofortigen Beenden)..."
 
 # Terminal too small
 terminal_too_small:
@@ -128,7 +128,7 @@ hidden_stations_title:
 no_hidden_stations:
   other: "Keine ausgeblendeten Sender"
 hidden_modal_help:
-  other: "Enter: Einblenden | Esc/H: Schließen"
+  other: "Enter: Einblenden | Esc/{{.ManageHiddenKey}}: Schließen"
 
 # Filter types
 filter_by_uuid:

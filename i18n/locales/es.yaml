@@ -4,7 +4,7 @@
 current_language:
   other: "ES"
 cmd_change_language:
-  other: "L: idioma"
+  other: "{{.Key}}: idioma"
 
 # Search view
 search_placeholder:
@@ -16,39 +16,39 @@ search_title:
 
 # Commands - Search
 cmd_quit:
-  other: "q: salir"
+  other: "{{.Key}}: salir"
 cmd_cycle_focus:
   other: "tab: cambiar foco"
 cmd_search:
-  other: "s: buscar"
+  other: "{{.Key}}: buscar"
 cmd_enter_search:
   other: "enter: buscar"
 cmd_bookmarks:
-  other: "B: favoritos"
+  other: "{{.Key}}: favoritos"
 cmd_change_filter:
   other: "↑/↓: cambiar filtro"
 
 # Commands - Stations
 cmd_back:
-  other: "B: volver"
+  other: "{{.Key}}: volver"
 cmd_enter_play:
   other: "enter: reproducir"
 cmd_move:
   other: "↑/↓: mover"
 cmd_record:
-  other: "r: grabar"
+  other: "{{.Key}}: grabar"
 cmd_stop_record:
-  other: "r: parar grab"
+  other: "{{.Key}}: parar grab"
 cmd_stop:
-  other: "ctrl+k: parar"
+  other: "{{.Key}}: parar"
 cmd_volume:
-  other: "9/0: vol"
+  other: "{{.VolumeDown}}/{{.VolumeUp}}: vol"
 cmd_bookmark:
-  other: "b: favorito"
+  other: "{{.Key}}: favorito"
 cmd_hide:
-  other: "h: ocultar"
+  other: "{{.Key}}: ocultar"
 cmd_manage_hidden:
-  other: "H: gestionar ocultas"
+  other: "{{.Key}}: gestionar ocultas"
 
 # Volume display
 volume_mute:
@@ -76,7 +76,7 @@ now_playing:
 select_station:
   other: "Selecciona una emisora y pulsa enter para reproducir"
 no_bookmarks:
-  other: "¡Aún no hay favoritos! Pulsa 'B' para volver y añadir emisoras a favoritos."
+  other: "¡Aún no hay favoritos! Pulsa '{{.BookmarksKey}}' para volver y añadir emisoras a favoritos."
 no_stations:
   other: "No se encontraron emisoras, ¡prueba otra búsqueda!"
 
@@ -106,9 +106,9 @@ error_start_recording:
 
 # Error view
 error_recoverable:
-  other: "Pulsa Enter para reintentar o \"q\" para salir."
+  other: "Pulsa Enter para reintentar o \"{{.QuitKey}}\" para salir."
 error_quitting:
-  other: "Saliendo en {{.Seconds}} segundos (o pulsa \"q\" para salir ahora)..."
+  other: "Saliendo en {{.Seconds}} segundos (o pulsa \"{{.QuitKey}}\" para salir ahora)..."
 
 # Terminal too small
 terminal_too_small:
@@ -128,7 +128,7 @@ hidden_stations_title:
 no_hidden_stations:
   other: "No hay emisoras ocultas"
 hidden_modal_help:
-  other: "Enter: mostrar | Esc/H: cerrar"
+  other: "Enter: mostrar | Esc/{{.ManageHiddenKey}}: cerrar"
 
 # Filter types
 filter_by_uuid:

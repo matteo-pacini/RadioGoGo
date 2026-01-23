@@ -43,6 +43,13 @@ func main() {
 		cfg = config.NewDefaultConfig()
 	}
 
+	// Validate keybindings
+	validatedKeybindings, warnings := cfg.Keybindings.Validate()
+	cfg.Keybindings = validatedKeybindings
+	for _, w := range warnings {
+		fmt.Fprintf(os.Stderr, "Warning: %s\n", w.String())
+	}
+
 	// Initialize i18n
 
 	if err := i18n.Init(cfg.Language); err != nil {
