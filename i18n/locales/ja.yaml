@@ -123,6 +123,12 @@ error_no_station_playing:
   other: "録音を開始できません：再生中の放送局がありません"
 error_start_recording:
   other: "録音の開始に失敗しました"
+error_bookmark_toggle:
+  other: "ブックマークの保存に失敗しました: {{.Error}}"
+error_hide_station:
+  other: "放送局の非表示に失敗しました: {{.Error}}"
+error_unhide_station:
+  other: "放送局の表示に失敗しました: {{.Error}}"
 
 # Error view
 error_recoverable:

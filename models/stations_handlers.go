@@ -174,6 +174,12 @@ func (m StationsModel) handleBookmarkMessages(msg tea.Msg) (bool, StationsModel,
 		return true, m, tea.Tick(3*time.Second, func(t time.Time) tea.Msg {
 			return clearNonFatalError{}
 		})
+
+	case bookmarkToggleFailedMsg:
+		m.err = i18n.Tf("error_bookmark_toggle", map[string]interface{}{"Error": msg.err})
+		return true, m, tea.Tick(3*time.Second, func(t time.Time) tea.Msg {
+			return clearNonFatalError{}
+		})
 	}
 	return false, m, nil
 }
@@ -211,6 +217,18 @@ func (m StationsModel) handleHiddenStationMessages(msg tea.Msg) (bool, StationsM
 
 	case hiddenFetchFailedMsg:
 		m.err = i18n.Tf("error_load_hidden", map[string]interface{}{"Error": msg.err})
+		return true, m, tea.Tick(3*time.Second, func(t time.Time) tea.Msg {
+			return clearNonFatalError{}
+		})
+
+	case hideStationFailedMsg:
+		m.err = i18n.Tf("error_hide_station", map[string]interface{}{"Error": msg.err})
+		return true, m, tea.Tick(3*time.Second, func(t time.Time) tea.Msg {
+			return clearNonFatalError{}
+		})
+
+	case unhideStationFailedMsg:
+		m.err = i18n.Tf("error_unhide_station", map[string]interface{}{"Error": msg.err})
 		return true, m, tea.Tick(3*time.Second, func(t time.Time) tea.Msg {
 			return clearNonFatalError{}
 		})
@@ -415,7 +433,10 @@ func (m StationsModel) handleBookmarksViewToggle() (bool, StationsModel, tea.Cmd
 
 	// Return from bookmarks to previous stations (or search if none saved)
 	if len(m.savedStations) > 0 {
-		m.playbackManager.StopStation()
+		if err := m.playbackManager.StopStation(); err != nil {
+			m.err = err.Error()
+			// Continue anyway - we're transitioning views
+		}
 		m.currentStation = common.Station{}
 		m.currentStationSpinner = spinner.Model{}
 

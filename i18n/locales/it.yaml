@@ -124,6 +124,12 @@ error_no_station_playing:
   other: "impossibile avviare la registrazione: nessuna stazione in riproduzione"
 error_start_recording:
   other: "avvio registrazione fallito"
+error_bookmark_toggle:
+  other: "Salvataggio preferito fallito: {{.Error}}"
+error_hide_station:
+  other: "Nascondere stazione fallito: {{.Error}}"
+error_unhide_station:
+  other: "Mostrare stazione fallito: {{.Error}}"
 
 # Error view
 error_recoverable:

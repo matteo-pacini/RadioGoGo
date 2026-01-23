@@ -124,6 +124,12 @@ error_no_station_playing:
   other: "não é possível iniciar a gravação: nenhuma estação está a reproduzir"
 error_start_recording:
   other: "falha ao iniciar a gravação"
+error_bookmark_toggle:
+  other: "Falha ao guardar favorito: {{.Error}}"
+error_hide_station:
+  other: "Falha ao ocultar estação: {{.Error}}"
+error_unhide_station:
+  other: "Falha ao mostrar estação: {{.Error}}"
 
 # Error view
 error_recoverable:

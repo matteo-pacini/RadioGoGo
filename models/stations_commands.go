@@ -107,6 +107,15 @@ type hiddenFetchFailedMsg struct {
 type stationUnhiddenMsg struct {
 	station common.Station
 }
+type bookmarkToggleFailedMsg struct {
+	err error
+}
+type hideStationFailedMsg struct {
+	err error
+}
+type unhideStationFailedMsg struct {
+	err error
+}
 type stationsRefetchedMsg struct {
 	stations []common.Station
 }
@@ -224,10 +233,14 @@ func stopRecordingCmd(pm playback.PlaybackManagerService) tea.Cmd {
 // toggleBookmarkCmd toggles the bookmark status of a station.
 func toggleBookmarkCmd(storage storage.StationStorageService, station common.Station) tea.Cmd {
 	return func() tea.Msg {
+		var err error
 		if storage.IsBookmarked(station.StationUuid) {
-			storage.RemoveBookmark(station.StationUuid)
+			err = storage.RemoveBookmark(station.StationUuid)
 		} else {
-			storage.AddBookmark(station.StationUuid)
+			err = storage.AddBookmark(station.StationUuid)
+		}
+		if err != nil {
+			return bookmarkToggleFailedMsg{err: err}
 		}
 		return bookmarkToggledMsg{station: station}
 	}
@@ -236,7 +249,10 @@ func toggleBookmarkCmd(storage storage.StationStorageService, station common.Sta
 // hideStationCmd hides a station from search results.
 func hideStationCmd(storage storage.StationStorageService, station common.Station, cursor int) tea.Cmd {
 	return func() tea.Msg {
-		storage.AddHidden(station.StationUuid)
+		err := storage.AddHidden(station.StationUuid)
+		if err != nil {
+			return hideStationFailedMsg{err: err}
+		}
 		return stationHiddenMsg{station: station, cursor: cursor}
 	}
 }
@@ -244,7 +260,10 @@ func hideStationCmd(storage storage.StationStorageService, station common.Statio
 // unhideStationCmd removes a station from the hidden list.
 func unhideStationCmd(storage storage.StationStorageService, station common.Station) tea.Cmd {
 	return func() tea.Msg {
-		storage.RemoveHidden(station.StationUuid)
+		err := storage.RemoveHidden(station.StationUuid)
+		if err != nil {
+			return unhideStationFailedMsg{err: err}
+		}
 		return stationUnhiddenMsg{station: station}
 	}
 }

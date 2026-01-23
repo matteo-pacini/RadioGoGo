@@ -124,6 +124,12 @@ error_no_station_playing:
   other: "δεν είναι δυνατή η έναρξη εγγραφής: δεν παίζει κανένας σταθμός"
 error_start_recording:
   other: "αποτυχία έναρξης εγγραφής"
+error_bookmark_toggle:
+  other: "Αποτυχία αποθήκευσης σελιδοδείκτη: {{.Error}}"
+error_hide_station:
+  other: "Αποτυχία απόκρυψης σταθμού: {{.Error}}"
+error_unhide_station:
+  other: "Αποτυχία εμφάνισης σταθμού: {{.Error}}"
 
 # Error view
 error_recoverable:
