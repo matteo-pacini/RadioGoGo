@@ -22,6 +22,7 @@ package models
 import (
 	"github.com/zi0p4tch0/radiogogo/api"
 	"github.com/zi0p4tch0/radiogogo/common"
+	"github.com/zi0p4tch0/radiogogo/i18n"
 
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
@@ -71,7 +72,7 @@ func (m LoadingModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m LoadingModel) View() string {
-	return "\n" + m.spinnerModel.View() + " Fetching radio stations..."
+	return "\n" + m.spinnerModel.View() + " " + i18n.T("loading")
 }
 
 // Commands

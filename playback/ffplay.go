@@ -1,12 +1,14 @@
 package playback
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
 	"runtime"
 
 	"github.com/zi0p4tch0/radiogogo/common"
+	"github.com/zi0p4tch0/radiogogo/i18n"
 )
 
 // FFPlayPlaybackManager represents a playback manager for FFPlay.
@@ -35,7 +37,7 @@ func (d FFPlayPlaybackManager) IsAvailable() bool {
 }
 
 func (d FFPlayPlaybackManager) NotAvailableErrorString() string {
-	return `RadioGoGo requires "ffplay" (part of "ffmpeg") to be installed and available in your PATH.`
+	return i18n.T("error_ffplay_required")
 }
 
 func (d *FFPlayPlaybackManager) PlayStation(station common.Station, volume int) error {
@@ -118,7 +120,7 @@ func (d FFPlayPlaybackManager) IsRecordingAvailable() bool {
 }
 
 func (d FFPlayPlaybackManager) RecordingNotAvailableErrorString() string {
-	return `Recording requires "ffmpeg" to be installed and available in your PATH.`
+	return i18n.T("error_ffmpeg_required")
 }
 
 func (d FFPlayPlaybackManager) IsRecording() bool {
@@ -127,7 +129,7 @@ func (d FFPlayPlaybackManager) IsRecording() bool {
 
 func (d *FFPlayPlaybackManager) StartRecording(outputPath string) error {
 	if !d.IsPlaying() {
-		return fmt.Errorf("cannot start recording: no station is playing")
+		return errors.New(i18n.T("error_no_station_playing"))
 	}
 
 	// Stop any existing recording first
@@ -145,7 +147,7 @@ func (d *FFPlayPlaybackManager) StartRecording(outputPath string) error {
 
 	err := cmd.Start()
 	if err != nil {
-		return fmt.Errorf("failed to start recording: %w", err)
+		return fmt.Errorf("%s: %w", i18n.T("error_start_recording"), err)
 	}
 
 	d.nowRecording = cmd

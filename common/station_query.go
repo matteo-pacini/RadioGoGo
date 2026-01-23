@@ -19,6 +19,8 @@
 
 package common
 
+import "github.com/zi0p4tch0/radiogogo/i18n"
+
 // StationQuery represents the type of query that can be performed on a radio station.
 type StationQuery string
 
@@ -44,130 +46,65 @@ const (
 func (m StationQuery) Render() string {
 	switch m {
 	case StationQueryByUuid:
-		return "By UUID"
+		return i18n.T("filter_by_uuid")
 	case StationQueryByName:
-		return "By Name"
+		return i18n.T("filter_by_name")
 	case StationQueryByNameExact:
-		return "By Exact Name"
+		return i18n.T("filter_by_name_exact")
 	case StationQueryByCodec:
-		return "By Codec"
+		return i18n.T("filter_by_codec")
 	case StationQueryByCodecExact:
-		return "By Exact Codec"
+		return i18n.T("filter_by_codec_exact")
 	case StationQueryByCountry:
-		return "By Country"
+		return i18n.T("filter_by_country")
 	case StationQueryByCountryExact:
-		return "By Exact Country"
+		return i18n.T("filter_by_country_exact")
 	case StationQueryByCountryCodeExact:
-		return "By Exact Country Code"
+		return i18n.T("filter_by_country_code_exact")
 	case StationQueryByState:
-		return "By State"
+		return i18n.T("filter_by_state")
 	case StationQueryByStateExact:
-		return "By Exact State"
+		return i18n.T("filter_by_state_exact")
 	case StationQueryByLanguage:
-		return "By Language"
+		return i18n.T("filter_by_language")
 	case StationQueryByLanguageExact:
-		return "By Exact Language"
+		return i18n.T("filter_by_language_exact")
 	case StationQueryByTag:
-		return "By Tag"
+		return i18n.T("filter_by_tag")
 	case StationQueryByTagExact:
-		return "By Exact Tag"
+		return i18n.T("filter_by_tag_exact")
 	}
-	return "None"
+	return i18n.T("filter_none")
 }
 
 func (m StationQuery) ExampleString() string {
 	switch m {
 	case StationQueryByName:
-		return `
-Examples:
-- "BBC Radio" matches stations with "BBC Radio" in their name.
-- "Italia" matches stations with "Italia" in their name.
-- "Romance" matches stations with "Romance" in their name.
-`
+		return i18n.T("filter_example_by_name")
 	case StationQueryByNameExact:
-		return `
-Examples:
-- "BBC Radio 1" matches stations with "BBC Radio 1" as their name.
-- "Radio Italia" matches stations with "Radio Italia" as their name.
-- "Radio Romance" matches stations with "Radio Romance" as their name.
-`
+		return i18n.T("filter_example_by_name_exact")
 	case StationQueryByCodec:
-		return `
-Examples:
-- "mp3" matches stations with "mp3" in their codec.
-- "aac" matches stations with "aac" in their codec.
-- "ogg" matches stations with "ogg" in their codec.
-`
+		return i18n.T("filter_example_by_codec")
 	case StationQueryByCodecExact:
-		return `
-Examples:
-- "mp3" matches stations with "mp3" as their codec.
-- "aac" matches stations with "aac" as their codec.
-- "ogg" matches stations with "ogg" as their codec.
-`
+		return i18n.T("filter_example_by_codec_exact")
 	case StationQueryByCountry:
-		return `
-Examples:
-- "Italy" matches stations with "Italy" in their country name.
-- "United" matches stations with "United" in their country name.
-- "Republic" matches stations with "Republic" in their country name.
-`
+		return i18n.T("filter_example_by_country")
 	case StationQueryByCountryExact:
-		return `
-Examples:
-- "Italy" matches stations with "Italy" as their country.
-- "Spain" matches stations with "Spain" as their country.
-- "Ireland" matches stations with "Ireland" as their country.
-`
+		return i18n.T("filter_example_by_country_exact")
 	case StationQueryByCountryCodeExact:
-		return `
-Examples:
-- "IT" matches stations with "IT" as their country code.
-- "US" matches stations with "US" as their country code.
-- "GB" matches stations with "GB" as their country code.
-`
+		return i18n.T("filter_example_by_country_code_exact")
 	case StationQueryByState:
-		return `
-Examples:
-- "Lombardy" matches stations with "Lombardy" in their state.
-- "California" matches stations with "California" in their state.
-- "New York" matches stations with "New York" in their state.
-`
+		return i18n.T("filter_example_by_state")
 	case StationQueryByStateExact:
-		return `
-Examples:
-- "Lombardy" matches stations with "Lombardy" as their state.
-- "California" matches stations with "California" as their state.
-- "New York" matches stations with "New York" as their state.
-`
+		return i18n.T("filter_example_by_state_exact")
 	case StationQueryByLanguage:
-		return `
-Examples (lowercase required):
-- "italian" matches stations with "italian" in their language.
-- "english" matches stations with "english" in their language.
-- "spanish" matches stations with "spanish" in their language.
-`
+		return i18n.T("filter_example_by_language")
 	case StationQueryByLanguageExact:
-		return `
-Examples (lowercase required):
-- "italian" matches stations with "italian" as their language.
-- "english" matches stations with "english" as their language.
-- "spanish" matches stations with "spanish" as their language.
-`
+		return i18n.T("filter_example_by_language_exact")
 	case StationQueryByTag:
-		return `
-Examples:
-- "rock" matches stations with "rock" in their tags.
-- "jazz" matches stations with "jazz" in their tags.
-- "pop" matches stations with "pop" in their tags.
-`
+		return i18n.T("filter_example_by_tag")
 	case StationQueryByTagExact:
-		return `
-Examples:
-- "rock" matches stations with "rock" as one of their tags.
-- "jazz" matches stations with "jazz" as one of their tags.
-- "pop" matches stations with "pop" as one of their tags.
-`
+		return i18n.T("filter_example_by_tag_exact")
 	}
 	return ""
 }

@@ -31,11 +31,10 @@
 package models
 
 import (
-	"fmt"
-
 	"github.com/zi0p4tch0/radiogogo/api"
 	"github.com/zi0p4tch0/radiogogo/common"
 	"github.com/zi0p4tch0/radiogogo/config"
+	"github.com/zi0p4tch0/radiogogo/i18n"
 	"github.com/zi0p4tch0/radiogogo/playback"
 	"github.com/zi0p4tch0/radiogogo/storage"
 
@@ -87,6 +86,11 @@ type bottomBarUpdateMsg struct {
 	secondaryCommands []string
 }
 
+// Language change message
+type languageChangedMsg struct {
+	lang string
+}
+
 // Quit message
 
 type quitMsg struct{}
@@ -113,6 +117,9 @@ func checkIfPlaybackIsPossibleCmd(playbackManager playback.PlaybackManagerServic
 // It manages state transitions between search, loading, stations, and error views,
 // and handles global messages like window resize and quit events.
 type Model struct {
+
+	// Config
+	config config.Config
 
 	// Theme
 	theme Theme
@@ -160,15 +167,16 @@ func NewDefaultModel(config config.Config) (Model, error) {
 // NewModel creates a new Model with the provided dependencies. This constructor
 // is preferred for testing as it allows injecting mock implementations.
 func NewModel(
-	config config.Config,
+	cfg config.Config,
 	browser api.RadioBrowserService,
 	playbackManager playback.PlaybackManagerService,
 	storage storage.StationStorageService,
 ) Model {
 
-	theme := NewTheme(config)
+	theme := NewTheme(cfg)
 
 	return Model{
+		config:          cfg,
 		theme:           theme,
 		headerModel:     NewHeaderModel(theme, playbackManager),
 		state:           bootState,
@@ -241,6 +249,18 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.bottomBarCommands = msg.commands
 		m.bottomBarSecondaryCommands = msg.secondaryCommands
 		return m, nil
+	case languageChangedMsg:
+		// Update config and save
+		m.config.Language = msg.lang
+		_ = m.config.Save(config.ConfigFile())
+
+		// Switch i18n language
+		_ = i18n.SetLanguage(msg.lang)
+
+		// Recreate search model to refresh all strings
+		m.searchModel = NewSearchModel(m.theme, m.browser, m.storage)
+		m.searchModel.SetWidthAndHeight(m.width, m.height-2)
+		return m, m.searchModel.Init()
 	}
 
 	// State transitions
@@ -320,12 +340,9 @@ func (m Model) View() string {
 
 	// Handle terminal too small state separately
 	if m.state == terminalTooSmallState {
-		message := fmt.Sprintf(
-			"%s\n\nMinimum size: %dx%d\nCurrent size: %dx%d",
-			m.theme.ErrorText.Bold(true).Render("Terminal too small!"),
-			minTerminalWidth, minTerminalHeight,
-			m.width, m.height,
-		)
+		message := m.theme.ErrorText.Bold(true).Render(i18n.T("terminal_too_small")) + "\n\n" +
+			i18n.Tf("terminal_min_size", map[string]interface{}{"MinWidth": minTerminalWidth, "MinHeight": minTerminalHeight}) + "\n" +
+			i18n.Tf("terminal_current_size", map[string]interface{}{"Width": m.width, "Height": m.height})
 
 		return lipgloss.Place(
 			m.width, m.height,
@@ -342,7 +359,7 @@ func (m Model) View() string {
 
 	switch m.state {
 	case bootState:
-		currentView = "\nInitializing..."
+		currentView = "\n" + i18n.T("initializing")
 	case searchState:
 		currentView = m.searchModel.View()
 	case loadingState:

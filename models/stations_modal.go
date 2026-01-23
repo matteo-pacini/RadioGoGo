@@ -20,6 +20,8 @@
 package models
 
 import (
+	"github.com/zi0p4tch0/radiogogo/i18n"
+
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -67,10 +69,10 @@ func (m *StationsModel) handleHiddenModalInput(msg tea.KeyMsg) (bool, tea.Cmd) {
 // The modal is centered on the screen and displays the list of hidden stations
 // with navigation controls.
 func (m StationsModel) renderWithModal(baseView string) string {
-	modalContent := m.theme.SecondaryText.Bold(true).Render("Hidden Stations") + "\n\n"
+	modalContent := m.theme.SecondaryText.Bold(true).Render(i18n.T("hidden_stations_title")) + "\n\n"
 
 	if len(m.hiddenStations) == 0 {
-		modalContent += m.theme.TertiaryText.Render("No hidden stations")
+		modalContent += m.theme.TertiaryText.Render(i18n.T("no_hidden_stations"))
 	} else {
 		for i, station := range m.hiddenStations {
 			cursor := "  "
@@ -85,7 +87,7 @@ func (m StationsModel) renderWithModal(baseView string) string {
 			modalContent += cursor + name + "\n"
 		}
 	}
-	modalContent += "\n" + m.theme.TertiaryText.Render("Enter: unhide | Esc/H: close")
+	modalContent += "\n" + m.theme.TertiaryText.Render(i18n.T("hidden_modal_help"))
 
 	modalStyle := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).

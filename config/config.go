@@ -27,7 +27,8 @@ import (
 )
 
 type Config struct {
-	Theme struct {
+	Language string `yaml:"language"`
+	Theme    struct {
 		TextColor      string `yaml:"textColor"`
 		PrimaryColor   string `yaml:"primaryColor"`
 		SecondaryColor string `yaml:"secondaryColor"`
@@ -39,6 +40,7 @@ type Config struct {
 // NewDefaultConfig returns a Config struct with default values for RadioGoGo.
 func NewDefaultConfig() Config {
 	return Config{
+		Language: "en",
 		Theme: struct {
 			TextColor      string `yaml:"textColor"`
 			PrimaryColor   string `yaml:"primaryColor"`

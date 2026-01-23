@@ -76,7 +76,7 @@ func TestSearchModel_Init(t *testing.T) {
 
 		assert.True(t, found)
 
-		expectedCommands := []string{"q: quit", "tab: cycle focus", "enter: search", "B: bookmarks"}
+		expectedCommands := []string{"q: quit", "tab: cycle focus", "enter: search", "B: bookmarks", "L: language", "EN"}
 
 		assert.Equal(t, expectedCommands, commands)
 
@@ -181,7 +181,7 @@ func TestSearchModel_Update(t *testing.T) {
 
 }
 func TestUpdateCommandsForTextfieldFocus(t *testing.T) {
-	expectedCommands := []string{"q: quit", "tab: cycle focus", "enter: search", "B: bookmarks"}
+	expectedCommands := []string{"q: quit", "tab: cycle focus", "enter: search", "B: bookmarks", "L: language", "EN"}
 
 	msg := updateCommandsForTextfieldFocus()
 
@@ -192,7 +192,7 @@ func TestUpdateCommandsForTextfieldFocus(t *testing.T) {
 }
 
 func TestUpdateCommandsForSelectorFocus(t *testing.T) {
-	expectedCommands := []string{"q: quit", "tab: cycle focus", "↑/↓: change filter", "B: bookmarks"}
+	expectedCommands := []string{"q: quit", "tab: cycle focus", "↑/↓: change filter", "B: bookmarks", "L: language", "EN"}
 
 	msg := updateCommandsForSelectorFocus()
 

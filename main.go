@@ -24,6 +24,7 @@ import (
 	"os"
 
 	"github.com/zi0p4tch0/radiogogo/config"
+	"github.com/zi0p4tch0/radiogogo/i18n"
 	"github.com/zi0p4tch0/radiogogo/models"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -40,6 +41,13 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Error loading config: %v\n", err)
 		fmt.Fprintf(os.Stderr, "Using default config\n")
 		cfg = config.NewDefaultConfig()
+	}
+
+	// Initialize i18n
+
+	if err := i18n.Init(cfg.Language); err != nil {
+		fmt.Fprintf(os.Stderr, "Error initializing i18n: %v\n", err)
+		os.Exit(1)
 	}
 
 	// Create model

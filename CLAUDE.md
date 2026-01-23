@@ -76,6 +76,9 @@ RadioGoGo is a **state machine TUI application** with these states:
 - **`playback/`** - Audio playback via FFplay and recording via FFmpeg
 - **`storage/`** - Persistent storage for bookmarks and hidden stations
 - **`data/`** - Version information and user agent string
+- **`i18n/`** - Internationalization support using go-i18n:
+  - `i18n.go` - Core functions: T(), Tf(), Tn(), SetLanguage()
+  - `locales/*.yaml` - Translation files (en.yaml, it.yaml)
 - **`mocks/`** - Test mocks for interfaces
 
 ### Key Patterns
@@ -105,6 +108,18 @@ RadioGoGo is a **state machine TUI application** with these states:
 - YAML-based with platform-aware paths:
   - Windows: `%LOCALAPPDATA%\radiogogo\config.yaml`
   - Others: `~/.config/radiogogo/config.yaml`
+- `language` field controls UI language (default: "en", available: "en", "it")
+
+**Internationalization (i18n):**
+- All user-facing strings use `i18n.T("message_id")` or `i18n.Tf()` for templates
+- Locale files in `i18n/locales/*.yaml` using go-i18n format
+- Language persisted in config, switchable at runtime with "L" key on search screen
+- To add a language: create `i18n/locales/XX.yaml`, app auto-discovers it
+
+**Version Handling:**
+- Version defined as `var` in `data/version.go` for ldflags injection
+- Local builds show "dev", release builds show actual version
+- Release script injects version: `-ldflags="-s -w -X github.com/zi0p4tch0/radiogogo/data.Version=$1"`
 
 ### Key Dependencies
 
@@ -114,6 +129,7 @@ RadioGoGo is a **state machine TUI application** with these states:
 - `gopkg.in/yaml.v3` - YAML config parsing
 - `github.com/stretchr/testify` - Testing assertions
 - `github.com/google/uuid` - UUID handling for station IDs
+- `github.com/nicksnyder/go-i18n/v2` - Internationalization and pluralization
 
 ## Testing
 

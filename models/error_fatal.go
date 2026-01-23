@@ -20,8 +20,9 @@
 package models
 
 import (
-	"fmt"
 	"time"
+
+	"github.com/zi0p4tch0/radiogogo/i18n"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -98,9 +99,9 @@ func (m ErrorModel) View() string {
 
 	var message string
 	if m.recoverable {
-		message = fmt.Sprintf("%s\n\nPress Enter to try again or \"q\" to quit.", m.message)
+		message = m.message + "\n\n" + i18n.T("error_recoverable")
 	} else {
-		message = fmt.Sprintf("%s\n\nQuitting in %d seconds (or press \"q\" to exit now)...", m.message, quitTicks-m.tickCount)
+		message = m.message + "\n\n" + i18n.Tf("error_quitting", map[string]interface{}{"Seconds": quitTicks - m.tickCount})
 	}
 
 	return "\n" + m.theme.ErrorText.Render(message) + "\n\n"

@@ -26,6 +26,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/zi0p4tch0/radiogogo/api"
 	"github.com/zi0p4tch0/radiogogo/common"
+	"github.com/zi0p4tch0/radiogogo/i18n"
 	"github.com/zi0p4tch0/radiogogo/playback"
 	"github.com/zi0p4tch0/radiogogo/storage"
 
@@ -127,11 +128,11 @@ func newStationsTableModel(theme Theme, stations []common.Station, storage stora
 
 	t := table.New(
 		table.WithColumns([]table.Column{
-			{Title: "Name", Width: 30},
-			{Title: "Country", Width: 10},
-			{Title: "Language(s)", Width: 15},
-			{Title: "Codec(s)", Width: 15},
-			{Title: "Votes", Width: 10},
+			{Title: i18n.T("header_name"), Width: 30},
+			{Title: i18n.T("header_country"), Width: 10},
+			{Title: i18n.T("header_languages"), Width: 15},
+			{Title: i18n.T("header_codecs"), Width: 15},
+			{Title: i18n.T("header_votes"), Width: 10},
 		}),
 		table.WithRows(rows),
 		table.WithFocused(true),
@@ -215,7 +216,7 @@ func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.currentStation = msg.station
 		return m, func() tea.Msg { return playbackStatusMsg{status: PlaybackPlaying} }
 	case volumeRestartFailedMsg:
-		m.err = fmt.Sprintf("Volume change failed: %v", msg.err)
+		m.err = i18n.Tf("error_volume_change", map[string]interface{}{"Error": msg.err})
 		return m, tea.Tick(3*time.Second, func(t time.Time) tea.Msg {
 			return clearNonFatalError{}
 		})
@@ -232,7 +233,7 @@ func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			func() tea.Msg { return recordingStatusMsg{isRecording: false} },
 		)
 	case recordingErrorMsg:
-		m.err = fmt.Sprintf("Recording error: %v", msg.err)
+		m.err = i18n.Tf("error_recording", map[string]interface{}{"Error": msg.err})
 		return m, tea.Tick(3*time.Second, func(t time.Time) tea.Msg {
 			return clearNonFatalError{}
 		})
@@ -302,7 +303,7 @@ func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			},
 		)
 	case bookmarksFetchFailedMsg:
-		m.err = fmt.Sprintf("Failed to load bookmarks: %v", msg.err)
+		m.err = i18n.Tf("error_load_bookmarks", map[string]interface{}{"Error": msg.err})
 		return m, tea.Tick(3*time.Second, func(t time.Time) tea.Msg {
 			return clearNonFatalError{}
 		})
@@ -312,7 +313,7 @@ func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.showHiddenModal = true
 		return m, nil
 	case hiddenFetchFailedMsg:
-		m.err = fmt.Sprintf("Failed to load hidden stations: %v", msg.err)
+		m.err = i18n.Tf("error_load_hidden", map[string]interface{}{"Error": msg.err})
 		return m, tea.Tick(3*time.Second, func(t time.Time) tea.Msg {
 			return clearNonFatalError{}
 		})
@@ -357,7 +358,7 @@ func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 	case stationsRefetchFailedMsg:
-		m.err = fmt.Sprintf("Failed to refresh stations: %v", msg.err)
+		m.err = i18n.Tf("error_refresh_stations", map[string]interface{}{"Error": msg.err})
 		return m, tea.Tick(3*time.Second, func(t time.Time) tea.Msg {
 			return clearNonFatalError{}
 		})
@@ -551,9 +552,9 @@ func (m StationsModel) View() string {
 	if len(m.stations) == 0 {
 		var emptyMsg string
 		if m.viewMode == viewModeBookmarks {
-			emptyMsg = "No bookmarks yet! Press 'B' to go back and bookmark some stations."
+			emptyMsg = i18n.T("no_bookmarks")
 		} else {
-			emptyMsg = "No stations found, try another search!"
+			emptyMsg = i18n.T("no_stations")
 		}
 		v = fmt.Sprintf(
 			"\n%s\n",
@@ -567,10 +568,10 @@ func (m StationsModel) View() string {
 	var statusBar string
 	if m.currentStation.StationUuid != uuid.Nil {
 		statusBar = m.currentStationSpinner.View() + " " +
-			m.theme.SecondaryText.Bold(true).Render("Now playing: "+m.currentStation.Name) +
+			m.theme.SecondaryText.Bold(true).Render(i18n.Tf("now_playing", map[string]interface{}{"Name": m.currentStation.Name})) +
 			" " + m.currentStationSpinner.View()
 	} else {
-		statusBar = m.theme.TertiaryText.Render("Select a station and press enter to play")
+		statusBar = m.theme.TertiaryText.Render(i18n.T("select_station"))
 	}
 	v += "\n" + statusBar
 

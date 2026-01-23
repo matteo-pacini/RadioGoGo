@@ -25,6 +25,7 @@ import (
 
 	"github.com/zi0p4tch0/radiogogo/api"
 	"github.com/zi0p4tch0/radiogogo/common"
+	"github.com/zi0p4tch0/radiogogo/i18n"
 	"github.com/zi0p4tch0/radiogogo/storage"
 
 	"github.com/charmbracelet/bubbles/textinput"
@@ -43,7 +44,7 @@ type SearchModel struct {
 
 func NewSearchModel(theme Theme, browser api.RadioBrowserService, storage storage.StationStorageService) SearchModel {
 	i := textinput.New()
-	i.Placeholder = "Name"
+	i.Placeholder = i18n.T("search_placeholder")
 	i.Width = 30
 	i.TextStyle = theme.Text
 	i.PlaceholderStyle = theme.TertiaryText
@@ -51,7 +52,7 @@ func NewSearchModel(theme Theme, browser api.RadioBrowserService, storage storag
 
 	selector := NewSelectorModel[common.StationQuery](
 		theme,
-		"Filter:",
+		i18n.T("filter_label"),
 		[]common.StationQuery{
 			common.StationQueryByName,
 			common.StationQueryByNameExact,
@@ -84,14 +85,41 @@ func NewSearchModel(theme Theme, browser api.RadioBrowserService, storage storag
 
 func updateCommandsForTextfieldFocus() tea.Msg {
 	return bottomBarUpdateMsg{
-		commands: []string{"q: quit", "tab: cycle focus", "enter: search", "B: bookmarks"},
+		commands: []string{
+			i18n.T("cmd_quit"),
+			i18n.T("cmd_cycle_focus"),
+			i18n.T("cmd_enter_search"),
+			i18n.T("cmd_bookmarks"),
+			i18n.T("cmd_change_language"),
+			i18n.T("current_language"),
+		},
 	}
 }
 
 func updateCommandsForSelectorFocus() tea.Msg {
 	return bottomBarUpdateMsg{
-		commands: []string{"q: quit", "tab: cycle focus", "↑/↓: change filter", "B: bookmarks"},
+		commands: []string{
+			i18n.T("cmd_quit"),
+			i18n.T("cmd_cycle_focus"),
+			i18n.T("cmd_change_filter"),
+			i18n.T("cmd_bookmarks"),
+			i18n.T("cmd_change_language"),
+			i18n.T("current_language"),
+		},
 	}
+}
+
+// getNextLanguage returns the next language in the available languages cycle.
+func getNextLanguage() string {
+	langs := i18n.AvailableLanguages()
+	current := i18n.CurrentLanguage()
+
+	for idx, lang := range langs {
+		if lang == current {
+			return langs[(idx+1)%len(langs)]
+		}
+	}
+	return langs[0]
 }
 
 // Bubbletea
@@ -121,6 +149,11 @@ func (m SearchModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		case "B":
 			return m, fetchBookmarksForSearchCmd(m.browser, m.storage)
+		case "L":
+			nextLang := getNextLanguage()
+			return m, func() tea.Msg {
+				return languageChangedMsg{lang: nextLang}
+			}
 		case "enter":
 			if !m.inputModel.Focused() {
 				return m, nil
@@ -158,7 +191,7 @@ func (m SearchModel) View() string {
 	searchType = strings.ToLower(searchType)
 
 	v := fmt.Sprintf("\n%s\n\n%s\n\n%s\n%s\n",
-		m.theme.SecondaryText.Render(fmt.Sprint("Search radio ", searchType)),
+		m.theme.SecondaryText.Render(i18n.Tf("search_title", map[string]interface{}{"Type": searchType})),
 		m.inputModel.View(),
 		m.querySelector.View(),
 		m.theme.TertiaryText.Render(m.querySelector.Selection().ExampleString()),

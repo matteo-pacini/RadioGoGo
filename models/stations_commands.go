@@ -20,11 +20,11 @@
 package models
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/zi0p4tch0/radiogogo/api"
 	"github.com/zi0p4tch0/radiogogo/common"
+	"github.com/zi0p4tch0/radiogogo/i18n"
 	"github.com/zi0p4tch0/radiogogo/playback"
 	"github.com/zi0p4tch0/radiogogo/storage"
 
@@ -310,38 +310,39 @@ func updateCommandsCmd(viewMode stationsViewMode, isPlaying bool, volume int, vo
 		// Row 1: Navigation and playback
 		var commands []string
 		if viewMode == viewModeSearchResults {
-			commands = []string{"q: quit", "s: search", "enter: play", "↑/↓: move"}
+			commands = []string{i18n.T("cmd_quit"), i18n.T("cmd_search"), i18n.T("cmd_enter_play"), i18n.T("cmd_move")}
 		} else {
-			commands = []string{"q: quit", "B: back", "enter: play", "↑/↓: move"}
+			commands = []string{i18n.T("cmd_quit"), i18n.T("cmd_back"), i18n.T("cmd_enter_play"), i18n.T("cmd_move")}
 		}
 
 		var volumeDisplay string
 		if volume == 0 {
-			volumeDisplay = "mute"
+			volumeDisplay = i18n.T("volume_mute")
 		} else {
-			volumeDisplay = fmt.Sprintf("vol: %d", volume)
 			if volumeIsPercentage {
-				volumeDisplay += "%"
+				volumeDisplay = i18n.Tf("volume_display_percent", map[string]interface{}{"Volume": volume})
+			} else {
+				volumeDisplay = i18n.Tf("volume_display", map[string]interface{}{"Volume": volume})
 			}
 		}
 
 		if isPlaying {
 			if isRecording {
-				commands = append(commands, "r: stop rec", "ctrl+k: stop", "9/0: vol", volumeDisplay)
+				commands = append(commands, i18n.T("cmd_stop_record"), i18n.T("cmd_stop"), i18n.T("cmd_volume"), volumeDisplay)
 			} else {
-				commands = append(commands, "r: record", "ctrl+k: stop", "9/0: vol", volumeDisplay)
+				commands = append(commands, i18n.T("cmd_record"), i18n.T("cmd_stop"), i18n.T("cmd_volume"), volumeDisplay)
 			}
 		} else {
-			commands = append(commands, "9/0: vol", volumeDisplay)
+			commands = append(commands, i18n.T("cmd_volume"), volumeDisplay)
 		}
 
 		// Row 2: Bookmark/hide commands
 		var secondaryCommands []string
 		if viewMode == viewModeSearchResults {
-			secondaryCommands = []string{"b: bookmark", "B: bookmarks", "h: hide", "H: manage hidden"}
+			secondaryCommands = []string{i18n.T("cmd_bookmark"), i18n.T("cmd_bookmarks"), i18n.T("cmd_hide"), i18n.T("cmd_manage_hidden")}
 		} else {
 			// "B: back" is already in primary row, no hide commands in bookmarks mode
-			secondaryCommands = []string{"b: bookmark"}
+			secondaryCommands = []string{i18n.T("cmd_bookmark")}
 		}
 
 		return bottomBarUpdateMsg{
