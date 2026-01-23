@@ -124,6 +124,12 @@ error_no_station_playing:
   other: "Aufnahme kann nicht gestartet werden: kein Sender wird abgespielt"
 error_start_recording:
   other: "Aufnahme konnte nicht gestartet werden"
+error_bookmark_toggle:
+  other: "Lesezeichen konnte nicht gespeichert werden: {{.Error}}"
+error_hide_station:
+  other: "Sender konnte nicht ausgeblendet werden: {{.Error}}"
+error_unhide_station:
+  other: "Sender konnte nicht eingeblendet werden: {{.Error}}"
 
 # Error view
 error_recoverable:

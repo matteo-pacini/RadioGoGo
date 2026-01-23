@@ -123,6 +123,12 @@ error_no_station_playing:
   other: "无法开始录制：没有正在播放的电台"
 error_start_recording:
   other: "启动录制失败"
+error_bookmark_toggle:
+  other: "保存收藏失败: {{.Error}}"
+error_hide_station:
+  other: "隐藏电台失败: {{.Error}}"
+error_unhide_station:
+  other: "显示电台失败: {{.Error}}"
 
 # Error view
 error_recoverable:

@@ -125,6 +125,12 @@ error_no_station_playing:
   other: "невозможно начать запись: нет воспроизводимой станции"
 error_start_recording:
   other: "не удалось начать запись"
+error_bookmark_toggle:
+  other: "Не удалось сохранить закладку: {{.Error}}"
+error_hide_station:
+  other: "Не удалось скрыть станцию: {{.Error}}"
+error_unhide_station:
+  other: "Не удалось показать станцию: {{.Error}}"
 
 # Error view
 error_recoverable:

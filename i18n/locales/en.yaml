@@ -124,6 +124,12 @@ error_no_station_playing:
   other: "cannot start recording: no station is playing"
 error_start_recording:
   other: "failed to start recording"
+error_bookmark_toggle:
+  other: "Failed to save bookmark: {{.Error}}"
+error_hide_station:
+  other: "Failed to hide station: {{.Error}}"
+error_unhide_station:
+  other: "Failed to unhide station: {{.Error}}"
 
 # Error view
 error_recoverable:
