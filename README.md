@@ -126,6 +126,34 @@ Make sure `$(go env GOPATH)/bin` is in your PATH.
 
 Download the binary for your platform from the [Releases](https://github.com/zi0p4tch0/radiogogo/releases) page.
 
+### Available Platforms
+
+| OS | Architecture | Filename | Notes |
+|----|--------------|----------|-------|
+| **macOS** | Apple Silicon (M1/M2/M3) | `darwin_arm64.zip` | |
+| | Intel | `darwin_amd64.zip` | |
+| **Linux** | x86 64-bit | `linux_amd64.zip` | Most desktops/servers |
+| | x86 32-bit | `linux_386.zip` | Legacy systems |
+| | ARM64 | `linux_arm64.zip` | Pi 3/4/5 (64-bit OS), modern ARM servers |
+| | ARMv7 | `linux_armv7.zip` | Pi 2/3/4 (32-bit OS) |
+| | ARMv6 | `linux_armv6.zip` | Pi 1, Pi Zero, Pi Zero W |
+| **Windows** | x64 | `windows_amd64.zip` | |
+| | x86 | `windows_386.zip` | |
+| | ARM64 | `windows_arm64.zip` | Windows on ARM |
+| | ARM | `windows_arm.zip` | |
+| **FreeBSD** | x64 | `freebsd_amd64.zip` | |
+| | x86 | `freebsd_386.zip` | |
+| | ARM64 | `freebsd_arm64.zip` | |
+| | ARM | `freebsd_arm.zip` | |
+| **OpenBSD** | x64 | `openbsd_amd64.zip` | |
+| | x86 | `openbsd_386.zip` | |
+| | ARM64 | `openbsd_arm64.zip` | |
+| | ARM | `openbsd_arm.zip` | |
+| **NetBSD** | x64 | `netbsd_amd64.zip` | |
+| | x86 | `netbsd_386.zip` | |
+| | ARM64 | `netbsd_arm64.zip` | |
+| | ARM | `netbsd_arm.zip` | |
+
 ## Configuration
 
 Config file location:
