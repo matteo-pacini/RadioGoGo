@@ -6,6 +6,16 @@ current_language:
 cmd_change_language:
   other: "{{.Key}}: 语言"
 
+# Vote
+cmd_vote:
+  other: "{{.Key}}: 投票"
+vote_success:
+  other: "投票成功！"
+error_vote:
+  other: "{{.Error}}"
+error_vote_cooldown:
+  other: "请等待{{.Minutes}}分钟后再投票。"
+
 # Search view
 search_placeholder:
   other: "名称"
@@ -57,6 +67,12 @@ volume_display:
   other: "音量: {{.Volume}}"
 volume_display_percent:
   other: "音量: {{.Volume}}%"
+
+# Header indicators
+header_play:
+  other: "播放"
+header_recording:
+  other: "录制"
 
 # Table headers
 header_name:

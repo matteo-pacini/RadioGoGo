@@ -33,16 +33,18 @@ import (
 )
 
 const (
-	currentSchemaVersion = 1
+	currentSchemaVersion = 3
 	databaseFileName     = "radiogogo.db"
 )
 
 // SQLiteStorage implements StationStorageService using SQLite.
 type SQLiteStorage struct {
-	mu        sync.RWMutex
-	db        *sql.DB
-	bookmarks map[uuid.UUID]bool
-	hidden    map[uuid.UUID]bool
+	mu           sync.RWMutex
+	db           *sql.DB
+	bookmarks    map[uuid.UUID]bool
+	hidden       map[uuid.UUID]bool
+	lastVoteTime time.Time
+	hasLastVote  bool
 }
 
 // NewSQLiteStorage creates a new SQLiteStorage instance.
@@ -115,29 +117,82 @@ func (s *SQLiteStorage) recoverCorruptedDatabase(dbPath string) error {
 	return os.Rename(dbPath, backupPath)
 }
 
-// initSchema creates the database tables if they don't exist.
+// initSchema creates the database tables if they don't exist and runs migrations.
 func (s *SQLiteStorage) initSchema() error {
+	// Create schema_version table if it doesn't exist
 	_, err := s.db.Exec(`
 		CREATE TABLE IF NOT EXISTS schema_version (
 			version INTEGER PRIMARY KEY
 		);
+	`)
+	if err != nil {
+		return err
+	}
 
-		CREATE TABLE IF NOT EXISTS bookmarks (
-			station_uuid TEXT PRIMARY KEY,
-			created_at TEXT DEFAULT CURRENT_TIMESTAMP
-		);
+	// Check current schema version
+	var version int
+	err = s.db.QueryRow("SELECT version FROM schema_version LIMIT 1").Scan(&version)
+	if err == sql.ErrNoRows {
+		// Fresh install - create all tables at current version
+		_, err = s.db.Exec(`
+			CREATE TABLE IF NOT EXISTS bookmarks (
+				station_uuid TEXT PRIMARY KEY,
+				created_at TEXT DEFAULT CURRENT_TIMESTAMP
+			);
 
-		CREATE TABLE IF NOT EXISTS hidden (
-			station_uuid TEXT PRIMARY KEY,
-			created_at TEXT DEFAULT CURRENT_TIMESTAMP
-		);
+			CREATE TABLE IF NOT EXISTS hidden (
+				station_uuid TEXT PRIMARY KEY,
+				created_at TEXT DEFAULT CURRENT_TIMESTAMP
+			);
 
-		INSERT OR IGNORE INTO schema_version (version) VALUES (?);
-	`, currentSchemaVersion)
-	return err
+			CREATE TABLE IF NOT EXISTS last_vote (
+				id INTEGER PRIMARY KEY CHECK (id = 1),
+				voted_at TEXT NOT NULL
+			);
+
+			INSERT INTO schema_version (version) VALUES (?);
+		`, currentSchemaVersion)
+		return err
+	}
+	if err != nil {
+		return err
+	}
+
+	// Run migrations if needed
+	if version < 2 {
+		// Migration from v1 to v2: add votes table (legacy per-station)
+		_, err = s.db.Exec(`
+			CREATE TABLE IF NOT EXISTS votes (
+				station_uuid TEXT PRIMARY KEY,
+				voted_at TEXT NOT NULL
+			);
+			UPDATE schema_version SET version = 2;
+		`)
+		if err != nil {
+			return err
+		}
+		version = 2
+	}
+
+	if version < 3 {
+		// Migration from v2 to v3: replace per-station votes with global last_vote
+		_, err = s.db.Exec(`
+			DROP TABLE IF EXISTS votes;
+			CREATE TABLE IF NOT EXISTS last_vote (
+				id INTEGER PRIMARY KEY CHECK (id = 1),
+				voted_at TEXT NOT NULL
+			);
+			UPDATE schema_version SET version = 3;
+		`)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
-// loadCaches loads bookmarks and hidden stations into memory.
+// loadCaches loads bookmarks, hidden stations, and vote timestamps into memory.
 func (s *SQLiteStorage) loadCaches() error {
 	// Load bookmarks into cache
 	rows, err := s.db.Query("SELECT station_uuid FROM bookmarks")
@@ -175,8 +230,22 @@ func (s *SQLiteStorage) loadCaches() error {
 			s.hidden[id] = true
 		}
 	}
+	if err := rows.Err(); err != nil {
+		return err
+	}
 
-	return rows.Err()
+	// Load last vote timestamp into cache
+	var votedAt string
+	err = s.db.QueryRow("SELECT voted_at FROM last_vote WHERE id = 1").Scan(&votedAt)
+	if err == nil {
+		if t, parseErr := time.Parse(time.RFC3339, votedAt); parseErr == nil {
+			s.lastVoteTime = t
+			s.hasLastVote = true
+		}
+	}
+	// Ignore sql.ErrNoRows - just means no vote recorded yet
+
+	return nil
 }
 
 // Close closes the database connection.
@@ -281,4 +350,27 @@ func (s *SQLiteStorage) IsHidden(stationUUID uuid.UUID) bool {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.hidden[stationUUID]
+}
+
+// GetLastVoteTimestamp returns the last global vote timestamp.
+// Returns the timestamp and true if found, zero time and false if not.
+func (s *SQLiteStorage) GetLastVoteTimestamp() (time.Time, bool) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.lastVoteTime, s.hasLastVote
+}
+
+// SetLastVoteTimestamp records the last global vote timestamp.
+func (s *SQLiteStorage) SetLastVoteTimestamp(timestamp time.Time) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	_, err := s.db.Exec("INSERT OR REPLACE INTO last_vote (id, voted_at) VALUES (1, ?)",
+		timestamp.Format(time.RFC3339))
+	if err != nil {
+		return err
+	}
+	s.lastVoteTime = timestamp
+	s.hasLastVote = true
+	return nil
 }

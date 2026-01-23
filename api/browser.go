@@ -60,6 +60,10 @@ type RadioBrowserService interface {
 	// Uses the query parameter format: GET /json/stations/byuuid?uuids=UUID1,UUID2,UUID3
 	// Returns an empty slice if no UUIDs are provided.
 	GetStationsByUUIDs(uuids []uuid.UUID) ([]common.Station, error)
+	// VoteStation sends a POST request to the RadioBrowser API to vote for a given station.
+	// Note: The same IP can only vote for a station once every 10 minutes.
+	// It takes a Station struct as input and returns a VoteStationResponse struct and an error.
+	VoteStation(station common.Station) (common.VoteStationResponse, error)
 }
 
 type RadioBrowserImpl struct {
@@ -236,4 +240,42 @@ func (radioBrowser *RadioBrowserImpl) GetStationsByUUIDs(uuids []uuid.UUID) ([]c
 	}
 
 	return stations, nil
+}
+
+func (radioBrowser *RadioBrowserImpl) VoteStation(station common.Station) (common.VoteStationResponse, error) {
+
+	url := radioBrowser.baseUrl.JoinPath("/vote/" + station.StationUuid.String())
+
+	headers := make(map[string]string)
+	headers["User-Agent"] = data.UserAgent
+	headers["Accept"] = "application/json"
+
+	req, err := http.NewRequest("POST", url.String(), nil)
+	if err != nil {
+		return common.VoteStationResponse{}, err
+	}
+
+	for key, value := range headers {
+		req.Header.Set(key, value)
+	}
+
+	result, err := radioBrowser.httpClient.Do(req)
+	if err != nil {
+		return common.VoteStationResponse{}, err
+	}
+
+	defer result.Body.Close()
+
+	if result.StatusCode != 200 {
+		return common.VoteStationResponse{}, fmt.Errorf("API request failed with status %d", result.StatusCode)
+	}
+
+	var response common.VoteStationResponse
+	err = json.NewDecoder(result.Body).Decode(&response)
+
+	if err != nil {
+		return common.VoteStationResponse{}, err
+	}
+
+	return response, nil
 }

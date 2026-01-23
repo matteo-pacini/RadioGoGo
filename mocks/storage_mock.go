@@ -19,7 +19,11 @@
 
 package mocks
 
-import "github.com/google/uuid"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type MockStationStorageService struct {
 	GetBookmarksFunc   func() ([]uuid.UUID, error)
@@ -30,6 +34,9 @@ type MockStationStorageService struct {
 	AddHiddenFunc      func(stationUUID uuid.UUID) error
 	RemoveHiddenFunc   func(stationUUID uuid.UUID) error
 	IsHiddenFunc       func(stationUUID uuid.UUID) bool
+
+	GetLastVoteTimestampFunc func() (time.Time, bool)
+	SetLastVoteTimestampFunc func(timestamp time.Time) error
 }
 
 func (m *MockStationStorageService) GetBookmarks() ([]uuid.UUID, error) {
@@ -86,4 +93,18 @@ func (m *MockStationStorageService) IsHidden(stationUUID uuid.UUID) bool {
 		return m.IsHiddenFunc(stationUUID)
 	}
 	return false
+}
+
+func (m *MockStationStorageService) GetLastVoteTimestamp() (time.Time, bool) {
+	if m.GetLastVoteTimestampFunc != nil {
+		return m.GetLastVoteTimestampFunc()
+	}
+	return time.Time{}, false
+}
+
+func (m *MockStationStorageService) SetLastVoteTimestamp(timestamp time.Time) error {
+	if m.SetLastVoteTimestampFunc != nil {
+		return m.SetLastVoteTimestampFunc(timestamp)
+	}
+	return nil
 }

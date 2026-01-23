@@ -20,6 +20,7 @@
 package models
 
 import (
+	"errors"
 	"time"
 
 	"github.com/zi0p4tch0/radiogogo/api"
@@ -111,6 +112,19 @@ type stationsRefetchedMsg struct {
 }
 type stationsRefetchFailedMsg struct {
 	err error
+}
+
+// Vote messages
+
+type voteSucceededMsg struct {
+	station common.Station
+	cursor  int
+}
+type voteFailedMsg struct {
+	err error
+}
+type voteCooldownMsg struct {
+	remainingMinutes int
 }
 
 // Playback commands
@@ -301,6 +315,45 @@ func refetchStationsCmd(browser api.RadioBrowserService, query common.StationQue
 	}
 }
 
+// Vote commands
+
+const voteCooldownDuration = 10 * time.Minute
+
+// voteStationCmd votes for a station via the RadioBrowser API.
+// It first checks the global cooldown, then makes the API call and records the timestamp.
+// RadioBrowser enforces a 10-minute cooldown per IP for all votes (not per-station).
+func voteStationCmd(
+	browser api.RadioBrowserService,
+	stor storage.StationStorageService,
+	station common.Station,
+	cursor int,
+) tea.Cmd {
+	return func() tea.Msg {
+		// Check global cooldown (API enforces per-IP, not per-station)
+		if lastVote, exists := stor.GetLastVoteTimestamp(); exists {
+			elapsed := time.Since(lastVote)
+			if elapsed < voteCooldownDuration {
+				remaining := int((voteCooldownDuration - elapsed).Minutes()) + 1
+				return voteCooldownMsg{remainingMinutes: remaining}
+			}
+		}
+
+		// Call API
+		resp, err := browser.VoteStation(station)
+		if err != nil {
+			return voteFailedMsg{err: err}
+		}
+		if !resp.Ok {
+			return voteFailedMsg{err: errors.New(resp.Message)}
+		}
+
+		// Record global timestamp (ignore error - vote succeeded on API side)
+		_ = stor.SetLastVoteTimestamp(time.Now())
+
+		return voteSucceededMsg{station: station, cursor: cursor}
+	}
+}
+
 // UI commands
 
 // updateCommandsCmd returns a command that updates the bottom bar with appropriate commands
@@ -366,6 +419,7 @@ func updateCommandsCmd(viewMode stationsViewMode, isPlaying bool, volume int, vo
 			secondaryCommands = []string{
 				i18n.Tf("cmd_bookmark", map[string]interface{}{"Key": kb.BookmarkToggle}),
 				i18n.Tf("cmd_bookmarks", map[string]interface{}{"Key": kb.BookmarksView}),
+				i18n.Tf("cmd_vote", map[string]interface{}{"Key": kb.Vote}),
 				i18n.Tf("cmd_hide", map[string]interface{}{"Key": kb.HideStation}),
 				i18n.Tf("cmd_manage_hidden", map[string]interface{}{"Key": kb.ManageHidden}),
 			}

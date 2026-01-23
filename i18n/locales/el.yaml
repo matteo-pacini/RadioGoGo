@@ -6,6 +6,17 @@ current_language:
 cmd_change_language:
   other: "{{.Key}}: γλώσσα"
 
+# Vote
+cmd_vote:
+  other: "{{.Key}}: ψήφος"
+vote_success:
+  other: "Η ψήφος καταγράφηκε επιτυχώς!"
+error_vote:
+  other: "{{.Error}}"
+error_vote_cooldown:
+  one: "Παρακαλώ περιμένετε {{.Minutes}} λεπτό πριν ψηφίσετε ξανά."
+  other: "Παρακαλώ περιμένετε {{.Minutes}} λεπτά πριν ψηφίσετε ξανά."
+
 # Search view
 search_placeholder:
   other: "Όνομα"
@@ -57,6 +68,12 @@ volume_display:
   other: "ένταση: {{.Volume}}"
 volume_display_percent:
   other: "ένταση: {{.Volume}}%"
+
+# Header indicators
+header_play:
+  other: "αναπαραγωγή"
+header_recording:
+  other: "εγγραφή"
 
 # Table headers
 header_name:

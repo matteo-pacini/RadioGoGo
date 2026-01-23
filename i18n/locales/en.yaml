@@ -6,6 +6,17 @@ current_language:
 cmd_change_language:
   other: "{{.Key}}: language"
 
+# Vote
+cmd_vote:
+  other: "{{.Key}}: vote"
+vote_success:
+  other: "Vote recorded successfully!"
+error_vote:
+  other: "{{.Error}}"
+error_vote_cooldown:
+  one: "Please wait {{.Minutes}} minute before voting again."
+  other: "Please wait {{.Minutes}} minutes before voting again."
+
 # Search view
 search_placeholder:
   other: "Name"
@@ -57,6 +68,12 @@ volume_display:
   other: "vol: {{.Volume}}"
 volume_display_percent:
   other: "vol: {{.Volume}}%"
+
+# Header indicators
+header_play:
+  other: "play"
+header_recording:
+  other: "recording"
 
 # Table headers
 header_name:

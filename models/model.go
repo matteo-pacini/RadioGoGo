@@ -259,9 +259,9 @@ func (m Model) View() string {
 		view += RenderFiller(fillerHeight)
 	}
 
-	// Render bottom bar (one or two rows) - skip when modal is showing
-	if m.state == stationsState && m.stationsModel.IsModalShowing() {
-		// Don't render bottom bar when modal is open
+	// Render bottom bar (one or two rows) - skip when hidden modal is showing
+	if m.state == stationsState && m.stationsModel.showHiddenModal {
+		// Don't render bottom bar when hidden modal is open
 	} else if len(m.bottomBarSecondaryCommands) > 0 {
 		view += m.theme.StyleTwoRowBottomBar(m.bottomBarCommands, m.bottomBarSecondaryCommands)
 	} else {

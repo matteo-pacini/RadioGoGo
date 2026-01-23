@@ -122,7 +122,7 @@ func TestHeaderModelView(t *testing.T) {
 		view := header.View()
 
 		assert.Contains(t, view, "radiogogo")
-		assert.Contains(t, view, "ffplay")
+		assert.Contains(t, view, "play")
 		assert.Contains(t, view, "1/50")
 		assert.True(t, strings.HasSuffix(view, "\n"))
 	})
