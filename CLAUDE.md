@@ -39,6 +39,17 @@ go vet ./...
 ./make_release.sh <version>
 ```
 
+### Supported Platforms
+
+Release builds are available for:
+- **macOS**: amd64, arm64
+- **Linux**: 386, amd64, arm64, armv6 (Pi 1/Zero), armv7 (Pi 2/3/4 32-bit)
+- **Windows**: 386, amd64
+
+**Unsupported platforms** (due to `modernc.org/sqlite` libc constraints):
+- FreeBSD, OpenBSD, NetBSD (all architectures)
+- Windows ARM (arm, arm64)
+
 ### Nix Development Environment
 
 ```bash
