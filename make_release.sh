@@ -22,23 +22,6 @@ TARGETS=(
     # Windows
     "windows|386"
     "windows|amd64"
-    "windows|arm"
-    "windows|arm64"
-    # FreeBSD
-    "freebsd|386"
-    "freebsd|arm"
-    "freebsd|amd64"
-    "freebsd|arm64"
-    # OpenBSD
-    "openbsd|386"
-    "openbsd|arm"
-    "openbsd|amd64"
-    "openbsd|arm64"
-    # NetBSD
-    "netbsd|386"
-    "netbsd|arm"
-    "netbsd|amd64"
-    "netbsd|arm64"
 )
 
 mkdir bin
