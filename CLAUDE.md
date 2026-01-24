@@ -280,3 +280,9 @@ When writing GitHub release notes, use this emoji-based format:
 🎵 MPV Support: Users now have more choice for audio playback
 🐞 Fixed volume slider not responding on certain terminals
 ```
+
+### Guidelines for Release Notes Content
+- Only list features/fixes that existed before this release cycle
+- Don't list bugs that were introduced and fixed within the same release
+- If a feature was removed and reintroduced, don't list it as "new"
+- Focus on what users experience, not implementation details (e.g., "Bookmarks" not "SQLite storage backend")
