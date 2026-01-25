@@ -66,6 +66,18 @@ func min(a, b int) int {
 	return b
 }
 
+// removeStationByUUID returns a new slice with the station matching the given UUID removed.
+// If no station matches, the original slice contents are returned in a new slice.
+func removeStationByUUID(stations []common.Station, stationUUID uuid.UUID) []common.Station {
+	result := make([]common.Station, 0, len(stations))
+	for _, s := range stations {
+		if s.StationUuid != stationUUID {
+			result = append(result, s)
+		}
+	}
+	return result
+}
+
 // StationsModel handles the display and interaction with a list of radio stations.
 // It manages playback, volume control, bookmarks, and hidden stations.
 type StationsModel struct {
@@ -471,4 +483,34 @@ func (m *StationsModel) updateTableDimensions() {
 // IsModalShowing returns true if a modal dialog is currently displayed.
 func (m StationsModel) IsModalShowing() bool {
 	return m.showHiddenModal
+}
+
+// rebuildTablePreservingCursor rebuilds the stations table and restores the cursor position.
+// If cursorOverride is >= 0, it uses that value; otherwise it preserves the current cursor.
+// The cursor is bounds-checked to ensure it doesn't exceed the number of stations.
+func (m *StationsModel) rebuildTablePreservingCursor(cursorOverride int) {
+	cursor := m.stationsTable.Cursor()
+	if cursorOverride >= 0 {
+		cursor = cursorOverride
+	}
+	m.stationsTable = newStationsTableModel(m.theme, m.stations, m.storage, m.currentStation)
+	m.updateTableDimensions()
+	m.setCursorSafely(cursor)
+}
+
+// setCursorSafely sets the table cursor with bounds checking.
+// If cursor is out of bounds, it clamps to the last valid index.
+// If there are no stations, the cursor is set to 0.
+func (m *StationsModel) setCursorSafely(cursor int) {
+	if len(m.stations) == 0 {
+		m.stationsTable.SetCursor(0)
+		return
+	}
+	if cursor >= len(m.stations) {
+		m.stationsTable.SetCursor(len(m.stations) - 1)
+	} else if cursor < 0 {
+		m.stationsTable.SetCursor(0)
+	} else {
+		m.stationsTable.SetCursor(cursor)
+	}
 }

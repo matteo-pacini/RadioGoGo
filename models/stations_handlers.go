@@ -42,10 +42,7 @@ func (m StationsModel) handlePlaybackMessages(msg tea.Msg) (bool, StationsModel,
 		m.currentStationSpinner.Spinner = spinner.Dot
 		m.currentStationSpinner.Style = m.theme.PrimaryText
 		// Rebuild table to show ▶ indicator and recalculate layout for new status bar height
-		cursor := m.stationsTable.Cursor()
-		m.stationsTable = newStationsTableModel(m.theme, m.stations, m.storage, m.currentStation)
-		m.stationsTable.SetCursor(cursor)
-		m.updateTableDimensions()
+		m.rebuildTablePreservingCursor(-1)
 		return true, m, tea.Batch(
 			m.currentStationSpinner.Tick,
 			notifyRadioBrowserCmd(m.browser, m.currentStation),
@@ -57,10 +54,7 @@ func (m StationsModel) handlePlaybackMessages(msg tea.Msg) (bool, StationsModel,
 		m.currentStation = common.Station{}
 		m.currentStationSpinner = spinner.Model{}
 		// Rebuild table to remove ▶ indicator and recalculate layout for new status bar height
-		cursor := m.stationsTable.Cursor()
-		m.stationsTable = newStationsTableModel(m.theme, m.stations, m.storage, m.currentStation)
-		m.stationsTable.SetCursor(cursor)
-		m.updateTableDimensions()
+		m.rebuildTablePreservingCursor(-1)
 		return true, m, tea.Batch(
 			updateCommandsCmd(m.viewMode, false, m.volume, m.playbackManager.VolumeIsPercentage(), false, m.keybindings),
 			func() tea.Msg { return playbackStatusMsg{status: PlaybackIdle} },
@@ -80,9 +74,7 @@ func (m StationsModel) handleErrorMessages(msg tea.Msg) (bool, StationsModel, te
 			cmds = append(cmds, stopStationCmd(m.playbackManager))
 		}
 		m.err = msg.err.Error()
-		cmds = append(cmds, tea.Tick(3*time.Second, func(t time.Time) tea.Msg {
-			return clearNonFatalError{}
-		}))
+		cmds = append(cmds, clearErrorAfterDelayCmd())
 		return true, m, tea.Sequence(cmds...)
 	case clearNonFatalError:
 		m.err = ""
@@ -109,9 +101,7 @@ func (m StationsModel) handleVolumeMessages(msg tea.Msg) (bool, StationsModel, t
 		return true, m, func() tea.Msg { return playbackStatusMsg{status: PlaybackPlaying} }
 	case volumeRestartFailedMsg:
 		m.err = i18n.Tf("error_volume_change", map[string]interface{}{"Error": msg.err})
-		return true, m, tea.Tick(3*time.Second, func(t time.Time) tea.Msg {
-			return clearNonFatalError{}
-		})
+		return true, m, clearErrorAfterDelayCmd()
 	}
 	return false, m, nil
 }
@@ -132,9 +122,7 @@ func (m StationsModel) handleRecordingMessages(msg tea.Msg) (bool, StationsModel
 		)
 	case recordingErrorMsg:
 		m.err = i18n.Tf("error_recording", map[string]interface{}{"Error": msg.err})
-		return true, m, tea.Tick(3*time.Second, func(t time.Time) tea.Msg {
-			return clearNonFatalError{}
-		})
+		return true, m, clearErrorAfterDelayCmd()
 	}
 	return false, m, nil
 }
@@ -144,14 +132,11 @@ func (m StationsModel) handleRecordingMessages(msg tea.Msg) (bool, StationsModel
 func (m StationsModel) handleBookmarkMessages(msg tea.Msg) (bool, StationsModel, tea.Cmd) {
 	switch msg := msg.(type) {
 	case bookmarkToggledMsg:
-		cursor := m.stationsTable.Cursor()
 		if m.viewMode == viewModeBookmarks {
-			m.savedCursor = cursor
+			m.savedCursor = m.stationsTable.Cursor()
 			return true, m, fetchBookmarksCmd(m.browser, m.storage)
 		}
-		m.stationsTable = newStationsTableModel(m.theme, m.stations, m.storage, m.currentStation)
-		m.updateTableDimensions()
-		m.stationsTable.SetCursor(cursor)
+		m.rebuildTablePreservingCursor(-1)
 		return true, m, nil
 
 	case bookmarksFetchedMsg:
@@ -164,13 +149,7 @@ func (m StationsModel) handleBookmarkMessages(msg tea.Msg) (bool, StationsModel,
 		}
 		m.viewMode = viewModeBookmarks
 		m.stations = msg.stations
-		m.stationsTable = newStationsTableModel(m.theme, m.stations, m.storage, m.currentStation)
-		m.updateTableDimensions()
-		if cursorToRestore > 0 && cursorToRestore < len(m.stations) {
-			m.stationsTable.SetCursor(cursorToRestore)
-		} else if cursorToRestore >= len(m.stations) && len(m.stations) > 0 {
-			m.stationsTable.SetCursor(len(m.stations) - 1)
-		}
+		m.rebuildTablePreservingCursor(cursorToRestore)
 		return true, m, tea.Batch(
 			updateCommandsCmd(m.viewMode, m.playbackManager.IsPlaying(), m.volume, m.playbackManager.VolumeIsPercentage(), m.playbackManager.IsRecording(), m.keybindings),
 			func() tea.Msg {
@@ -183,15 +162,11 @@ func (m StationsModel) handleBookmarkMessages(msg tea.Msg) (bool, StationsModel,
 
 	case bookmarksFetchFailedMsg:
 		m.err = i18n.Tf("error_load_bookmarks", map[string]interface{}{"Error": msg.err})
-		return true, m, tea.Tick(3*time.Second, func(t time.Time) tea.Msg {
-			return clearNonFatalError{}
-		})
+		return true, m, clearErrorAfterDelayCmd()
 
 	case bookmarkToggleFailedMsg:
 		m.err = i18n.Tf("error_bookmark_toggle", map[string]interface{}{"Error": msg.err})
-		return true, m, tea.Tick(3*time.Second, func(t time.Time) tea.Msg {
-			return clearNonFatalError{}
-		})
+		return true, m, clearErrorAfterDelayCmd()
 	}
 	return false, m, nil
 }
@@ -201,20 +176,8 @@ func (m StationsModel) handleBookmarkMessages(msg tea.Msg) (bool, StationsModel,
 func (m StationsModel) handleHiddenStationMessages(msg tea.Msg) (bool, StationsModel, tea.Cmd) {
 	switch msg := msg.(type) {
 	case stationHiddenMsg:
-		newStations := make([]common.Station, 0, len(m.stations)-1)
-		for _, s := range m.stations {
-			if s.StationUuid != msg.station.StationUuid {
-				newStations = append(newStations, s)
-			}
-		}
-		m.stations = newStations
-		m.stationsTable = newStationsTableModel(m.theme, m.stations, m.storage, m.currentStation)
-		m.updateTableDimensions()
-		if msg.cursor >= len(m.stations) && len(m.stations) > 0 {
-			m.stationsTable.SetCursor(len(m.stations) - 1)
-		} else {
-			m.stationsTable.SetCursor(msg.cursor)
-		}
+		m.stations = removeStationByUUID(m.stations, msg.station.StationUuid)
+		m.rebuildTablePreservingCursor(msg.cursor)
 		return true, m, func() tea.Msg {
 			return stationCursorMovedMsg{
 				offset:        m.stationsTable.Cursor(),
@@ -230,31 +193,19 @@ func (m StationsModel) handleHiddenStationMessages(msg tea.Msg) (bool, StationsM
 
 	case hiddenFetchFailedMsg:
 		m.err = i18n.Tf("error_load_hidden", map[string]interface{}{"Error": msg.err})
-		return true, m, tea.Tick(3*time.Second, func(t time.Time) tea.Msg {
-			return clearNonFatalError{}
-		})
+		return true, m, clearErrorAfterDelayCmd()
 
 	case hideStationFailedMsg:
 		m.err = i18n.Tf("error_hide_station", map[string]interface{}{"Error": msg.err})
-		return true, m, tea.Tick(3*time.Second, func(t time.Time) tea.Msg {
-			return clearNonFatalError{}
-		})
+		return true, m, clearErrorAfterDelayCmd()
 
 	case unhideStationFailedMsg:
 		m.err = i18n.Tf("error_unhide_station", map[string]interface{}{"Error": msg.err})
-		return true, m, tea.Tick(3*time.Second, func(t time.Time) tea.Msg {
-			return clearNonFatalError{}
-		})
+		return true, m, clearErrorAfterDelayCmd()
 
 	case stationUnhiddenMsg:
 		m.needsRefetch = true
-		newHidden := make([]common.Station, 0, len(m.hiddenStations)-1)
-		for _, s := range m.hiddenStations {
-			if s.StationUuid != msg.station.StationUuid {
-				newHidden = append(newHidden, s)
-			}
-		}
-		m.hiddenStations = newHidden
+		m.hiddenStations = removeStationByUUID(m.hiddenStations, msg.station.StationUuid)
 		if m.hiddenModalCursor >= len(m.hiddenStations) && len(m.hiddenStations) > 0 {
 			m.hiddenModalCursor = len(m.hiddenStations) - 1
 		}
@@ -275,14 +226,8 @@ func (m StationsModel) handleHiddenStationMessages(msg tea.Msg) (bool, StationsM
 			}
 		}
 		m.stations = filtered
-		m.stationsTable = newStationsTableModel(m.theme, m.stations, m.storage, m.currentStation)
-		m.updateTableDimensions()
 		// Restore cursor position (used by vote success and unhide)
-		if m.savedCursor > 0 && m.savedCursor < len(m.stations) {
-			m.stationsTable.SetCursor(m.savedCursor)
-		} else if m.savedCursor >= len(m.stations) && len(m.stations) > 0 {
-			m.stationsTable.SetCursor(len(m.stations) - 1)
-		}
+		m.rebuildTablePreservingCursor(m.savedCursor)
 		m.savedCursor = 0
 		return true, m, func() tea.Msg {
 			return stationCursorMovedMsg{
@@ -293,9 +238,7 @@ func (m StationsModel) handleHiddenStationMessages(msg tea.Msg) (bool, StationsM
 
 	case stationsRefetchFailedMsg:
 		m.err = i18n.Tf("error_refresh_stations", map[string]interface{}{"Error": msg.err})
-		return true, m, tea.Tick(3*time.Second, func(t time.Time) tea.Msg {
-			return clearNonFatalError{}
-		})
+		return true, m, clearErrorAfterDelayCmd()
 	}
 	return false, m, nil
 }
@@ -319,15 +262,11 @@ func (m StationsModel) handleVoteMessages(msg tea.Msg) (bool, StationsModel, tea
 
 	case voteFailedMsg:
 		m.err = i18n.Tf("error_vote", map[string]interface{}{"Error": msg.err})
-		return true, m, tea.Tick(3*time.Second, func(t time.Time) tea.Msg {
-			return clearNonFatalError{}
-		})
+		return true, m, clearErrorAfterDelayCmd()
 
 	case voteCooldownMsg:
 		m.err = i18n.Tfn("error_vote_cooldown", msg.remainingMinutes, map[string]interface{}{"Minutes": msg.remainingMinutes})
-		return true, m, tea.Tick(3*time.Second, func(t time.Time) tea.Msg {
-			return clearNonFatalError{}
-		})
+		return true, m, clearErrorAfterDelayCmd()
 
 	case clearSuccessMsg:
 		m.successMsg = ""
@@ -456,11 +395,10 @@ func (m StationsModel) handleBookmarksViewToggle() (bool, StationsModel, tea.Cmd
 
 		m.viewMode = viewModeSearchResults
 		m.stations = m.savedStations
-		m.stationsTable = newStationsTableModel(m.theme, m.stations, m.storage, m.currentStation)
-		m.updateTableDimensions()
-		m.stationsTable.SetCursor(m.savedCursor)
+		cursorToRestore := m.savedCursor
 		m.savedStations = nil
 		m.savedCursor = 0
+		m.rebuildTablePreservingCursor(cursorToRestore)
 		return true, m, tea.Batch(
 			updateCommandsCmd(m.viewMode, false, m.volume, m.playbackManager.VolumeIsPercentage(), false, m.keybindings),
 			func() tea.Msg { return playbackStatusMsg{status: PlaybackIdle} },
@@ -514,9 +452,7 @@ func (m *StationsModel) handleRecordingToggle() tea.Cmd {
 
 	if !m.playbackManager.IsRecordingAvailable() {
 		m.err = m.playbackManager.RecordingNotAvailableErrorString()
-		return tea.Tick(3*time.Second, func(t time.Time) tea.Msg {
-			return clearNonFatalError{}
-		})
+		return clearErrorAfterDelayCmd()
 	}
 
 	station := m.playbackManager.CurrentStation()

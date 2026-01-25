@@ -375,6 +375,17 @@ func voteStationCmd(
 
 // UI commands
 
+// errorClearDelay is the duration to wait before clearing non-fatal errors.
+const errorClearDelay = 3 * time.Second
+
+// clearErrorAfterDelayCmd returns a tea.Cmd that clears non-fatal errors after a delay.
+// This helper reduces duplication of the error-clearing pattern used throughout the handlers.
+func clearErrorAfterDelayCmd() tea.Cmd {
+	return tea.Tick(errorClearDelay, func(t time.Time) tea.Msg {
+		return clearNonFatalError{}
+	})
+}
+
 // updateCommandsCmd returns a command that updates the bottom bar with appropriate commands
 // based on the current view mode and playback state.
 func updateCommandsCmd(viewMode stationsViewMode, isPlaying bool, volume int, volumeIsPercentage bool, isRecording bool, kb config.Keybindings) tea.Cmd {
