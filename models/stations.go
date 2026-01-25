@@ -21,6 +21,8 @@ package models
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/zi0p4tch0/radiogogo/api"
@@ -42,6 +44,27 @@ const (
 	viewModeSearchResults stationsViewMode = iota
 	viewModeBookmarks
 )
+
+// formatNumber formats large numbers with K (thousands) or M (millions) suffix.
+// Examples: 1234567 → "1.2M", 5678 → "5.7K", 999 → "999"
+func formatNumber(n uint64) string {
+	if n >= 1000000 {
+		millions := float64(n) / 1000000.0
+		return fmt.Sprintf("%.1fM", millions)
+	} else if n >= 1000 {
+		thousands := float64(n) / 1000.0
+		return fmt.Sprintf("%.1fK", thousands)
+	}
+	return strconv.FormatUint(n, 10)
+}
+
+// min returns the smaller of two integers.
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
 
 // StationsModel handles the display and interaction with a list of radio stations.
 // It manages playback, volume control, bookmarks, and hidden stations.
@@ -100,11 +123,14 @@ func NewStationsModel(
 	keybindings config.Keybindings,
 ) StationsModel {
 
+	// Get the currently playing station (if any)
+	currentStation := playbackManager.CurrentStation()
+
 	return StationsModel{
 		theme:           theme,
 		keybindings:     keybindings,
 		stations:        stations,
-		stationsTable:   newStationsTableModel(theme, stations, storage),
+		stationsTable:   newStationsTableModel(theme, stations, storage, currentStation),
 		volume:          playbackManager.VolumeDefault(),
 		viewMode:        viewMode,
 		storage:         storage,
@@ -115,36 +141,56 @@ func NewStationsModel(
 	}
 }
 
-func newStationsTableModel(theme Theme, stations []common.Station, storage storage.StationStorageService) table.Model {
+func newStationsTableModel(theme Theme, stations []common.Station, storage storage.StationStorageService, currentStation common.Station) table.Model {
 
 	rows := make([]table.Row, len(stations))
 	for i, station := range stations {
 		name := station.Name
+
+		// Add now-playing indicator if this is the currently playing station
+		if currentStation.StationUuid != uuid.Nil && station.StationUuid == currentStation.StationUuid {
+			name = "▶ " + name
+		}
+
+		// Add bookmark star if bookmarked
 		if storage != nil && storage.IsBookmarked(station.StationUuid) {
 			name = "⭐ " + name
 		}
+
+		// Build quality string (bitrate + codec)
+		quality := ""
+		if station.Bitrate > 0 {
+			quality = strconv.FormatUint(uint64(station.Bitrate), 10) + "k"
+		}
+		if station.Codec != "" {
+			if quality != "" {
+				quality += " "
+			}
+			quality += station.Codec
+		}
+
+		// Format status
 		status := "✗"
 		if station.LastCheckOk {
 			status = "✓"
 		}
+
 		rows[i] = table.Row{
 			name,
 			station.CountryCode,
-			fmt.Sprintf("%d", station.Bitrate),
-			station.Codec,
-			fmt.Sprintf("%d", station.ClickCount),
-			fmt.Sprintf("%d", station.Votes),
+			quality,
+			formatNumber(uint64(station.ClickCount)),
+			formatNumber(uint64(station.Votes)),
 			status,
 		}
 	}
 
 	t := table.New(
 		table.WithColumns([]table.Column{
-			{Title: i18n.T("header_name"), Width: 30},
+			{Title: i18n.T("header_name"), Width: 35},
 			{Title: i18n.T("header_country"), Width: 10},
-			{Title: i18n.T("header_bitrate"), Width: 8},
-			{Title: i18n.T("header_codecs"), Width: 10},
-			{Title: i18n.T("header_clicks"), Width: 8},
+			{Title: i18n.T("header_quality"), Width: 12},
+			{Title: i18n.T("header_clicks"), Width: 10},
 			{Title: i18n.T("header_votes"), Width: 8},
 			{Title: i18n.T("header_status"), Width: 6},
 		}),
@@ -233,6 +279,81 @@ func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
+// renderNowPlayingBox creates a styled multi-line "Now Playing" box with station details.
+// The box displays station name, bitrate, codec, listener count on line 1,
+// and country, tags, and bookmark status on line 2.
+func (m StationsModel) renderNowPlayingBox() string {
+	station := m.currentStation
+
+	// Line 1: ▶ Station Name • 128 kbps MP3 • 🎧 45.2K listeners
+	line1Parts := []string{
+		"▶ " + station.Name,
+	}
+
+	// Add bitrate and codec if available
+	if station.Bitrate > 0 && station.Codec != "" {
+		line1Parts = append(line1Parts, fmt.Sprintf("%d kbps %s", station.Bitrate, strings.ToUpper(station.Codec)))
+	} else if station.Bitrate > 0 {
+		line1Parts = append(line1Parts, fmt.Sprintf("%d kbps", station.Bitrate))
+	} else if station.Codec != "" {
+		line1Parts = append(line1Parts, strings.ToUpper(station.Codec))
+	}
+
+	// Add click count (listeners)
+	if station.ClickCount > 0 {
+		line1Parts = append(line1Parts, "🎧 "+formatNumber(station.ClickCount)+" listeners")
+	}
+
+	line1 := strings.Join(line1Parts, " • ")
+
+	// Line 2: 📍 Country • tag1, tag2, tag3 • ⭐ Bookmarked
+	line2Parts := []string{}
+
+	// Add country
+	if station.CountryCode != "" {
+		line2Parts = append(line2Parts, "📍 "+station.CountryCode)
+	}
+
+	// Add tags (first 3)
+	if station.Tags != "" {
+		tags := strings.Split(station.Tags, ",")
+		// Limit to first 3 tags
+		displayTags := tags
+		if len(tags) > 3 {
+			displayTags = tags[:3]
+		}
+		// Trim whitespace from each tag
+		for i := range displayTags {
+			displayTags[i] = strings.TrimSpace(displayTags[i])
+		}
+		if len(displayTags) > 0 {
+			line2Parts = append(line2Parts, strings.Join(displayTags, ", "))
+		}
+	}
+
+	// Add bookmark status
+	if m.storage != nil && m.storage.IsBookmarked(station.StationUuid) {
+		line2Parts = append(line2Parts, "⭐ Bookmarked")
+	}
+
+	line2 := strings.Join(line2Parts, " • ")
+
+	// Build the box content
+	boxContent := m.theme.PrimaryText.Render(line1)
+	if line2 != "" {
+		boxContent += "\n" + m.theme.SecondaryText.Render(line2)
+	}
+
+	// Create the box with rounded border
+	boxStyle := lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(lipgloss.Color(m.theme.SecondaryColor)).
+		Padding(0, 1).
+		Width(m.width - 4)
+
+	return boxStyle.Render(boxContent)
+}
+
 // buildStatusBar returns the styled status bar string.
 // Priority: success message > error message > now playing > default.
 func (m StationsModel) buildStatusBar() string {
@@ -240,10 +361,8 @@ func (m StationsModel) buildStatusBar() string {
 		return m.theme.SuccessText.Render(m.successMsg)
 	} else if m.err != "" {
 		return m.theme.ErrorText.Render(m.err)
-	} else if m.currentStation.StationUuid != uuid.Nil {
-		return m.currentStationSpinner.View() + " " +
-			m.theme.SecondaryText.Bold(true).Render(i18n.Tf("now_playing", map[string]interface{}{"Name": m.currentStation.Name})) +
-			" " + m.currentStationSpinner.View()
+	} else if m.currentStation.StationUuid != uuid.Nil && m.playbackManager.IsPlaying() {
+		return m.renderNowPlayingBox()
 	}
 	return m.theme.TertiaryText.Render(i18n.T("select_station"))
 }

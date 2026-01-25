@@ -83,6 +83,8 @@ header_bitrate:
   other: "比特率"
 header_codecs:
   other: "编解码器"
+header_quality:
+  other: "质量"
 header_clicks:
   other: "点击"
 header_votes:

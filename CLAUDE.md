@@ -428,10 +428,41 @@ type Theme struct {
     SuccessText    lipgloss.Style  // Green text (#50FA7B)
     StationsTableStyle table.Styles
     ModalStyle     lipgloss.Style
+    QualityHighStyle   lipgloss.Style  // Green (#50FA7B) for 256+ kbps
+    QualityMediumStyle lipgloss.Style  // Orange (#FFB86C) for 128-192 kbps
+    QualityLowStyle    lipgloss.Style  // Gray for <128 kbps
+    StatusBoxStyle     lipgloss.Style  // Rounded border box for now-playing
+    SecondaryColor string              // For dynamic border colors
 }
 ```
 
 **Usage:** `theme.PrimaryText.Render("text")` - never inline `lipgloss.NewStyle()`.
+
+### Stations Table Visual Elements
+
+The stations table (`models/stations.go`) displays these columns:
+
+| Column | Width | Description |
+|--------|-------|-------------|
+| Name | 35 | Station name with `▶` (now playing) and `⭐` (bookmarked) prefixes |
+| Country | 10 | ISO 3166-1 alpha-2 country code |
+| Quality | 12 | Combined bitrate + codec (e.g., "128k MP3") |
+| Clicks | 10 | Listener count (formatted: 45234 → "45.2K") |
+| Votes | 8 | Vote count (formatted with K/M suffixes) |
+| Status | 6 | Online status: "✓" (OK) or "✗" (broken) |
+
+**Helper functions:**
+- `formatNumber(n uint64)` - Formats large numbers: 1000+ → "1.0K", 1000000+ → "1.0M"
+- `min(a, b int)` - Returns smaller of two integers
+
+**Now-Playing Box** (`renderNowPlayingBox`):
+When a station is playing, the status bar shows a multi-line bordered box:
+```
+╭──────────────────────────────────────────────────────────────────╮
+│ ▶ Station Name • 128 kbps MP3 • 🎧 45.2K listeners               │
+│ 📍 US • jazz, smooth, relaxing • ⭐ Bookmarked                   │
+╰──────────────────────────────────────────────────────────────────╯
+```
 
 ### Platform-specific Code
 
@@ -635,6 +666,8 @@ func TestStationQuery(t *testing.T) {
 9. **Forgetting to filter hidden stations** - Always filter via `filterHiddenStations()` before displaying search results.
 
 10. **Using fmt.Sprintf for conversions** - Use `strconv.FormatUint()` / `strconv.FormatBool()` instead.
+
+11. **Forgetting layout recalculation** - When status bar height changes (e.g., playback start/stop changes from single line to multi-line box), call `updateTableDimensions()` to recalculate the table height. Also rebuild the table with `newStationsTableModel()` to update visual indicators like the `▶` now-playing prefix.
 
 ## Key Dependencies
 

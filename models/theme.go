@@ -41,6 +41,12 @@ type Theme struct {
 	StationsTableStyle table.Styles
 	ModalStyle         lipgloss.Style
 
+	QualityHighStyle   lipgloss.Style
+	QualityMediumStyle lipgloss.Style
+	QualityLowStyle    lipgloss.Style
+
+	StatusBoxStyle lipgloss.Style
+
 	// Color values for dynamic styling
 	SecondaryColor string
 }
@@ -82,9 +88,10 @@ func NewTheme(config config.Config) Theme {
 		BorderStyle(lipgloss.NormalBorder()).
 		BorderForeground(lipgloss.Color(config.Theme.TextColor)).
 		BorderBottom(true).
-		Bold(false)
+		Bold(true)
 	stationsTableStyles.Cell = stationsTableStyles.Cell.
-		Foreground(lipgloss.Color(config.Theme.TextColor))
+		Foreground(lipgloss.Color(config.Theme.TextColor)).
+		Padding(0, 1)
 	stationsTableStyles.Selected = stationsTableStyles.Selected.
 		Foreground(lipgloss.Color(config.Theme.TextColor)).
 		Background(lipgloss.Color(config.Theme.PrimaryColor)).
@@ -95,6 +102,21 @@ func NewTheme(config config.Config) Theme {
 		BorderForeground(lipgloss.Color(config.Theme.SecondaryColor)).
 		Padding(1, 2).
 		Width(50)
+
+	qualityHighStyle := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#50FA7B")).
+		Bold(true)
+
+	qualityMediumStyle := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#FFB86C"))
+
+	qualityLowStyle := lipgloss.NewStyle().
+		Foreground(lipgloss.Color(config.Theme.TertiaryColor))
+
+	statusBoxStyle := lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(lipgloss.Color(config.Theme.PrimaryColor)).
+		Padding(0, 1)
 
 	return Theme{
 		PrimaryBlock:       primaryBlock,
@@ -107,6 +129,10 @@ func NewTheme(config config.Config) Theme {
 		SuccessText:        successText,
 		StationsTableStyle: stationsTableStyles,
 		ModalStyle:         modalStyle,
+		QualityHighStyle:   qualityHighStyle,
+		QualityMediumStyle: qualityMediumStyle,
+		QualityLowStyle:    qualityLowStyle,
+		StatusBoxStyle:     statusBoxStyle,
 		SecondaryColor:     config.Theme.SecondaryColor,
 	}
 }

@@ -85,6 +85,8 @@ header_bitrate:
   other: "Битрейт"
 header_codecs:
   other: "Кодек"
+header_quality:
+  other: "Качество"
 header_clicks:
   other: "Клики"
 header_votes:

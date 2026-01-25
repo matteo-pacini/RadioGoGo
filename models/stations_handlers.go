@@ -41,6 +41,11 @@ func (m StationsModel) handlePlaybackMessages(msg tea.Msg) (bool, StationsModel,
 		m.currentStationSpinner = spinner.New()
 		m.currentStationSpinner.Spinner = spinner.Dot
 		m.currentStationSpinner.Style = m.theme.PrimaryText
+		// Rebuild table to show ▶ indicator and recalculate layout for new status bar height
+		cursor := m.stationsTable.Cursor()
+		m.stationsTable = newStationsTableModel(m.theme, m.stations, m.storage, m.currentStation)
+		m.stationsTable.SetCursor(cursor)
+		m.updateTableDimensions()
 		return true, m, tea.Batch(
 			m.currentStationSpinner.Tick,
 			notifyRadioBrowserCmd(m.browser, m.currentStation),
@@ -51,6 +56,11 @@ func (m StationsModel) handlePlaybackMessages(msg tea.Msg) (bool, StationsModel,
 	case playbackStoppedMsg:
 		m.currentStation = common.Station{}
 		m.currentStationSpinner = spinner.Model{}
+		// Rebuild table to remove ▶ indicator and recalculate layout for new status bar height
+		cursor := m.stationsTable.Cursor()
+		m.stationsTable = newStationsTableModel(m.theme, m.stations, m.storage, m.currentStation)
+		m.stationsTable.SetCursor(cursor)
+		m.updateTableDimensions()
 		return true, m, tea.Batch(
 			updateCommandsCmd(m.viewMode, false, m.volume, m.playbackManager.VolumeIsPercentage(), false, m.keybindings),
 			func() tea.Msg { return playbackStatusMsg{status: PlaybackIdle} },
@@ -139,7 +149,7 @@ func (m StationsModel) handleBookmarkMessages(msg tea.Msg) (bool, StationsModel,
 			m.savedCursor = cursor
 			return true, m, fetchBookmarksCmd(m.browser, m.storage)
 		}
-		m.stationsTable = newStationsTableModel(m.theme, m.stations, m.storage)
+		m.stationsTable = newStationsTableModel(m.theme, m.stations, m.storage, m.currentStation)
 		m.updateTableDimensions()
 		m.stationsTable.SetCursor(cursor)
 		return true, m, nil
@@ -154,7 +164,7 @@ func (m StationsModel) handleBookmarkMessages(msg tea.Msg) (bool, StationsModel,
 		}
 		m.viewMode = viewModeBookmarks
 		m.stations = msg.stations
-		m.stationsTable = newStationsTableModel(m.theme, m.stations, m.storage)
+		m.stationsTable = newStationsTableModel(m.theme, m.stations, m.storage, m.currentStation)
 		m.updateTableDimensions()
 		if cursorToRestore > 0 && cursorToRestore < len(m.stations) {
 			m.stationsTable.SetCursor(cursorToRestore)
@@ -198,7 +208,7 @@ func (m StationsModel) handleHiddenStationMessages(msg tea.Msg) (bool, StationsM
 			}
 		}
 		m.stations = newStations
-		m.stationsTable = newStationsTableModel(m.theme, m.stations, m.storage)
+		m.stationsTable = newStationsTableModel(m.theme, m.stations, m.storage, m.currentStation)
 		m.updateTableDimensions()
 		if msg.cursor >= len(m.stations) && len(m.stations) > 0 {
 			m.stationsTable.SetCursor(len(m.stations) - 1)
@@ -265,7 +275,7 @@ func (m StationsModel) handleHiddenStationMessages(msg tea.Msg) (bool, StationsM
 			}
 		}
 		m.stations = filtered
-		m.stationsTable = newStationsTableModel(m.theme, m.stations, m.storage)
+		m.stationsTable = newStationsTableModel(m.theme, m.stations, m.storage, m.currentStation)
 		m.updateTableDimensions()
 		// Restore cursor position (used by vote success and unhide)
 		if m.savedCursor > 0 && m.savedCursor < len(m.stations) {
@@ -446,7 +456,7 @@ func (m StationsModel) handleBookmarksViewToggle() (bool, StationsModel, tea.Cmd
 
 		m.viewMode = viewModeSearchResults
 		m.stations = m.savedStations
-		m.stationsTable = newStationsTableModel(m.theme, m.stations, m.storage)
+		m.stationsTable = newStationsTableModel(m.theme, m.stations, m.storage, m.currentStation)
 		m.updateTableDimensions()
 		m.stationsTable.SetCursor(m.savedCursor)
 		m.savedStations = nil

@@ -84,6 +84,8 @@ header_bitrate:
   other: "Bitrate"
 header_codecs:
   other: "Codec"
+header_quality:
+  other: "Quality"
 header_clicks:
   other: "Clicks"
 header_votes:

@@ -84,6 +84,8 @@ header_bitrate:
   other: "Ρυθμός"
 header_codecs:
   other: "Κωδικοπ."
+header_quality:
+  other: "Ποιότητα"
 header_clicks:
   other: "Κλικ"
 header_votes:
