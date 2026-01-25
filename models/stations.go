@@ -157,8 +157,10 @@ func newStationsTableModel(theme Theme, stations []common.Station, storage stora
 			name = "⭐ " + name
 		}
 
-		// Build quality string (bitrate + codec)
+		// Build quality string (bitrate + codec) with star indicators for quality tier
 		quality := ""
+
+		// Build the text content
 		if station.Bitrate > 0 {
 			quality = strconv.FormatUint(uint64(station.Bitrate), 10) + "k"
 		}
@@ -167,6 +169,21 @@ func newStationsTableModel(theme Theme, stations []common.Station, storage stora
 				quality += " "
 			}
 			quality += station.Codec
+		}
+
+		// Add quality tier stars as visual indicator
+		if quality != "" {
+			if station.Bitrate >= 256 {
+				// High quality: 256+ kbps
+				quality += " ★★"
+			} else if station.Bitrate >= 128 {
+				// Medium quality: 128-255 kbps
+				quality += " ★"
+			}
+			// Low quality (<128 kbps): no stars
+		} else {
+			// No bitrate or codec available
+			quality = "—"
 		}
 
 		// Format status

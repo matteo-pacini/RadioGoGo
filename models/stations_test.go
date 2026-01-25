@@ -481,3 +481,183 @@ func TestStationsModel_AllDefaultKeybindingsWork(t *testing.T) {
 		assert.Less(t, newModel.(StationsModel).volume, initialVolume, "volume down should work")
 	})
 }
+
+func TestFormatNumber(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    uint64
+		expected string
+	}{
+		{"zero", 0, "0"},
+		{"single digit", 5, "5"},
+		{"three digits", 999, "999"},
+		{"one thousand", 1000, "1.0K"},
+		{"one thousand five hundred", 1500, "1.5K"},
+		{"five thousand", 5678, "5.7K"},
+		{"nine hundred ninety-nine thousand", 999999, "1000.0K"},
+		{"one million", 1000000, "1.0M"},
+		{"one million five hundred thousand", 1500000, "1.5M"},
+		{"one million two hundred thousand", 1234567, "1.2M"},
+		{"ten million", 10000000, "10.0M"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := formatNumber(tt.input)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestMin(t *testing.T) {
+	tests := []struct {
+		name     string
+		a        int
+		b        int
+		expected int
+	}{
+		{"a smaller", 5, 10, 5},
+		{"b smaller", 10, 5, 5},
+		{"equal", 5, 5, 5},
+		{"negative a", -10, 5, -10},
+		{"negative b", 5, -10, -10},
+		{"both negative", -5, -10, -10},
+		{"zero and positive", 0, 5, 0},
+		{"zero and negative", 0, -5, -5},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := min(tt.a, tt.b)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestQualityStringFormatting(t *testing.T) {
+	tests := []struct {
+		name         string
+		bitrate      uint64
+		codec        string
+		expectedPart string // What the quality string should contain
+	}{
+		{"high bitrate with codec", 320, "MP3", "320k"},
+		{"high bitrate with codec contains codec", 320, "MP3", "MP3"},
+		{"medium bitrate with codec", 128, "AAC", "128k"},
+		{"medium bitrate with codec contains codec", 128, "AAC", "AAC"},
+		{"low bitrate with codec", 64, "OGG", "64k"},
+		{"low bitrate with codec contains codec", 64, "OGG", "OGG"},
+		{"bitrate only no codec", 192, "", "192k"},
+		{"codec only no bitrate", 0, "FLAC", "FLAC"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			station := common.Station{
+				StationUuid: uuid.New(),
+				Name:        "Test Station",
+				Bitrate:     tt.bitrate,
+				Codec:       tt.codec,
+			}
+
+			mockStorage := &mocks.MockStationStorageService{}
+			table := newStationsTableModel(Theme{}, []common.Station{station}, mockStorage, common.Station{})
+
+			// Get the first row (quality is column index 2)
+			rows := table.Rows()
+			assert.NotEmpty(t, rows, "should have at least one row")
+			qualityColumn := rows[0][2]
+
+			assert.Contains(t, qualityColumn, tt.expectedPart)
+		})
+	}
+
+	t.Run("zero bitrate and empty codec shows placeholder", func(t *testing.T) {
+		station := common.Station{
+			StationUuid: uuid.New(),
+			Name:        "Test Station",
+			Bitrate:     0,
+			Codec:       "",
+		}
+
+		mockStorage := &mocks.MockStationStorageService{}
+		table := newStationsTableModel(Theme{}, []common.Station{station}, mockStorage, common.Station{})
+
+		rows := table.Rows()
+		assert.NotEmpty(t, rows)
+		qualityColumn := rows[0][2]
+
+		// When there's no quality information, it shows an em dash placeholder
+		assert.Equal(t, "—", qualityColumn)
+	})
+
+	t.Run("high quality shows two stars", func(t *testing.T) {
+		station := common.Station{
+			StationUuid: uuid.New(),
+			Name:        "Test Station",
+			Bitrate:     320,
+			Codec:       "MP3",
+		}
+
+		mockStorage := &mocks.MockStationStorageService{}
+		table := newStationsTableModel(Theme{}, []common.Station{station}, mockStorage, common.Station{})
+
+		rows := table.Rows()
+		qualityColumn := rows[0][2]
+
+		assert.Equal(t, "320k MP3 ★★", qualityColumn)
+	})
+
+	t.Run("medium quality shows one star", func(t *testing.T) {
+		station := common.Station{
+			StationUuid: uuid.New(),
+			Name:        "Test Station",
+			Bitrate:     128,
+			Codec:       "MP3",
+		}
+
+		mockStorage := &mocks.MockStationStorageService{}
+		table := newStationsTableModel(Theme{}, []common.Station{station}, mockStorage, common.Station{})
+
+		rows := table.Rows()
+		qualityColumn := rows[0][2]
+
+		assert.Equal(t, "128k MP3 ★", qualityColumn)
+	})
+
+	t.Run("low quality shows no stars", func(t *testing.T) {
+		station := common.Station{
+			StationUuid: uuid.New(),
+			Name:        "Test Station",
+			Bitrate:     64,
+			Codec:       "MP3",
+		}
+
+		mockStorage := &mocks.MockStationStorageService{}
+		table := newStationsTableModel(Theme{}, []common.Station{station}, mockStorage, common.Station{})
+
+		rows := table.Rows()
+		qualityColumn := rows[0][2]
+
+		assert.Equal(t, "64k MP3", qualityColumn)
+		assert.NotContains(t, qualityColumn, "★")
+	})
+
+	t.Run("codec only shows no stars", func(t *testing.T) {
+		station := common.Station{
+			StationUuid: uuid.New(),
+			Name:        "Test Station",
+			Bitrate:     0,
+			Codec:       "FLAC",
+		}
+
+		mockStorage := &mocks.MockStationStorageService{}
+		table := newStationsTableModel(Theme{}, []common.Station{station}, mockStorage, common.Station{})
+
+		rows := table.Rows()
+		qualityColumn := rows[0][2]
+
+		assert.Equal(t, "FLAC", qualityColumn)
+		assert.NotContains(t, qualityColumn, "★")
+	})
+}
