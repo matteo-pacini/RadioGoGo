@@ -305,7 +305,13 @@ func (m StationsModel) View() string {
 func (m *StationsModel) SetWidthAndHeight(width int, height int) {
 	m.width = width
 	m.height = height
-	m.stationsTable.SetWidth(width)
+	m.updateTableDimensions()
+}
+
+// updateTableDimensions recalculates and sets the table dimensions.
+// Call this after recreating the table with newStationsTableModel().
+func (m *StationsModel) updateTableDimensions() {
+	m.stationsTable.SetWidth(m.width)
 
 	// Calculate actual status bar height (can wrap to multiple lines)
 	statusBar := m.buildStatusBar()
@@ -319,7 +325,7 @@ func (m *StationsModel) SetWidthAndHeight(width int, height int) {
 	// Layout: 1 (space after header) + table + filler + 1 (space before status) + statusHeight + 1 (space before bottom bar)
 	// The table gets the maximum available space. View() adds filler between table and status bar
 	// to keep status bar at a consistent position from the bottom.
-	tableHeight := height - 3 - statusHeight
+	tableHeight := m.height - 3 - statusHeight
 	if tableHeight < 1 {
 		tableHeight = 1
 	}
