@@ -233,10 +233,26 @@ func (m StationsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
+// buildStatusBar returns the styled status bar string.
+// Priority: success message > error message > now playing > default.
+func (m StationsModel) buildStatusBar() string {
+	if m.successMsg != "" {
+		return m.theme.SuccessText.Render(m.successMsg)
+	} else if m.err != "" {
+		return m.theme.ErrorText.Render(m.err)
+	} else if m.currentStation.StationUuid != uuid.Nil {
+		return m.currentStationSpinner.View() + " " +
+			m.theme.SecondaryText.Bold(true).Render(i18n.Tf("now_playing", map[string]interface{}{"Name": m.currentStation.Name})) +
+			" " + m.currentStationSpinner.View()
+	}
+	return m.theme.TertiaryText.Render(i18n.T("select_station"))
+}
+
 // View renders the stations view.
 func (m StationsModel) View() string {
 
 	var v string
+	var tableHeight int
 	if len(m.stations) == 0 {
 		var emptyMsg string
 		if m.viewMode == viewModeBookmarks {
@@ -244,37 +260,38 @@ func (m StationsModel) View() string {
 		} else {
 			emptyMsg = i18n.T("no_stations")
 		}
-		v = fmt.Sprintf(
-			"\n%s\n",
-			m.theme.SecondaryText.Bold(true).Render(emptyMsg),
-		)
+		emptyContent := m.theme.SecondaryText.Bold(true).Render(emptyMsg)
+		v = "\n" + emptyContent
+		tableHeight = lipgloss.Height(emptyContent)
 	} else {
-		v = "\n" + m.stationsTable.View() + "\n"
+		tableView := m.stationsTable.View()
+		v = "\n" + tableView
+		tableHeight = lipgloss.Height(tableView)
 	}
 
-	// Show status bar (with blank line above)
-	// Priority: success message > error message > now playing > default
-	var statusBar string
-	if m.successMsg != "" {
-		statusBar = m.theme.SuccessText.Render(m.successMsg)
-	} else if m.err != "" {
-		statusBar = m.theme.ErrorText.Render(m.err)
-	} else if m.currentStation.StationUuid != uuid.Nil {
-		statusBar = m.currentStationSpinner.View() + " " +
-			m.theme.SecondaryText.Bold(true).Render(i18n.Tf("now_playing", map[string]interface{}{"Name": m.currentStation.Name})) +
-			" " + m.currentStationSpinner.View()
-	} else {
-		statusBar = m.theme.TertiaryText.Render(i18n.T("select_station"))
-	}
-	v += "\n" + statusBar
+	// Build status bar and calculate its height
+	statusBar := m.buildStatusBar()
+	statusHeight := lipgloss.Height(statusBar)
 
-	// Add filler to push bottom bar to the bottom
-	// m.height is the space allocated for stations view (terminal height - header - bottom bar)
-	// But due to trailing newline merge effects when this view is concatenated with bottom bar,
-	// we need to add 1 extra line: actual needed = m.height + 1
-	contentHeight := lipgloss.Height(v)
-	fillerHeight := m.height - contentHeight + 1
+	// Calculate table area height (space for table + filler)
+	// m.height = terminal - 3 (1 header + 2 bottom bars)
+	// Layout: 1 (leading \n) + tableArea + 1 (blank before status) + statusHeight + 1 (space before bottom bar)
+	// tableArea = m.height - 3 - statusHeight
+	tableAreaHeight := m.height - 3 - statusHeight
+	if tableAreaHeight < 1 {
+		tableAreaHeight = 1
+	}
+
+	// Filler = tableArea - actual table content
+	fillerHeight := tableAreaHeight - tableHeight
+	if fillerHeight < 0 {
+		fillerHeight = 0
+	}
+
+	// Add filler, then blank line before status, then status bar, then blank line after
 	v += RenderFiller(fillerHeight)
+	v += "\n\n" + statusBar // First \n terminates filler/table, second \n creates blank line
+	v += "\n\n" // First \n terminates status, second \n creates blank line before bottom bar
 
 	// Render hidden modal if showing
 	if m.showHiddenModal {
@@ -289,12 +306,24 @@ func (m *StationsModel) SetWidthAndHeight(width int, height int) {
 	m.width = width
 	m.height = height
 	m.stationsTable.SetWidth(width)
-	// Table height calculation:
-	// - "\n" before table (1 line)
-	// - "\n" after table (1 line)
-	// - "\n" blank line + status bar (2 lines)
-	// So: tableHeight = height - 4
-	m.stationsTable.SetHeight(height - 4)
+
+	// Calculate actual status bar height (can wrap to multiple lines)
+	statusBar := m.buildStatusBar()
+	statusHeight := lipgloss.Height(statusBar)
+	if statusHeight < 1 {
+		statusHeight = 1
+	}
+
+	// Table height calculation for viewport (max visible rows):
+	// m.height = terminal - 3 (from model_handlers: 1 header + 2 bottom bars)
+	// Layout: 1 (space after header) + table + filler + 1 (space before status) + statusHeight + 1 (space before bottom bar)
+	// The table gets the maximum available space. View() adds filler between table and status bar
+	// to keep status bar at a consistent position from the bottom.
+	tableHeight := height - 3 - statusHeight
+	if tableHeight < 1 {
+		tableHeight = 1
+	}
+	m.stationsTable.SetHeight(tableHeight)
 }
 
 // IsModalShowing returns true if a modal dialog is currently displayed.
