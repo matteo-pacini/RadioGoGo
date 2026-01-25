@@ -24,6 +24,7 @@ import (
 	"path/filepath"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -310,5 +311,269 @@ func TestSQLiteStorage_Close(t *testing.T) {
 		// Second close should not error
 		err = s.Close()
 		assert.NoError(t, err)
+	})
+}
+
+func TestSQLiteStorage_VoteTimestamp(t *testing.T) {
+	tmpDir := t.TempDir()
+	origHome := os.Getenv("HOME")
+	os.Setenv("HOME", tmpDir)
+	defer os.Setenv("HOME", origHome)
+
+	configDir := filepath.Join(tmpDir, ".config", "radiogogo")
+	err := os.MkdirAll(configDir, 0755)
+	assert.NoError(t, err)
+
+	t.Run("returns false when no vote timestamp exists", func(t *testing.T) {
+		os.Remove(filepath.Join(configDir, databaseFileName))
+
+		s, err := NewSQLiteStorage()
+		assert.NoError(t, err)
+		defer s.Close()
+
+		timestamp, found := s.GetLastVoteTimestamp()
+		assert.False(t, found)
+		assert.True(t, timestamp.IsZero())
+	})
+
+	t.Run("sets and retrieves vote timestamp", func(t *testing.T) {
+		os.Remove(filepath.Join(configDir, databaseFileName))
+
+		s, err := NewSQLiteStorage()
+		assert.NoError(t, err)
+		defer s.Close()
+
+		now := time.Now().Truncate(time.Second)
+		err = s.SetLastVoteTimestamp(now)
+		assert.NoError(t, err)
+
+		timestamp, found := s.GetLastVoteTimestamp()
+		assert.True(t, found)
+		assert.Equal(t, now.UTC(), timestamp.UTC())
+	})
+
+	t.Run("overwrites existing vote timestamp", func(t *testing.T) {
+		os.Remove(filepath.Join(configDir, databaseFileName))
+
+		s, err := NewSQLiteStorage()
+		assert.NoError(t, err)
+		defer s.Close()
+
+		old := time.Now().Add(-20 * time.Minute).Truncate(time.Second)
+		err = s.SetLastVoteTimestamp(old)
+		assert.NoError(t, err)
+
+		new := time.Now().Truncate(time.Second)
+		err = s.SetLastVoteTimestamp(new)
+		assert.NoError(t, err)
+
+		timestamp, found := s.GetLastVoteTimestamp()
+		assert.True(t, found)
+		assert.Equal(t, new.UTC(), timestamp.UTC())
+	})
+
+	t.Run("persists vote timestamp across reload", func(t *testing.T) {
+		os.Remove(filepath.Join(configDir, databaseFileName))
+
+		s1, err := NewSQLiteStorage()
+		assert.NoError(t, err)
+
+		now := time.Now().Truncate(time.Second)
+		err = s1.SetLastVoteTimestamp(now)
+		assert.NoError(t, err)
+		s1.Close()
+
+		// Create new instance (simulates app restart)
+		s2, err := NewSQLiteStorage()
+		assert.NoError(t, err)
+		defer s2.Close()
+
+		timestamp, found := s2.GetLastVoteTimestamp()
+		assert.True(t, found)
+		assert.Equal(t, now.UTC(), timestamp.UTC())
+	})
+
+	t.Run("handles timestamps in different timezones", func(t *testing.T) {
+		os.Remove(filepath.Join(configDir, databaseFileName))
+
+		s, err := NewSQLiteStorage()
+		assert.NoError(t, err)
+		defer s.Close()
+
+		// Create a timestamp in a specific timezone
+		loc, _ := time.LoadLocation("America/New_York")
+		nyTime := time.Date(2024, 1, 15, 10, 30, 0, 0, loc)
+
+		err = s.SetLastVoteTimestamp(nyTime)
+		assert.NoError(t, err)
+
+		timestamp, found := s.GetLastVoteTimestamp()
+		assert.True(t, found)
+		// Should be equal when compared in UTC
+		assert.Equal(t, nyTime.UTC(), timestamp.UTC())
+	})
+
+	t.Run("handles zero timestamp", func(t *testing.T) {
+		os.Remove(filepath.Join(configDir, databaseFileName))
+
+		s, err := NewSQLiteStorage()
+		assert.NoError(t, err)
+		defer s.Close()
+
+		zero := time.Time{}
+		err = s.SetLastVoteTimestamp(zero)
+		assert.NoError(t, err)
+
+		_, found := s.GetLastVoteTimestamp()
+		assert.True(t, found) // We set it, so it should be found
+		// The timestamp may not be exactly zero due to format/parse cycle
+	})
+
+	t.Run("handles far future timestamp", func(t *testing.T) {
+		os.Remove(filepath.Join(configDir, databaseFileName))
+
+		s, err := NewSQLiteStorage()
+		assert.NoError(t, err)
+		defer s.Close()
+
+		future := time.Date(2099, 12, 31, 23, 59, 59, 0, time.UTC)
+		err = s.SetLastVoteTimestamp(future)
+		assert.NoError(t, err)
+
+		timestamp, found := s.GetLastVoteTimestamp()
+		assert.True(t, found)
+		assert.Equal(t, future, timestamp.UTC())
+	})
+
+	t.Run("handles far past timestamp", func(t *testing.T) {
+		os.Remove(filepath.Join(configDir, databaseFileName))
+
+		s, err := NewSQLiteStorage()
+		assert.NoError(t, err)
+		defer s.Close()
+
+		past := time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC)
+		err = s.SetLastVoteTimestamp(past)
+		assert.NoError(t, err)
+
+		timestamp, found := s.GetLastVoteTimestamp()
+		assert.True(t, found)
+		assert.Equal(t, past, timestamp.UTC())
+	})
+}
+
+func TestSQLiteStorage_VoteTimestamp_Concurrent(t *testing.T) {
+	tmpDir := t.TempDir()
+	origHome := os.Getenv("HOME")
+	os.Setenv("HOME", tmpDir)
+	defer os.Setenv("HOME", origHome)
+
+	configDir := filepath.Join(tmpDir, ".config", "radiogogo")
+	err := os.MkdirAll(configDir, 0755)
+	assert.NoError(t, err)
+	os.Remove(filepath.Join(configDir, databaseFileName))
+
+	s, err := NewSQLiteStorage()
+	assert.NoError(t, err)
+	defer s.Close()
+
+	t.Run("concurrent vote timestamp reads and writes", func(t *testing.T) {
+		var wg sync.WaitGroup
+
+		// Concurrent writes
+		for i := 0; i < 20; i++ {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				now := time.Now()
+				_ = s.SetLastVoteTimestamp(now)
+			}()
+		}
+
+		// Concurrent reads
+		for i := 0; i < 20; i++ {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				_, _ = s.GetLastVoteTimestamp()
+			}()
+		}
+
+		wg.Wait()
+
+		// Verify a timestamp was recorded
+		_, found := s.GetLastVoteTimestamp()
+		assert.True(t, found)
+	})
+}
+
+func TestSQLiteStorage_RemoveNonexistent(t *testing.T) {
+	tmpDir := t.TempDir()
+	origHome := os.Getenv("HOME")
+	os.Setenv("HOME", tmpDir)
+	defer os.Setenv("HOME", origHome)
+
+	configDir := filepath.Join(tmpDir, ".config", "radiogogo")
+	err := os.MkdirAll(configDir, 0755)
+	assert.NoError(t, err)
+
+	t.Run("removing nonexistent bookmark does not error", func(t *testing.T) {
+		os.Remove(filepath.Join(configDir, databaseFileName))
+
+		s, err := NewSQLiteStorage()
+		assert.NoError(t, err)
+		defer s.Close()
+
+		nonexistent := uuid.New()
+		err = s.RemoveBookmark(nonexistent)
+		assert.NoError(t, err)
+	})
+
+	t.Run("removing nonexistent hidden station does not error", func(t *testing.T) {
+		os.Remove(filepath.Join(configDir, databaseFileName))
+
+		s, err := NewSQLiteStorage()
+		assert.NoError(t, err)
+		defer s.Close()
+
+		nonexistent := uuid.New()
+		err = s.RemoveHidden(nonexistent)
+		assert.NoError(t, err)
+	})
+}
+
+func TestSQLiteStorage_NilUUID(t *testing.T) {
+	tmpDir := t.TempDir()
+	origHome := os.Getenv("HOME")
+	os.Setenv("HOME", tmpDir)
+	defer os.Setenv("HOME", origHome)
+
+	configDir := filepath.Join(tmpDir, ".config", "radiogogo")
+	err := os.MkdirAll(configDir, 0755)
+	assert.NoError(t, err)
+	os.Remove(filepath.Join(configDir, databaseFileName))
+
+	s, err := NewSQLiteStorage()
+	assert.NoError(t, err)
+	defer s.Close()
+
+	t.Run("can bookmark nil UUID", func(t *testing.T) {
+		err := s.AddBookmark(uuid.Nil)
+		assert.NoError(t, err)
+		assert.True(t, s.IsBookmarked(uuid.Nil))
+
+		err = s.RemoveBookmark(uuid.Nil)
+		assert.NoError(t, err)
+		assert.False(t, s.IsBookmarked(uuid.Nil))
+	})
+
+	t.Run("can hide nil UUID", func(t *testing.T) {
+		err := s.AddHidden(uuid.Nil)
+		assert.NoError(t, err)
+		assert.True(t, s.IsHidden(uuid.Nil))
+
+		err = s.RemoveHidden(uuid.Nil)
+		assert.NoError(t, err)
+		assert.False(t, s.IsHidden(uuid.Nil))
 	})
 }

@@ -228,4 +228,123 @@ func TestAutoInitialization(t *testing.T) {
 		// Should auto-init to English
 		assert.Equal(t, "EN", result)
 	})
+
+	t.Run("Tf auto-initializes if not initialized", func(t *testing.T) {
+		localizer = nil
+		bundle = nil
+		result := Tf("cmd_quit", map[string]interface{}{"Key": "q"})
+		assert.Equal(t, "q: quit", result)
+	})
+
+	t.Run("Tn auto-initializes if not initialized", func(t *testing.T) {
+		localizer = nil
+		bundle = nil
+		result := Tn("unknown_message", 1)
+		// Returns message ID since no plural form and auto-inits
+		assert.Equal(t, "unknown_message", result)
+	})
+
+	t.Run("Tfn auto-initializes if not initialized", func(t *testing.T) {
+		localizer = nil
+		bundle = nil
+		result := Tfn("unknown_message", 1, map[string]interface{}{"Key": "x"})
+		// Returns message ID since no plural form and auto-inits
+		assert.Equal(t, "unknown_message", result)
+	})
+}
+
+func TestT_EdgeCases(t *testing.T) {
+	_ = Init("en")
+
+	t.Run("handles empty string message ID", func(t *testing.T) {
+		result := T("")
+		assert.Equal(t, "", result)
+	})
+
+	t.Run("handles message ID with special characters", func(t *testing.T) {
+		result := T("message.with.dots")
+		// Unknown messages return the ID itself
+		assert.Equal(t, "message.with.dots", result)
+	})
+
+	t.Run("handles message ID with unicode", func(t *testing.T) {
+		result := T("日本語メッセージ")
+		// Unknown messages return the ID itself
+		assert.Equal(t, "日本語メッセージ", result)
+	})
+}
+
+func TestTf_EdgeCases(t *testing.T) {
+	_ = Init("en")
+
+	t.Run("handles extra template variables", func(t *testing.T) {
+		result := Tf("cmd_quit", map[string]interface{}{
+			"Key":   "q",
+			"Extra": "ignored",
+		})
+		assert.Equal(t, "q: quit", result)
+	})
+
+	t.Run("handles missing template variables", func(t *testing.T) {
+		// When a required variable is missing, go-i18n may return an error
+		// or use a zero value - test that it doesn't panic
+		result := Tf("cmd_quit", map[string]interface{}{})
+		// Result should either have the template unchanged or empty
+		assert.NotPanics(t, func() {
+			_ = Tf("cmd_quit", nil)
+		})
+		_ = result // Just verify no panic
+	})
+
+	t.Run("handles numeric values in template", func(t *testing.T) {
+		result := Tf("cmd_volume", map[string]interface{}{
+			"VolumeDown": 9,
+			"VolumeUp":   0,
+		})
+		assert.Contains(t, result, "9")
+		assert.Contains(t, result, "0")
+	})
+}
+
+func TestLanguageFallback(t *testing.T) {
+	t.Run("falls back to English for unknown language", func(t *testing.T) {
+		_ = Init("nonexistent_language")
+		// current_language should exist in English
+		result := T("current_language")
+		// Should fall back to English
+		assert.Equal(t, "EN", result)
+	})
+
+	t.Run("falls back to English for partially supported language", func(t *testing.T) {
+		_ = Init("en")
+		// Switch to language that exists but may have missing translations
+		_ = SetLanguage("el")
+		// current_language should exist in Greek
+		result := T("current_language")
+		assert.Equal(t, "EL", result)
+
+		// Reset
+		_ = SetLanguage("en")
+	})
+}
+
+func TestAvailableLanguages_Idempotent(t *testing.T) {
+	t.Run("calling multiple times returns same result", func(t *testing.T) {
+		langs1 := AvailableLanguages()
+		langs2 := AvailableLanguages()
+		assert.Equal(t, langs1, langs2)
+	})
+
+	t.Run("available languages is independent of current language", func(t *testing.T) {
+		_ = Init("en")
+		langsEn := AvailableLanguages()
+
+		_ = SetLanguage("ja")
+		langsJa := AvailableLanguages()
+
+		assert.Equal(t, langsEn, langsJa)
+
+		// Reset
+		_ = SetLanguage("en")
+	})
 }

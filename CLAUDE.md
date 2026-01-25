@@ -106,103 +106,488 @@ RadioGoGo is a **state machine TUI application** with these states:
 
 ### Package Structure
 
-- **`main.go`** - Entry point: loads config, creates model, runs BubbleTea program
-- **`models/`** - TUI components and main state machine:
-  - `model.go` - Root state machine coordinating all views
-  - `stations.go`, `stations_commands.go`, `stations_modal.go` - Stations view (split for maintainability)
-  - `search.go`, `loading.go`, `error.go` - Individual view models
-  - `header.go` - Header bar with playback/recording indicators
-  - `theme.go` - Centralized lipgloss styling configuration
-  - `layout.go` - Terminal height calculations
-  - `selector.go` - Generic selector component
-- **`api/`** - RadioBrowser API client with DNS-based load balancing
-- **`config/`** - YAML configuration management with platform-specific paths:
-  - `config.go` - Config struct with Theme and Keybindings
-  - `keybindings.go` - Keybindings struct with validation and reserved keys
-- **`common/`** - Shared data models (Station, StationQuery, URL types)
-- **`playback/`** - Audio playback via FFplay and recording via FFmpeg
-- **`storage/`** - SQLite-based persistent storage for bookmarks and hidden stations
-- **`data/`** - Version information and user agent string
-- **`i18n/`** - Internationalization support using go-i18n:
-  - `i18n.go` - Core functions: T(), Tf(), Tn(), SetLanguage()
-  - `locales/*.yaml` - Translation files (de, el, en, es, it, ja, pt, ru, zh)
-- **`mocks/`** - Test mocks for interfaces
+```
+radiogogo/
+├── main.go           # Entry point: loads config, creates model, runs BubbleTea
+├── api/              # RadioBrowser API client
+│   ├── browser.go    # RadioBrowserService interface and implementation
+│   ├── http.go       # HTTPClientService interface
+│   └── utils.go      # String conversion helpers
+├── common/           # Shared data models
+│   ├── station.go    # Station struct with all RadioBrowser fields
+│   ├── station_query.go  # StationQuery enum with 14 filter types
+│   ├── url.go        # RadioGoGoURL custom URL type
+│   ├── click_station_response.go
+│   └── vote_station_response.go
+├── config/           # Configuration management
+│   ├── config.go     # Config struct (Language, Theme, Keybindings)
+│   ├── keybindings.go    # Keybindings struct with validation
+│   └── paths.go      # Platform-specific config paths
+├── data/             # Application metadata
+│   └── version.go    # Version string (injected via ldflags)
+├── i18n/             # Internationalization
+│   ├── i18n.go       # T(), Tf(), Tn(), Tfn() functions
+│   └── locales/*.yaml    # Translation files (9 languages)
+├── models/           # TUI components and state machine
+│   ├── model.go          # Root Model coordinating all views
+│   ├── model_handlers.go # Message handling (global, state transitions, delegation)
+│   ├── search.go         # SearchModel - search form
+│   ├── loading.go        # LoadingModel - spinner while fetching
+│   ├── stations.go       # StationsModel - results table
+│   ├── stations_handlers.go  # StationsModel message handlers
+│   ├── stations_commands.go  # StationsModel tea.Cmd functions
+│   ├── stations_modal.go     # Hidden stations modal
+│   ├── error_fatal.go    # ErrorModel - error display
+│   ├── header.go         # HeaderModel - playback/recording indicators
+│   ├── selector.go       # Generic selector component
+│   ├── theme.go          # Theme struct with lipgloss styles
+│   └── layout.go         # Height calculations and filler rendering
+├── playback/         # Audio playback and recording
+│   ├── manager.go    # PlaybackManagerService interface
+│   ├── ffplay.go     # FFPlayPlaybackManager implementation
+│   └── filename.go   # Recording filename generation
+├── storage/          # Persistent storage
+│   ├── storage.go    # StationStorageService interface
+│   └── sqlite_storage.go  # SQLite implementation with caching
+└── mocks/            # Test mocks
+    ├── browser_mock.go
+    ├── playback_manager_mock.go
+    ├── storage_mock.go
+    └── http_client_mock.go
+```
 
-### Key Patterns
+### Package Dependency Graph
 
-**Message Passing (BubbleTea Elm Architecture):**
-- State transitions via typed messages: `switchToSearchModelMsg`, `switchToStationsModelMsg`, etc.
-- Commands return `tea.Cmd` (functions that produce messages asynchronously)
-- Use `tea.Batch()` for parallel commands, `tea.Sequence()` for ordered execution
+```
+                    ┌──────────┐
+                    │   main   │
+                    └────┬─────┘
+          ┌──────────────┼──────────────┐
+          v              v              v
+     ┌────────┐    ┌──────────┐    ┌────────┐
+     │ config │    │  models  │    │  i18n  │
+     └────┬───┘    └────┬─────┘    └────────┘
+          │             │                ↑
+          │    ┌────────┼────────┬───────┤
+          │    v        v        v       │
+          │  ┌─────┐ ┌────────┐ ┌─────────┐
+          │  │ api │ │playback│ │ storage │
+          │  └──┬──┘ └────┬───┘ └────┬────┘
+          │     │         │          │
+          └─────┴────┬────┴──────────┘
+                     v
+               ┌──────────┐
+               │  common  │
+               └──────────┘
+               ┌──────────┐
+               │   data   │ (version info, used by api)
+               └──────────┘
+```
 
-**Interfaces for Testability:**
-- `RadioBrowserService` - API client interface
-- `PlaybackManagerService` - Audio playback interface
-- `StationStorageService` - Persistence interface
-- `HTTPClientService` - HTTP client interface
+**Dependency Rules:**
+- `common` has no internal dependencies (only stdlib + google/uuid)
+- `data` has no internal dependencies
+- `i18n` depends only on external packages
+- `config` depends only on stdlib
+- `api`, `playback`, `storage` depend on `common`, `config`, `i18n`
+- `models` depends on all packages except `main`
+- `main` orchestrates everything
 
-**Theme-based Styling:**
-- All styles defined in `models/theme.go` via the `Theme` struct
-- Use `theme.PrimaryText`, `theme.ErrorText`, etc. - never inline `lipgloss.NewStyle()`
+## Interfaces
 
-**Platform-specific Code:**
-- FFplay/FFmpeg process management differs between Windows and Unix
-- Windows uses `taskkill /T /F` for process tree termination
-- Unix uses signals (SIGKILL for stop, SIGINT for graceful recording stop)
-- See `playback/ffplay.go` for implementation details
+### Core Service Interfaces
 
-**Configuration:**
-- YAML-based with platform-aware paths:
-  - Windows: `%LOCALAPPDATA%\radiogogo\config.yaml`
-  - Others: `~/.config/radiogogo/config.yaml`
-- `language` field controls UI language (default: "en", available: de, el, en, es, it, ja, pt, ru, zh)
-- `keybindings` field allows customizing most keys (see below)
-
-**Keybindings:**
-- Defined in `config/keybindings.go` with validation
-- Reserved keys (cannot be remapped): arrows, tab, enter, esc, backspace, delete, pgup/pgdown, home/end, ctrl+c/z/s/q/l/a/e/u/k/w/d/h
-- Customizable keys: quit, search, record, bookmarkToggle, bookmarksView, hideStation, manageHidden, changeLanguage, volumeDown, volumeUp, navigateDown, navigateUp, stopPlayback
-- Validation in `main.go` warns on invalid keys and falls back to defaults
-- Command labels in i18n use template variables (e.g., `{{.Key}}`) for dynamic key display
-- Keybindings passed through models: Config -> Model -> child models (SearchModel, StationsModel, ErrorModel)
-
-**Internationalization (i18n):**
-- All user-facing strings use `i18n.T("message_id")` or `i18n.Tf()` for templates
-- Locale files in `i18n/locales/*.yaml` using go-i18n format
-- Language persisted in config, switchable at runtime with "L" key on search screen
-- To add a language: create `i18n/locales/XX.yaml`, app auto-discovers it
-
-**Version Handling:**
-- Version defined as `var` in `data/version.go` for ldflags injection
-- Local builds show "dev", release builds show actual version
-- Release script injects version: `-ldflags="-s -w -X github.com/zi0p4tch0/radiogogo/data.Version=$1"`
-
-### Error Handling Patterns
-
-**Fatal vs Non-Fatal Errors:**
-- **Fatal errors** (e.g., FFplay not installed) -> `errorState` with `recoverable: false`
-- **Non-fatal errors** (e.g., API timeout, playback failure) -> Display in current view, auto-clear after 3 seconds
-
-**Error Message Flow:**
+**RadioBrowserService** (`api/browser.go`) - API client:
 ```go
-// Non-fatal errors are displayed as transient messages
-case nonFatalError:
+type RadioBrowserService interface {
+    GetStations(stationQuery StationQuery, searchTerm, order string,
+                reverse bool, offset, limit uint64, hideBroken bool) ([]Station, error)
+    GetStationsByUUIDs(uuids []uuid.UUID) ([]Station, error)
+    ClickStation(station Station) (ClickStationResponse, error)
+    VoteStation(station Station) (VoteStationResponse, error)
+}
+```
+
+**PlaybackManagerService** (`playback/manager.go`) - Audio playback:
+```go
+type PlaybackManagerService interface {
+    Name() string
+    IsAvailable() bool
+    NotAvailableErrorString() string
+    IsPlaying() bool
+    PlayStation(station Station, volume int) error
+    StopStation() error
+    VolumeMin() int
+    VolumeDefault() int  // Returns 80 for FFplay
+    VolumeMax() int
+    VolumeIsPercentage() bool
+    CurrentStation() Station
+    IsRecordingAvailable() bool
+    RecordingNotAvailableErrorString() string
+    IsRecording() bool
+    StartRecording(outputPath string) error
+    StopRecording() (string, error)
+    CurrentRecordingPath() string
+}
+```
+
+**StationStorageService** (`storage/storage.go`) - Persistence:
+```go
+type StationStorageService interface {
+    GetBookmarks() ([]uuid.UUID, error)
+    AddBookmark(stationUUID uuid.UUID) error
+    RemoveBookmark(stationUUID uuid.UUID) error
+    IsBookmarked(stationUUID uuid.UUID) bool
+
+    GetHidden() ([]uuid.UUID, error)
+    AddHidden(stationUUID uuid.UUID) error
+    RemoveHidden(stationUUID uuid.UUID) error
+    IsHidden(stationUUID uuid.UUID) bool
+
+    GetLastVoteTimestamp() (time.Time, bool)
+    SetLastVoteTimestamp(timestamp time.Time) error
+}
+```
+
+**HTTPClientService** (`api/http.go`) - HTTP client (for testing):
+```go
+type HTTPClientService interface {
+    Do(req *http.Request) (*http.Response, error)
+}
+```
+
+### Playback Abstraction Interfaces
+
+```go
+// CommandExecutor - allows mocking exec.Command
+type CommandExecutor interface {
+    Command(name string, args ...string) Cmd
+    LookPath(file string) (string, error)
+}
+
+// Cmd - wraps exec.Cmd
+type Cmd interface {
+    Start() error
+    Run() error
+    Process() Process
+    SetStderr(w *os.File)
+    SetStdout(w *os.File)
+}
+
+// Process - wraps os.Process
+type Process interface {
+    Kill() error
+    Signal(sig os.Signal) error
+    Wait() (*os.ProcessState, error)
+    Pid() int
+}
+```
+
+## Message Types
+
+### State Transition Messages (models/model.go)
+
+```go
+switchToErrorModelMsg{err string, recoverable bool}  // -> errorState
+switchToSearchModelMsg{}                              // -> searchState
+switchToLoadingModelMsg{query, queryText}            // -> loadingState
+switchToStationsModelMsg{stations, query, queryText} // -> stationsState
+switchToBookmarksMsg{stations}                        // -> stationsState (bookmark view)
+```
+
+### UI Messages
+
+```go
+bottomBarUpdateMsg{commands, secondaryCommands []string}  // Update bottom bar
+languageChangedMsg{lang string}                           // Language change
+quitMsg{}                                                 // Trigger quit
+```
+
+### Playback Messages (models/stations_handlers.go)
+
+```go
+playbackStatusMsg{station Station, status PlaybackStatus}  // Playing/stopped
+recordingStatusMsg{isRecording bool}                       // Recording state
+stationCursorMovedMsg{offset, totalStations int}          // Table cursor moved
+```
+
+### Async Operation Messages
+
+```go
+stationsLoadedMsg{stations []Station, err error}          // API response
+bookmarkToggledMsg{stationUUID uuid.UUID, added bool}    // Bookmark changed
+stationHiddenMsg{stationUUID uuid.UUID}                  // Station hidden
+stationUnhiddenMsg{stationUUID uuid.UUID}                // Station unhidden
+voteResultMsg{station Station, success bool, message string}
+volumeDebounceExpiredMsg{changeID int64}                 // Volume change debounce
+```
+
+## SQLite Storage Schema
+
+**Database location:** `~/.config/radiogogo/radiogogo.db` (or `%LOCALAPPDATA%\radiogogo\` on Windows)
+
+```sql
+-- Schema version tracking (current: 3)
+CREATE TABLE schema_version (
+    version INTEGER PRIMARY KEY
+);
+
+-- Bookmarked stations
+CREATE TABLE bookmarks (
+    station_uuid TEXT PRIMARY KEY,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Hidden stations (filtered from search results)
+CREATE TABLE hidden (
+    station_uuid TEXT PRIMARY KEY,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Global vote cooldown (RadioBrowser enforces 10-min per IP)
+CREATE TABLE last_vote (
+    id INTEGER PRIMARY KEY CHECK (id = 1),
+    voted_at TEXT NOT NULL
+);
+```
+
+**Storage Features:**
+- WAL mode enabled for better concurrent access
+- In-memory caching with RWMutex for fast reads
+- Automatic database integrity validation on startup
+- Automatic recovery from corrupted databases (renamed to `.corrupted.<timestamp>`)
+- Schema migrations handled transparently
+
+## Key Patterns
+
+### Message Passing (BubbleTea Elm Architecture)
+
+```go
+// State transitions via typed messages
+case switchToSearchModelMsg:
+    m.state = searchState
+    return m, m.searchModel.Init()
+
+// Commands return tea.Cmd (functions that produce messages asynchronously)
+func fetchStationsCmd(browser RadioBrowserService, query StationQuery) tea.Cmd {
+    return func() tea.Msg {
+        stations, err := browser.GetStations(query, ...)
+        return stationsLoadedMsg{stations: stations, err: err}
+    }
+}
+
+// Use tea.Batch() for parallel commands
+return m, tea.Batch(cmd1, cmd2, cmd3)
+
+// Use tea.Sequence() for ordered execution
+return m, tea.Sequence(cmd1, cmd2)
+```
+
+### Handler Pattern (models/model_handlers.go)
+
+The root Model delegates message handling through a chain:
+```go
+func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+    // 1. Handle global messages (cursor, playback, window resize, quit)
+    if handled, newM, cmd := m.handleGlobalMessages(msg); handled {
+        return newM, cmd
+    }
+
+    // 2. Handle state transitions
+    if handled, newM, cmd := m.handleStateTransitions(msg); handled {
+        return newM, cmd
+    }
+
+    // 3. Delegate to current state's model
+    return m.delegateToCurrentState(msg)
+}
+```
+
+### Dependency Injection for Testing
+
+```go
+// Production: uses real dependencies
+model, err := models.NewDefaultModel(cfg)
+
+// Testing: inject mocks
+model := models.NewModel(cfg, mockBrowser, mockPlayback, mockStorage)
+```
+
+### Theme-based Styling
+
+All styles defined in `models/theme.go` via the `Theme` struct:
+```go
+type Theme struct {
+    PrimaryBlock   lipgloss.Style  // Colored background blocks
+    SecondaryBlock lipgloss.Style
+    Text           lipgloss.Style  // Default text
+    PrimaryText    lipgloss.Style  // Purple accent text
+    SecondaryText  lipgloss.Style  // Light purple text
+    TertiaryText   lipgloss.Style  // Gray text
+    ErrorText      lipgloss.Style  // Red text
+    SuccessText    lipgloss.Style  // Green text (#50FA7B)
+    StationsTableStyle table.Styles
+    ModalStyle     lipgloss.Style
+}
+```
+
+**Usage:** `theme.PrimaryText.Render("text")` - never inline `lipgloss.NewStyle()`.
+
+### Platform-specific Code
+
+FFplay/FFmpeg process management differs between Windows and Unix:
+
+```go
+// Windows: taskkill /T (tree kill) /F (force) to kill process tree
+killCmd := exec.Command("taskkill", "/T", "/F", "/PID", fmt.Sprintf("%d", pid))
+
+// Unix/macOS: SIGKILL for stop, SIGINT for graceful recording stop
+process.Kill()           // SIGKILL - immediate termination
+process.Signal(os.Interrupt)  // SIGINT - graceful (ffmpeg finalizes file)
+```
+
+## Configuration
+
+### Config File Location
+- **Windows:** `%LOCALAPPDATA%\radiogogo\config.yaml`
+- **Others:** `~/.config/radiogogo/config.yaml`
+
+### Full Config Structure
+```yaml
+language: en  # de, el, en, es, it, ja, pt, ru, zh
+
+theme:
+  textColor: "#ffffff"
+  primaryColor: "#5a4f9f"
+  secondaryColor: "#8b77db"
+  tertiaryColor: "#4e4e4e"
+  errorColor: "#ff0000"
+
+keybindings:
+  quit: "q"
+  search: "s"
+  record: "r"
+  bookmarkToggle: "b"
+  bookmarksView: "B"
+  hideStation: "h"
+  manageHidden: "H"
+  changeLanguage: "L"
+  volumeDown: "9"
+  volumeUp: "0"
+  navigateDown: "j"
+  navigateUp: "k"
+  stopPlayback: "ctrl+k"
+  vote: "v"
+```
+
+### Reserved Keys (cannot be remapped)
+
+```
+Navigation: up, down, left, right, tab, enter, esc
+Editing: backspace, delete, pgup, pgdown, home, end
+System: ctrl+c, ctrl+z, ctrl+s, ctrl+q, ctrl+l
+TextInput: ctrl+a, ctrl+e, ctrl+u, ctrl+w, ctrl+d, ctrl+h
+```
+
+### Keybinding Validation
+
+Validation happens in `main.go` at startup:
+- Reserved keys are rejected with a warning
+- Duplicate keys are rejected with a warning
+- Invalid keys fall back to defaults
+- Empty keys are filled with defaults
+
+## Internationalization (i18n)
+
+### Available Languages
+de (German), el (Greek), en (English), es (Spanish), it (Italian), ja (Japanese), pt (Portuguese), ru (Russian), zh (Chinese)
+
+### Usage Functions
+```go
+i18n.T("message_id")                           // Simple translation
+i18n.Tf("message_id", map[string]interface{}{  // With template data
+    "Key": value,
+})
+i18n.Tn("message_id", count)                   // Pluralization
+i18n.Tfn("message_id", count, data)            // Both
+```
+
+### Adding a New Language
+1. Create `i18n/locales/XX.yaml` (copy from en.yaml)
+2. Translate all message strings
+3. App auto-discovers new locale files (embedded via `//go:embed`)
+
+### Runtime Language Switching
+Press "L" on search screen -> selector shows available languages -> selection saved to config.
+
+## Error Handling
+
+### Fatal vs Non-Fatal Errors
+
+| Error Type | Example | Behavior |
+|------------|---------|----------|
+| Fatal | FFplay not installed | `errorState` with `recoverable: false`, app unusable |
+| Non-fatal | API timeout, playback failure | Display in current view, auto-clear after 3 seconds |
+
+### Non-Fatal Error Flow
+```go
+case playbackError:
     m.err = msg.err.Error()
     return m, tea.Tick(3*time.Second, func(t time.Time) tea.Msg {
-        return clearNonFatalError{}
+        return clearErrorMsg{}
     })
 ```
 
-**API Error Handling:**
-- HTTP 4xx/5xx responses return error with status code
-- Network errors propagate the underlying error
-- JSON parsing errors are returned as-is
+### API Error Handling
+- HTTP 4xx/5xx: `fmt.Errorf("API request failed with status %d", statusCode)`
+- Network errors: Propagate underlying error
+- JSON parsing errors: Returned as-is
 
-### Common Developer Pitfalls
+## Testing
+
+### Mock Pattern
+Mocks use function fields for flexible behavior configuration:
+```go
+mockBrowser := &mocks.MockRadioBrowserService{
+    GetStationsFunc: func(query StationQuery, ...) ([]Station, error) {
+        return []Station{{Name: "Test Radio"}}, nil
+    },
+    ClickStationFunc: func(station Station) (ClickStationResponse, error) {
+        return ClickStationResponse{Ok: true}, nil
+    },
+}
+```
+
+### Test Patterns
+```go
+// Table-driven tests
+func TestStationQuery(t *testing.T) {
+    tests := []struct {
+        name     string
+        query    StationQuery
+        expected string
+    }{
+        {"by name", StationQueryByName, "byname"},
+        {"by country", StationQueryByCountry, "bycountry"},
+    }
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            assert.Equal(t, tt.expected, string(tt.query))
+        })
+    }
+}
+```
+
+### Test File Organization
+- Tests live alongside source: `foo.go` + `foo_test.go`
+- Mocks in dedicated `mocks/` package
+- Use `github.com/stretchr/testify/assert` for assertions
+
+## Common Developer Pitfalls
 
 1. **Inline lipgloss styles** - Always use `theme.go` styles. Never write `lipgloss.NewStyle()` in view code.
 
-2. **Blocking in commands** - Commands run synchronously. For async operations, return a `tea.Cmd` that produces a message:
+2. **Blocking in Update()** - Commands run synchronously. For async operations, return a `tea.Cmd`:
    ```go
    // WRONG: blocks the UI
    func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -226,35 +611,33 @@ case nonFatalError:
 
 5. **Not stopping playback on state transitions** - Always call `m.playbackManager.StopStation()` when transitioning away from stations view.
 
-### Key Dependencies
+6. **Modifying config without saving** - Config changes must be persisted:
+   ```go
+   m.config.Language = newLang
+   _ = m.config.Save(config.ConfigFile())
+   ```
 
-- `github.com/charmbracelet/bubbletea` - TUI framework
-- `github.com/charmbracelet/bubbles` - TUI components (spinner, table, textinput)
-- `github.com/charmbracelet/lipgloss` - Terminal styling
-- `gopkg.in/yaml.v3` - YAML config parsing
-- `github.com/stretchr/testify` - Testing assertions
-- `github.com/google/uuid` - UUID handling for station IDs
-- `github.com/nicksnyder/go-i18n/v2` - Internationalization and pluralization
-- `modernc.org/sqlite` - Pure Go SQLite driver (no CGO required)
+7. **Ignoring storage errors** - Storage operations can fail; handle errors appropriately.
 
-## Testing
+8. **Volume change without debouncing** - Rapid volume changes should be debounced to avoid excessive process restarts.
 
-### Mock Usage
-Mocks are in the `mocks/` package with function-based configuration:
-```go
-mockPM := &mocks.MockPlaybackManagerService{
-    NameResult: "ffplay",
-    IsPlayingResult: true,
-    PlayStationFunc: func(station common.Station, volume int) error {
-        return nil
-    },
-}
-```
+9. **Forgetting to filter hidden stations** - Always filter via `filterHiddenStations()` before displaying search results.
 
-### Test Patterns
-- Table-driven tests with `t.Run()` subtests
-- Use `github.com/stretchr/testify/assert` for assertions
-- Tests live alongside source files (`*_test.go`)
+10. **Using fmt.Sprintf for conversions** - Use `strconv.FormatUint()` / `strconv.FormatBool()` instead.
+
+## Key Dependencies
+
+| Package | Purpose |
+|---------|---------|
+| `github.com/charmbracelet/bubbletea` | TUI framework (Elm architecture) |
+| `github.com/charmbracelet/bubbles` | TUI components (spinner, table, textinput) |
+| `github.com/charmbracelet/lipgloss` | Terminal styling |
+| `gopkg.in/yaml.v3` | YAML config parsing |
+| `github.com/stretchr/testify` | Testing assertions |
+| `github.com/google/uuid` | UUID handling for station IDs |
+| `github.com/nicksnyder/go-i18n/v2` | Internationalization and pluralization |
+| `modernc.org/sqlite` | Pure Go SQLite driver (no CGO required) |
+| `golang.org/x/text/language` | Language tag parsing for i18n |
 
 ## Code Style Guidelines
 
@@ -263,6 +646,13 @@ mockPM := &mocks.MockPlaybackManagerService{
 - Add detailed comments for platform-specific logic (Windows vs Unix)
 - Keep files under ~500 lines; split large files by responsibility (see `stations_*.go`)
 - Document public interfaces and complex functions with godoc comments
+- Use consistent handler pattern: `func (m Model) handleXxx(msg) (bool, Model, tea.Cmd)`
+
+## Version Handling
+
+- Version defined as `var` in `data/version.go` for ldflags injection
+- Local builds show "dev", release builds show actual version
+- Release script injects version: `-ldflags="-s -w -X github.com/zi0p4tch0/radiogogo/data.Version=$1"`
 
 ## Release Notes Format
 

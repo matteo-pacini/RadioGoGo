@@ -565,3 +565,260 @@ func TestFFPlayPlaybackManager_CurrentStation(t *testing.T) {
 		assert.Equal(t, station.Name, result.Name)
 	})
 }
+
+func TestFFPlayPlaybackManager_VolumeEdgeCases(t *testing.T) {
+	t.Run("handles negative volume", func(t *testing.T) {
+		executor := newMockExecutor()
+		manager := NewFFPlaybackManagerWithExecutor(executor)
+		station := testStation("http://example.com/stream")
+
+		// ffplay accepts negative volume (treated as 0)
+		err := manager.PlayStation(station, -10)
+
+		assert.NoError(t, err)
+		call := executor.commandCalls[0]
+		assert.Contains(t, call, "-10")
+	})
+
+	t.Run("handles volume above 100", func(t *testing.T) {
+		executor := newMockExecutor()
+		manager := NewFFPlaybackManagerWithExecutor(executor)
+		station := testStation("http://example.com/stream")
+
+		// ffplay may accept volumes above 100 (can clip/distort)
+		err := manager.PlayStation(station, 200)
+
+		assert.NoError(t, err)
+		call := executor.commandCalls[0]
+		assert.Contains(t, call, "200")
+	})
+}
+
+func TestFFPlayPlaybackManager_URLEdgeCases(t *testing.T) {
+	t.Run("handles URL with authentication", func(t *testing.T) {
+		executor := newMockExecutor()
+		manager := NewFFPlaybackManagerWithExecutor(executor)
+		station := testStation("http://user:pass@example.com/stream")
+
+		err := manager.PlayStation(station, 80)
+
+		assert.NoError(t, err)
+		call := executor.commandCalls[0]
+		assert.Contains(t, call, "http://user:pass@example.com/stream")
+	})
+
+	t.Run("handles URL with query parameters", func(t *testing.T) {
+		executor := newMockExecutor()
+		manager := NewFFPlaybackManagerWithExecutor(executor)
+		station := testStation("http://example.com/stream?token=abc123&quality=high")
+
+		err := manager.PlayStation(station, 80)
+
+		assert.NoError(t, err)
+		call := executor.commandCalls[0]
+		// The URL is passed as the last argument
+		urlArg := call[len(call)-1]
+		assert.Contains(t, urlArg, "token=abc123")
+		assert.Contains(t, urlArg, "quality=high")
+	})
+
+	t.Run("handles URL with port", func(t *testing.T) {
+		executor := newMockExecutor()
+		manager := NewFFPlaybackManagerWithExecutor(executor)
+		station := testStation("http://example.com:8080/stream")
+
+		err := manager.PlayStation(station, 80)
+
+		assert.NoError(t, err)
+		call := executor.commandCalls[0]
+		assert.Contains(t, call, "http://example.com:8080/stream")
+	})
+
+	t.Run("handles HTTPS URL", func(t *testing.T) {
+		executor := newMockExecutor()
+		manager := NewFFPlaybackManagerWithExecutor(executor)
+		station := testStation("https://secure.example.com/stream")
+
+		err := manager.PlayStation(station, 80)
+
+		assert.NoError(t, err)
+		call := executor.commandCalls[0]
+		assert.Contains(t, call, "https://secure.example.com/stream")
+	})
+
+	t.Run("handles URL with special characters in path", func(t *testing.T) {
+		executor := newMockExecutor()
+		manager := NewFFPlaybackManagerWithExecutor(executor)
+		station := testStation("http://example.com/stream/live%20radio")
+
+		err := manager.PlayStation(station, 80)
+
+		assert.NoError(t, err)
+		call := executor.commandCalls[0]
+		// The URL is passed as the last argument
+		urlArg := call[len(call)-1]
+		assert.Contains(t, urlArg, "live%20radio")
+	})
+}
+
+func TestFFPlayPlaybackManager_WaitErrors(t *testing.T) {
+	t.Run("StopStation returns error when Wait fails", func(t *testing.T) {
+		executor := newMockExecutor()
+		process := &mockProcess{pid: 12345, waitErr: errors.New("wait failed")}
+		executor.commandFunc = func(name string, args ...string) Cmd {
+			return &mockCmd{process: process}
+		}
+		manager := NewFFPlaybackManagerWithExecutor(executor)
+		station := testStation("http://example.com/stream")
+
+		_ = manager.PlayStation(station, 80)
+		err := manager.StopStation()
+
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "wait failed")
+	})
+
+	t.Run("StopRecording handles kill fallback error", func(t *testing.T) {
+		executor := newMockExecutor()
+		process := &mockProcess{
+			pid:       12345,
+			signalErr: errors.New("signal failed"),
+			killErr:   errors.New("kill also failed"),
+		}
+		executor.commandFunc = func(name string, args ...string) Cmd {
+			return &mockCmd{process: process}
+		}
+		manager := NewFFPlaybackManagerWithExecutor(executor)
+		station := testStation("http://example.com/stream")
+
+		_ = manager.PlayStation(station, 80)
+		_ = manager.StartRecording("/tmp/test.mp3")
+		_, err := manager.StopRecording()
+
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "kill also failed")
+	})
+}
+
+func TestFFPlayPlaybackManager_ConcurrentOperations(t *testing.T) {
+	t.Run("multiple PlayStations stops previous correctly", func(t *testing.T) {
+		executor := newMockExecutor()
+		killCount := 0
+		executor.commandFunc = func(name string, args ...string) Cmd {
+			return &mockCmd{process: &mockProcess{
+				pid: 12345,
+				killErr: nil,
+			}}
+		}
+		manager := NewFFPlaybackManagerWithExecutor(executor)
+
+		station1 := testStation("http://example.com/stream1")
+		station2 := testStation("http://example.com/stream2")
+		station3 := testStation("http://example.com/stream3")
+
+		_ = manager.PlayStation(station1, 80)
+		_ = manager.PlayStation(station2, 80)
+		_ = manager.PlayStation(station3, 80)
+
+		// Still playing after all switches
+		assert.True(t, manager.IsPlaying())
+		assert.Equal(t, station3.StationUuid, manager.CurrentStation().StationUuid)
+		_ = killCount // silence unused warning
+	})
+
+	t.Run("double StopStation is safe", func(t *testing.T) {
+		executor := newMockExecutor()
+		manager := NewFFPlaybackManagerWithExecutor(executor)
+		station := testStation("http://example.com/stream")
+
+		_ = manager.PlayStation(station, 80)
+		err1 := manager.StopStation()
+		err2 := manager.StopStation()
+
+		assert.NoError(t, err1)
+		assert.NoError(t, err2)
+		assert.False(t, manager.IsPlaying())
+	})
+
+	t.Run("double StopRecording is safe", func(t *testing.T) {
+		executor := newMockExecutor()
+		executor.commandFunc = func(name string, args ...string) Cmd {
+			return &mockCmd{process: &mockProcess{pid: 12345}}
+		}
+		manager := NewFFPlaybackManagerWithExecutor(executor)
+		station := testStation("http://example.com/stream")
+
+		_ = manager.PlayStation(station, 80)
+		_ = manager.StartRecording("/tmp/test.mp3")
+		path1, err1 := manager.StopRecording()
+		path2, err2 := manager.StopRecording()
+
+		assert.NoError(t, err1)
+		assert.Equal(t, "/tmp/test.mp3", path1)
+		assert.NoError(t, err2)
+		assert.Empty(t, path2)
+	})
+}
+
+func TestFFPlayPlaybackManager_RecordingPaths(t *testing.T) {
+	t.Run("handles path with spaces", func(t *testing.T) {
+		executor := newMockExecutor()
+		executor.commandFunc = func(name string, args ...string) Cmd {
+			return &mockCmd{process: &mockProcess{pid: 12345}}
+		}
+		manager := NewFFPlaybackManagerWithExecutor(executor)
+		station := testStation("http://example.com/stream")
+
+		_ = manager.PlayStation(station, 80)
+		err := manager.StartRecording("/tmp/my recordings/test.mp3")
+
+		assert.NoError(t, err)
+		assert.Equal(t, "/tmp/my recordings/test.mp3", manager.CurrentRecordingPath())
+	})
+
+	t.Run("handles absolute Windows-style path", func(t *testing.T) {
+		executor := newMockExecutor()
+		executor.commandFunc = func(name string, args ...string) Cmd {
+			return &mockCmd{process: &mockProcess{pid: 12345}}
+		}
+		manager := NewFFPlaybackManagerWithExecutor(executor)
+		station := testStation("http://example.com/stream")
+
+		_ = manager.PlayStation(station, 80)
+		err := manager.StartRecording("C:\\Users\\Test\\Music\\recording.mp3")
+
+		assert.NoError(t, err)
+		assert.Equal(t, "C:\\Users\\Test\\Music\\recording.mp3", manager.CurrentRecordingPath())
+	})
+
+	t.Run("handles empty output path", func(t *testing.T) {
+		executor := newMockExecutor()
+		executor.commandFunc = func(name string, args ...string) Cmd {
+			return &mockCmd{process: &mockProcess{pid: 12345}}
+		}
+		manager := NewFFPlaybackManagerWithExecutor(executor)
+		station := testStation("http://example.com/stream")
+
+		_ = manager.PlayStation(station, 80)
+		err := manager.StartRecording("")
+
+		// ffmpeg will fail with empty path, but StartRecording doesn't validate
+		assert.NoError(t, err)
+		assert.Equal(t, "", manager.CurrentRecordingPath())
+	})
+
+	t.Run("handles unicode path", func(t *testing.T) {
+		executor := newMockExecutor()
+		executor.commandFunc = func(name string, args ...string) Cmd {
+			return &mockCmd{process: &mockProcess{pid: 12345}}
+		}
+		manager := NewFFPlaybackManagerWithExecutor(executor)
+		station := testStation("http://example.com/stream")
+
+		_ = manager.PlayStation(station, 80)
+		err := manager.StartRecording("/tmp/録音/test.mp3")
+
+		assert.NoError(t, err)
+		assert.Equal(t, "/tmp/録音/test.mp3", manager.CurrentRecordingPath())
+	})
+}

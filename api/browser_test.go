@@ -463,6 +463,321 @@ func TestBrowserImpl_ErrorHandling(t *testing.T) {
 	})
 }
 
+func TestBrowserImplVoteStation(t *testing.T) {
+
+	t.Run("builds correct URL and sends POST request", func(t *testing.T) {
+		station := common.Station{
+			StationUuid: uuid.MustParse("941ef6f1-0699-4821-95b1-2b678e3ff62e"),
+		}
+
+		mockHttpClient := mocks.MockHttpClient{
+			DoFunc: func(req *http.Request) (*http.Response, error) {
+				expectedUrl := "https://all.api.radio-browser.info/json/vote/941ef6f1-0699-4821-95b1-2b678e3ff62e"
+				assert.Equal(t, "POST", req.Method)
+				assert.Equal(t, expectedUrl, req.URL.String())
+				assert.Equal(t, "application/json", req.Header.Get("Accept"))
+				assert.Equal(t, data.UserAgent, req.Header.Get("User-Agent"))
+
+				responseBody := io.NopCloser(bytes.NewReader([]byte(`{
+					"ok": true,
+					"message": "voted for station successfully"
+				}`)))
+				return &http.Response{
+					StatusCode: 200,
+					Body:       responseBody,
+				}, nil
+			},
+		}
+
+		radioBrowser, err := NewRadioBrowserWithDependencies(&mockHttpClient)
+		assert.NoError(t, err)
+
+		response, err := radioBrowser.VoteStation(station)
+		assert.NoError(t, err)
+		assert.True(t, response.Ok)
+		assert.Equal(t, "voted for station successfully", response.Message)
+	})
+
+	t.Run("handles vote rejected (IP already voted)", func(t *testing.T) {
+		station := common.Station{
+			StationUuid: uuid.MustParse("941ef6f1-0699-4821-95b1-2b678e3ff62e"),
+		}
+
+		mockHttpClient := mocks.MockHttpClient{
+			DoFunc: func(req *http.Request) (*http.Response, error) {
+				responseBody := io.NopCloser(bytes.NewReader([]byte(`{
+					"ok": false,
+					"message": "you can only vote once every 10 minutes"
+				}`)))
+				return &http.Response{
+					StatusCode: 200,
+					Body:       responseBody,
+				}, nil
+			},
+		}
+
+		radioBrowser, err := NewRadioBrowserWithDependencies(&mockHttpClient)
+		assert.NoError(t, err)
+
+		response, err := radioBrowser.VoteStation(station)
+		assert.NoError(t, err)
+		assert.False(t, response.Ok)
+		assert.Contains(t, response.Message, "10 minutes")
+	})
+
+	t.Run("handles network error", func(t *testing.T) {
+		station := common.Station{
+			StationUuid: uuid.MustParse("941ef6f1-0699-4821-95b1-2b678e3ff62e"),
+		}
+
+		mockHttpClient := mocks.MockHttpClient{
+			DoFunc: func(req *http.Request) (*http.Response, error) {
+				return nil, &networkError{message: "connection refused"}
+			},
+		}
+
+		radioBrowser, err := NewRadioBrowserWithDependencies(&mockHttpClient)
+		assert.NoError(t, err)
+
+		_, err = radioBrowser.VoteStation(station)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "connection refused")
+	})
+
+	t.Run("handles HTTP 404 Not Found", func(t *testing.T) {
+		station := common.Station{
+			StationUuid: uuid.MustParse("941ef6f1-0699-4821-95b1-2b678e3ff62e"),
+		}
+
+		mockHttpClient := mocks.MockHttpClient{
+			DoFunc: func(req *http.Request) (*http.Response, error) {
+				responseBody := io.NopCloser(bytes.NewReader([]byte(`Station not found`)))
+				return &http.Response{
+					StatusCode: 404,
+					Body:       responseBody,
+				}, nil
+			},
+		}
+
+		radioBrowser, err := NewRadioBrowserWithDependencies(&mockHttpClient)
+		assert.NoError(t, err)
+
+		_, err = radioBrowser.VoteStation(station)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "404")
+	})
+
+	t.Run("handles HTTP 500 Internal Server Error", func(t *testing.T) {
+		station := common.Station{
+			StationUuid: uuid.MustParse("941ef6f1-0699-4821-95b1-2b678e3ff62e"),
+		}
+
+		mockHttpClient := mocks.MockHttpClient{
+			DoFunc: func(req *http.Request) (*http.Response, error) {
+				responseBody := io.NopCloser(bytes.NewReader([]byte(`Internal Server Error`)))
+				return &http.Response{
+					StatusCode: 500,
+					Body:       responseBody,
+				}, nil
+			},
+		}
+
+		radioBrowser, err := NewRadioBrowserWithDependencies(&mockHttpClient)
+		assert.NoError(t, err)
+
+		_, err = radioBrowser.VoteStation(station)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "500")
+	})
+
+	t.Run("handles HTTP 429 Rate Limit", func(t *testing.T) {
+		station := common.Station{
+			StationUuid: uuid.MustParse("941ef6f1-0699-4821-95b1-2b678e3ff62e"),
+		}
+
+		mockHttpClient := mocks.MockHttpClient{
+			DoFunc: func(req *http.Request) (*http.Response, error) {
+				responseBody := io.NopCloser(bytes.NewReader([]byte(`Too Many Requests`)))
+				return &http.Response{
+					StatusCode: 429,
+					Body:       responseBody,
+				}, nil
+			},
+		}
+
+		radioBrowser, err := NewRadioBrowserWithDependencies(&mockHttpClient)
+		assert.NoError(t, err)
+
+		_, err = radioBrowser.VoteStation(station)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "429")
+	})
+
+	t.Run("handles malformed JSON response", func(t *testing.T) {
+		station := common.Station{
+			StationUuid: uuid.MustParse("941ef6f1-0699-4821-95b1-2b678e3ff62e"),
+		}
+
+		mockHttpClient := mocks.MockHttpClient{
+			DoFunc: func(req *http.Request) (*http.Response, error) {
+				responseBody := io.NopCloser(bytes.NewReader([]byte(`{not valid json`)))
+				return &http.Response{
+					StatusCode: 200,
+					Body:       responseBody,
+				}, nil
+			},
+		}
+
+		radioBrowser, err := NewRadioBrowserWithDependencies(&mockHttpClient)
+		assert.NoError(t, err)
+
+		_, err = radioBrowser.VoteStation(station)
+		assert.Error(t, err)
+	})
+
+	t.Run("handles empty response body", func(t *testing.T) {
+		station := common.Station{
+			StationUuid: uuid.MustParse("941ef6f1-0699-4821-95b1-2b678e3ff62e"),
+		}
+
+		mockHttpClient := mocks.MockHttpClient{
+			DoFunc: func(req *http.Request) (*http.Response, error) {
+				responseBody := io.NopCloser(bytes.NewReader([]byte(``)))
+				return &http.Response{
+					StatusCode: 200,
+					Body:       responseBody,
+				}, nil
+			},
+		}
+
+		radioBrowser, err := NewRadioBrowserWithDependencies(&mockHttpClient)
+		assert.NoError(t, err)
+
+		_, err = radioBrowser.VoteStation(station)
+		assert.Error(t, err) // EOF error from JSON decoder
+	})
+}
+
+func TestGetStations_EdgeCases(t *testing.T) {
+
+	t.Run("handles empty search term", func(t *testing.T) {
+		mockHttpClient := mocks.MockHttpClient{
+			DoFunc: func(req *http.Request) (*http.Response, error) {
+				// With empty search term, path should still include the empty segment
+				assert.Contains(t, req.URL.Path, "/json/stations/byname/")
+				responseBody := io.NopCloser(bytes.NewReader([]byte(`[]`)))
+				return &http.Response{
+					StatusCode: 200,
+					Body:       responseBody,
+				}, nil
+			},
+		}
+
+		browser, err := NewRadioBrowserWithDependencies(&mockHttpClient)
+		assert.NoError(t, err)
+
+		stations, err := browser.GetStations(common.StationQueryByName, "", "name", false, 0, 10, true)
+		assert.NoError(t, err)
+		assert.Empty(t, stations)
+	})
+
+	t.Run("handles search term with special characters", func(t *testing.T) {
+		mockHttpClient := mocks.MockHttpClient{
+			DoFunc: func(req *http.Request) (*http.Response, error) {
+				// Path contains the search term with spaces (URL encoding happens elsewhere)
+				assert.Contains(t, req.URL.Path, "/byname/test station")
+				responseBody := io.NopCloser(bytes.NewReader([]byte(`[]`)))
+				return &http.Response{
+					StatusCode: 200,
+					Body:       responseBody,
+				}, nil
+			},
+		}
+
+		browser, err := NewRadioBrowserWithDependencies(&mockHttpClient)
+		assert.NoError(t, err)
+
+		_, err = browser.GetStations(common.StationQueryByName, "test station", "name", false, 0, 10, true)
+		assert.NoError(t, err)
+	})
+
+	t.Run("handles zero limit", func(t *testing.T) {
+		mockHttpClient := mocks.MockHttpClient{
+			DoFunc: func(req *http.Request) (*http.Response, error) {
+				assert.Contains(t, req.URL.RawQuery, "limit=0")
+				responseBody := io.NopCloser(bytes.NewReader([]byte(`[]`)))
+				return &http.Response{
+					StatusCode: 200,
+					Body:       responseBody,
+				}, nil
+			},
+		}
+
+		browser, err := NewRadioBrowserWithDependencies(&mockHttpClient)
+		assert.NoError(t, err)
+
+		_, err = browser.GetStations(common.StationQueryByName, "test", "name", false, 0, 0, true)
+		assert.NoError(t, err)
+	})
+
+	t.Run("handles large offset", func(t *testing.T) {
+		mockHttpClient := mocks.MockHttpClient{
+			DoFunc: func(req *http.Request) (*http.Response, error) {
+				assert.Contains(t, req.URL.RawQuery, "offset=999999")
+				responseBody := io.NopCloser(bytes.NewReader([]byte(`[]`)))
+				return &http.Response{
+					StatusCode: 200,
+					Body:       responseBody,
+				}, nil
+			},
+		}
+
+		browser, err := NewRadioBrowserWithDependencies(&mockHttpClient)
+		assert.NoError(t, err)
+
+		_, err = browser.GetStations(common.StationQueryByName, "test", "name", false, 999999, 10, true)
+		assert.NoError(t, err)
+	})
+
+	t.Run("handles reverse order", func(t *testing.T) {
+		mockHttpClient := mocks.MockHttpClient{
+			DoFunc: func(req *http.Request) (*http.Response, error) {
+				assert.Contains(t, req.URL.RawQuery, "reverse=true")
+				responseBody := io.NopCloser(bytes.NewReader([]byte(`[]`)))
+				return &http.Response{
+					StatusCode: 200,
+					Body:       responseBody,
+				}, nil
+			},
+		}
+
+		browser, err := NewRadioBrowserWithDependencies(&mockHttpClient)
+		assert.NoError(t, err)
+
+		_, err = browser.GetStations(common.StationQueryByName, "test", "name", true, 0, 10, true)
+		assert.NoError(t, err)
+	})
+
+	t.Run("handles hideBroken false", func(t *testing.T) {
+		mockHttpClient := mocks.MockHttpClient{
+			DoFunc: func(req *http.Request) (*http.Response, error) {
+				assert.Contains(t, req.URL.RawQuery, "hidebroken=false")
+				responseBody := io.NopCloser(bytes.NewReader([]byte(`[]`)))
+				return &http.Response{
+					StatusCode: 200,
+					Body:       responseBody,
+				}, nil
+			},
+		}
+
+		browser, err := NewRadioBrowserWithDependencies(&mockHttpClient)
+		assert.NoError(t, err)
+
+		_, err = browser.GetStations(common.StationQueryByName, "test", "name", false, 0, 10, false)
+		assert.NoError(t, err)
+	})
+}
+
 // networkError is a test helper for simulating network errors
 type networkError struct {
 	message string

@@ -222,3 +222,180 @@ func TestGenerateRecordingFilename(t *testing.T) {
 		assert.Contains(t, filename, ".aac")
 	})
 }
+
+func TestFormatTimestamp_EdgeCases(t *testing.T) {
+	t.Run("midnight", func(t *testing.T) {
+		midnight := time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC)
+		result := FormatTimestamp(midnight)
+		assert.Equal(t, "2026-01-15-00-00-00", result)
+	})
+
+	t.Run("end of day", func(t *testing.T) {
+		endOfDay := time.Date(2026, 12, 31, 23, 59, 59, 0, time.UTC)
+		result := FormatTimestamp(endOfDay)
+		assert.Equal(t, "2026-12-31-23-59-59", result)
+	})
+
+	t.Run("leap year February 29", func(t *testing.T) {
+		leapDay := time.Date(2028, 2, 29, 12, 30, 0, 0, time.UTC)
+		result := FormatTimestamp(leapDay)
+		assert.Equal(t, "2028-02-29-12-30-00", result)
+	})
+
+	t.Run("nanoseconds ignored", func(t *testing.T) {
+		withNanos := time.Date(2026, 5, 10, 15, 45, 30, 123456789, time.UTC)
+		result := FormatTimestamp(withNanos)
+		assert.Equal(t, "2026-05-10-15-45-30", result)
+	})
+
+	t.Run("different timezone produces local time", func(t *testing.T) {
+		loc, _ := time.LoadLocation("America/New_York")
+		nyTime := time.Date(2026, 7, 4, 10, 0, 0, 0, loc)
+		result := FormatTimestamp(nyTime)
+		// Should format the time as-is (10:00) not convert to UTC
+		assert.Equal(t, "2026-07-04-10-00-00", result)
+	})
+
+	t.Run("zero time", func(t *testing.T) {
+		zeroTime := time.Time{}
+		result := FormatTimestamp(zeroTime)
+		// Go's zero time is 0001-01-01 00:00:00
+		assert.Equal(t, "0001-01-01-00-00-00", result)
+	})
+}
+
+func TestNormalizeCodec_EdgeCases(t *testing.T) {
+	t.Run("2 character codec used as-is", func(t *testing.T) {
+		result := NormalizeCodec("ts")
+		assert.Equal(t, "ts", result)
+	})
+
+	t.Run("5 character codec used as-is", func(t *testing.T) {
+		result := NormalizeCodec("webma")
+		assert.Equal(t, "webma", result)
+	})
+
+	t.Run("6+ character unknown codec defaults to mp3", func(t *testing.T) {
+		result := NormalizeCodec("unknwn")
+		assert.Equal(t, "mp3", result)
+	})
+
+	t.Run("codec with leading whitespace", func(t *testing.T) {
+		result := NormalizeCodec("  mp3")
+		assert.Equal(t, "mp3", result)
+	})
+
+	t.Run("codec with trailing whitespace", func(t *testing.T) {
+		result := NormalizeCodec("aac  ")
+		assert.Equal(t, "aac", result)
+	})
+
+	t.Run("codec with surrounding whitespace", func(t *testing.T) {
+		result := NormalizeCodec("  ogg  ")
+		assert.Equal(t, "ogg", result)
+	})
+
+	t.Run("wma codec", func(t *testing.T) {
+		result := NormalizeCodec("WMA")
+		assert.Equal(t, "wma", result)
+	})
+
+	t.Run("wav codec", func(t *testing.T) {
+		result := NormalizeCodec("WAV")
+		assert.Equal(t, "wav", result)
+	})
+
+	t.Run("mixed case aac+", func(t *testing.T) {
+		result := NormalizeCodec("AaC+")
+		assert.Equal(t, "aac", result)
+	})
+}
+
+func TestSanitizeFilename_EdgeCases(t *testing.T) {
+	t.Run("exactly 100 characters", func(t *testing.T) {
+		// Create exactly 100 character string
+		name := ""
+		for i := 0; i < 100; i++ {
+			name += "a"
+		}
+		result := SanitizeFilename(name)
+		assert.Equal(t, 100, len(result))
+	})
+
+	t.Run("single character name", func(t *testing.T) {
+		result := SanitizeFilename("A")
+		assert.Equal(t, "a", result)
+	})
+
+	t.Run("numbers only", func(t *testing.T) {
+		result := SanitizeFilename("12345")
+		assert.Equal(t, "12345", result)
+	})
+
+	t.Run("mixed numbers and letters", func(t *testing.T) {
+		result := SanitizeFilename("Radio 101.5 FM")
+		assert.Equal(t, "radio_1015_fm", result)
+	})
+
+	t.Run("leading hyphen trimmed", func(t *testing.T) {
+		result := SanitizeFilename("-test")
+		assert.Equal(t, "test", result)
+	})
+
+	t.Run("trailing hyphen trimmed", func(t *testing.T) {
+		result := SanitizeFilename("test-")
+		assert.Equal(t, "test", result)
+	})
+
+	t.Run("multiple consecutive hyphens", func(t *testing.T) {
+		result := SanitizeFilename("test---name")
+		assert.Equal(t, "test---name", result) // hyphens not collapsed, only underscores
+	})
+
+	t.Run("tabs converted to underscores", func(t *testing.T) {
+		result := SanitizeFilename("test\tname")
+		// tabs become empty (removed by regex), spaces become underscore
+		assert.Equal(t, "testname", result)
+	})
+
+	t.Run("newlines removed", func(t *testing.T) {
+		result := SanitizeFilename("test\nname")
+		assert.Equal(t, "testname", result)
+	})
+
+	t.Run("emoji removed with fallback", func(t *testing.T) {
+		result := SanitizeFilename("🎵🎶🎸")
+		assert.Equal(t, "recording", result)
+	})
+
+	t.Run("emoji with ASCII text", func(t *testing.T) {
+		result := SanitizeFilename("🎵 Radio One 🎶")
+		assert.Equal(t, "radio_one", result)
+	})
+}
+
+func TestGenerateRecordingFilename_EdgeCases(t *testing.T) {
+	t.Run("empty station name and empty codec", func(t *testing.T) {
+		filename := GenerateRecordingFilename("", "")
+		// Should use fallback "recording" and default "mp3"
+		assert.Contains(t, filename, "recording-")
+		assert.Contains(t, filename, ".mp3")
+	})
+
+	t.Run("very long station name truncated", func(t *testing.T) {
+		longName := ""
+		for i := 0; i < 200; i++ {
+			longName += "a"
+		}
+		filename := GenerateRecordingFilename(longName, "mp3")
+		// Name part should be truncated to 100 chars
+		// Total filename will be: 100 chars + "-" + 19 chars timestamp + ".mp3" = 124 chars
+		assert.LessOrEqual(t, len(filename), 130)
+	})
+
+	t.Run("station name with only special characters", func(t *testing.T) {
+		filename := GenerateRecordingFilename("!@#$%^&*()", "aac")
+		assert.Contains(t, filename, "recording-")
+		assert.Contains(t, filename, ".aac")
+	})
+}

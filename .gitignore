@@ -1,3 +1,12 @@
 .DS_Store
 .direnv
 bin
+.claude
+node_modules
+
+# Claude/MCP tooling
+.claude-flow/
+.swarm/
+.mcp.json
+package.json
+package-lock.json

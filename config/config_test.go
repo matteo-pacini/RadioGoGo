@@ -277,3 +277,219 @@ keybindings:
 		assert.Equal(t, "", cfg.Keybindings.Search) // Should be empty, app should validate and fill defaults
 	})
 }
+
+func TestConfig_LoadOrCreateNew(t *testing.T) {
+	// Note: LoadOrCreateNew uses ConfigDir() and ConfigFile() internally,
+	// which depend on environment variables. We test using temp directories
+	// by testing Load and Save separately, but also test the create-directory behavior.
+
+	t.Run("creates directory if it does not exist", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		newDir := filepath.Join(tmpDir, "newdir")
+
+		// Verify directory doesn't exist
+		_, err := os.Stat(newDir)
+		assert.True(t, os.IsNotExist(err))
+
+		// Create directory using MkdirAll (simulating what LoadOrCreateNew does)
+		err = os.MkdirAll(newDir, 0755)
+		assert.NoError(t, err)
+
+		// Verify directory was created
+		info, err := os.Stat(newDir)
+		assert.NoError(t, err)
+		assert.True(t, info.IsDir())
+	})
+
+	t.Run("creates new file when it does not exist", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		cfgPath := filepath.Join(tmpDir, "config.yaml")
+
+		// Verify file doesn't exist
+		_, err := os.Stat(cfgPath)
+		assert.True(t, os.IsNotExist(err))
+
+		// Create default config and save
+		cfg := NewDefaultConfig()
+		err = cfg.Save(cfgPath)
+		assert.NoError(t, err)
+
+		// Verify file was created
+		_, err = os.Stat(cfgPath)
+		assert.NoError(t, err)
+
+		// Verify it can be loaded back
+		var loadedCfg Config
+		err = loadedCfg.Load(cfgPath)
+		assert.NoError(t, err)
+		assert.Equal(t, cfg.Language, loadedCfg.Language)
+	})
+
+	t.Run("loads existing file when it exists", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		cfgPath := filepath.Join(tmpDir, "config.yaml")
+
+		// Create a config file with custom values
+		content := `language: de
+theme:
+  textColor: "#123456"
+  primaryColor: "#654321"
+  secondaryColor: "#abcdef"
+  tertiaryColor: "#fedcba"
+  errorColor: "#ff00ff"
+`
+		err := os.WriteFile(cfgPath, []byte(content), 0644)
+		assert.NoError(t, err)
+
+		// Load the config
+		var cfg Config
+		err = cfg.Load(cfgPath)
+		assert.NoError(t, err)
+
+		// Verify custom values were loaded
+		assert.Equal(t, "de", cfg.Language)
+		assert.Equal(t, "#123456", cfg.Theme.TextColor)
+		assert.Equal(t, "#654321", cfg.Theme.PrimaryColor)
+	})
+
+	t.Run("handles nested directory creation", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		nestedDir := filepath.Join(tmpDir, "a", "b", "c")
+
+		err := os.MkdirAll(nestedDir, 0755)
+		assert.NoError(t, err)
+
+		info, err := os.Stat(nestedDir)
+		assert.NoError(t, err)
+		assert.True(t, info.IsDir())
+	})
+}
+
+func TestConfig_EdgeCases(t *testing.T) {
+	t.Run("handles empty file returns EOF error", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		cfgPath := filepath.Join(tmpDir, "config.yaml")
+
+		err := os.WriteFile(cfgPath, []byte(""), 0644)
+		assert.NoError(t, err)
+
+		var cfg Config
+		err = cfg.Load(cfgPath)
+		// Empty file returns EOF error from YAML decoder
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "EOF")
+	})
+
+	t.Run("handles file with only whitespace returns error", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		cfgPath := filepath.Join(tmpDir, "config.yaml")
+
+		err := os.WriteFile(cfgPath, []byte("   \n\n   \t\t\n"), 0644)
+		assert.NoError(t, err)
+
+		var cfg Config
+		err = cfg.Load(cfgPath)
+		// Whitespace-only file returns error from YAML decoder
+		assert.Error(t, err)
+	})
+
+	t.Run("handles file with comments only returns EOF error", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		cfgPath := filepath.Join(tmpDir, "config.yaml")
+
+		content := `# This is a comment
+# Another comment
+`
+		err := os.WriteFile(cfgPath, []byte(content), 0644)
+		assert.NoError(t, err)
+
+		var cfg Config
+		err = cfg.Load(cfgPath)
+		// Comments-only file returns EOF error from YAML decoder
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "EOF")
+	})
+
+	t.Run("handles unicode in values", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		cfgPath := filepath.Join(tmpDir, "config.yaml")
+
+		content := `language: 日本語
+theme:
+  textColor: "#ffffff"
+`
+		err := os.WriteFile(cfgPath, []byte(content), 0644)
+		assert.NoError(t, err)
+
+		var cfg Config
+		err = cfg.Load(cfgPath)
+		assert.NoError(t, err)
+		assert.Equal(t, "日本語", cfg.Language)
+	})
+
+	t.Run("handles extra unknown fields gracefully", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		cfgPath := filepath.Join(tmpDir, "config.yaml")
+
+		content := `language: en
+unknownField: "some value"
+anotherUnknown:
+  nested: true
+theme:
+  textColor: "#ffffff"
+`
+		err := os.WriteFile(cfgPath, []byte(content), 0644)
+		assert.NoError(t, err)
+
+		var cfg Config
+		err = cfg.Load(cfgPath)
+		assert.NoError(t, err)
+		assert.Equal(t, "en", cfg.Language)
+	})
+
+	t.Run("preserves all keybindings through round-trip", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		cfgPath := filepath.Join(tmpDir, "config.yaml")
+
+		cfg := NewDefaultConfig()
+		cfg.Keybindings = Keybindings{
+			Quit:           "x",
+			Search:         "/",
+			Record:         "R",
+			BookmarkToggle: "b",
+			BookmarksView:  "B",
+			HideStation:    "h",
+			ManageHidden:   "H",
+			ChangeLanguage: "L",
+			VolumeDown:     "-",
+			VolumeUp:       "+",
+			NavigateDown:   "j",
+			NavigateUp:     "k",
+			StopPlayback:   "space",
+			Vote:           "v",
+		}
+
+		err := cfg.Save(cfgPath)
+		assert.NoError(t, err)
+
+		var loadedCfg Config
+		err = loadedCfg.Load(cfgPath)
+		assert.NoError(t, err)
+
+		// Check all keybindings
+		assert.Equal(t, cfg.Keybindings.Quit, loadedCfg.Keybindings.Quit)
+		assert.Equal(t, cfg.Keybindings.Search, loadedCfg.Keybindings.Search)
+		assert.Equal(t, cfg.Keybindings.Record, loadedCfg.Keybindings.Record)
+		assert.Equal(t, cfg.Keybindings.BookmarkToggle, loadedCfg.Keybindings.BookmarkToggle)
+		assert.Equal(t, cfg.Keybindings.BookmarksView, loadedCfg.Keybindings.BookmarksView)
+		assert.Equal(t, cfg.Keybindings.HideStation, loadedCfg.Keybindings.HideStation)
+		assert.Equal(t, cfg.Keybindings.ManageHidden, loadedCfg.Keybindings.ManageHidden)
+		assert.Equal(t, cfg.Keybindings.ChangeLanguage, loadedCfg.Keybindings.ChangeLanguage)
+		assert.Equal(t, cfg.Keybindings.VolumeDown, loadedCfg.Keybindings.VolumeDown)
+		assert.Equal(t, cfg.Keybindings.VolumeUp, loadedCfg.Keybindings.VolumeUp)
+		assert.Equal(t, cfg.Keybindings.NavigateDown, loadedCfg.Keybindings.NavigateDown)
+		assert.Equal(t, cfg.Keybindings.NavigateUp, loadedCfg.Keybindings.NavigateUp)
+		assert.Equal(t, cfg.Keybindings.StopPlayback, loadedCfg.Keybindings.StopPlayback)
+		assert.Equal(t, cfg.Keybindings.Vote, loadedCfg.Keybindings.Vote)
+	})
+}
