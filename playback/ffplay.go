@@ -85,20 +85,30 @@ type FFPlayPlaybackManager struct {
 	nowRecording   Cmd
 	recordingPath  string
 	executor       CommandExecutor
+	defaultVolume  int // Configured default volume (0-100)
 }
 
-// NewFFPlaybackManager creates a new FFPlayPlaybackManager with the default command executor.
-func NewFFPlaybackManager() PlaybackManagerService {
+// NewFFPlaybackManager creates a new FFPlayPlaybackManager with the default command executor
+// and the specified default volume. The volume should be in the range 0-100.
+func NewFFPlaybackManager(defaultVolume int) PlaybackManagerService {
+	// Clamp volume to valid range
+	if defaultVolume < 0 {
+		defaultVolume = 0
+	} else if defaultVolume > 100 {
+		defaultVolume = 100
+	}
 	return &FFPlayPlaybackManager{
-		executor: &realCommandExecutor{},
+		executor:      &realCommandExecutor{},
+		defaultVolume: defaultVolume,
 	}
 }
 
 // NewFFPlaybackManagerWithExecutor creates a new FFPlayPlaybackManager with a custom command executor.
-// This is primarily useful for testing.
+// This is primarily useful for testing. Uses default volume of 80.
 func NewFFPlaybackManagerWithExecutor(executor CommandExecutor) *FFPlayPlaybackManager {
 	return &FFPlayPlaybackManager{
-		executor: executor,
+		executor:      executor,
+		defaultVolume: 80,
 	}
 }
 
@@ -178,7 +188,7 @@ func (d FFPlayPlaybackManager) VolumeMin() int {
 }
 
 func (d FFPlayPlaybackManager) VolumeDefault() int {
-	return 80
+	return d.defaultVolume
 }
 
 func (d FFPlayPlaybackManager) VolumeMax() int {

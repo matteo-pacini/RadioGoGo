@@ -493,3 +493,132 @@ theme:
 		assert.Equal(t, cfg.Keybindings.Vote, loadedCfg.Keybindings.Vote)
 	})
 }
+
+func TestPlayerPreferences(t *testing.T) {
+	t.Run("parses from YAML", func(t *testing.T) {
+		input := `
+playerPreferences:
+  defaultVolume: 50
+`
+		var cfg Config
+		err := yaml.Unmarshal([]byte(input), &cfg)
+
+		assert.NoError(t, err)
+		assert.Equal(t, 50, cfg.PlayerPreferences.DefaultVolume)
+	})
+
+	t.Run("defaults to zero when not specified", func(t *testing.T) {
+		input := `
+language: en
+`
+		var cfg Config
+		err := yaml.Unmarshal([]byte(input), &cfg)
+
+		assert.NoError(t, err)
+		assert.Equal(t, 0, cfg.PlayerPreferences.DefaultVolume)
+	})
+
+	t.Run("NewDefaultPlayerPreferences returns sensible defaults", func(t *testing.T) {
+		prefs := NewDefaultPlayerPreferences()
+
+		assert.Equal(t, 80, prefs.DefaultVolume)
+	})
+
+	t.Run("ValidateAndNormalize clamps volume below 0", func(t *testing.T) {
+		prefs := PlayerPreferences{DefaultVolume: -10}
+		normalized := prefs.ValidateAndNormalize()
+
+		assert.Equal(t, 0, normalized.DefaultVolume)
+	})
+
+	t.Run("ValidateAndNormalize clamps volume above 100", func(t *testing.T) {
+		prefs := PlayerPreferences{DefaultVolume: 150}
+		normalized := prefs.ValidateAndNormalize()
+
+		assert.Equal(t, 100, normalized.DefaultVolume)
+	})
+
+	t.Run("ValidateAndNormalize leaves valid volume unchanged", func(t *testing.T) {
+		testCases := []int{0, 50, 100}
+		for _, vol := range testCases {
+			prefs := PlayerPreferences{DefaultVolume: vol}
+			normalized := prefs.ValidateAndNormalize()
+
+			assert.Equal(t, vol, normalized.DefaultVolume)
+		}
+	})
+
+	t.Run("round-trips through YAML", func(t *testing.T) {
+		original := PlayerPreferences{DefaultVolume: 65}
+
+		data, err := yaml.Marshal(original)
+		assert.NoError(t, err)
+
+		var loaded PlayerPreferences
+		err = yaml.Unmarshal(data, &loaded)
+		assert.NoError(t, err)
+
+		assert.Equal(t, original.DefaultVolume, loaded.DefaultVolume)
+	})
+}
+
+func TestConfig_WithPlayerPreferences(t *testing.T) {
+	t.Run("NewDefaultConfig includes player preferences", func(t *testing.T) {
+		cfg := NewDefaultConfig()
+
+		assert.Equal(t, 80, cfg.PlayerPreferences.DefaultVolume)
+	})
+
+	t.Run("full config round-trip preserves player preferences", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		cfgPath := filepath.Join(tmpDir, "config.yaml")
+
+		cfg := NewDefaultConfig()
+		cfg.PlayerPreferences.DefaultVolume = 42
+
+		err := cfg.Save(cfgPath)
+		assert.NoError(t, err)
+
+		var loadedCfg Config
+		err = loadedCfg.Load(cfgPath)
+		assert.NoError(t, err)
+
+		assert.Equal(t, 42, loadedCfg.PlayerPreferences.DefaultVolume)
+	})
+
+	t.Run("parses config with all sections", func(t *testing.T) {
+		input := `
+language: de
+theme:
+  textColor: "#ffffff"
+  primaryColor: "#000000"
+keybindings:
+  quit: x
+playerPreferences:
+  defaultVolume: 75
+`
+		var cfg Config
+		err := yaml.Unmarshal([]byte(input), &cfg)
+
+		assert.NoError(t, err)
+		assert.Equal(t, "de", cfg.Language)
+		assert.Equal(t, "#ffffff", cfg.Theme.TextColor)
+		assert.Equal(t, "x", cfg.Keybindings.Quit)
+		assert.Equal(t, 75, cfg.PlayerPreferences.DefaultVolume)
+	})
+
+	t.Run("handles missing playerPreferences section gracefully", func(t *testing.T) {
+		// Old config files won't have playerPreferences
+		input := `
+language: en
+theme:
+  textColor: "#ffffff"
+`
+		var cfg Config
+		err := yaml.Unmarshal([]byte(input), &cfg)
+
+		assert.NoError(t, err)
+		// Will be zero value, which is fine - app should use NewDefaultConfig() pattern
+		assert.Equal(t, 0, cfg.PlayerPreferences.DefaultVolume)
+	})
+}

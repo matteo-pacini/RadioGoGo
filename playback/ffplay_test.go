@@ -121,8 +121,23 @@ func testStation(streamURL string) common.Station {
 
 func TestFFPlayPlaybackManager(t *testing.T) {
 	t.Run("NewFFPlaybackManager returns a valid manager", func(t *testing.T) {
-		manager := NewFFPlaybackManager()
+		manager := NewFFPlaybackManager(80)
 		assert.NotNil(t, manager)
+	})
+
+	t.Run("NewFFPlaybackManager uses configured default volume", func(t *testing.T) {
+		manager := NewFFPlaybackManager(50)
+		assert.Equal(t, 50, manager.VolumeDefault())
+	})
+
+	t.Run("NewFFPlaybackManager clamps volume below 0", func(t *testing.T) {
+		manager := NewFFPlaybackManager(-10)
+		assert.Equal(t, 0, manager.VolumeDefault())
+	})
+
+	t.Run("NewFFPlaybackManager clamps volume above 100", func(t *testing.T) {
+		manager := NewFFPlaybackManager(150)
+		assert.Equal(t, 100, manager.VolumeDefault())
 	})
 
 	t.Run("Name returns ffplay", func(t *testing.T) {

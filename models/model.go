@@ -146,21 +146,23 @@ type Model struct {
 // NewDefaultModel creates a new Model with production dependencies (real API client,
 // FFplay playback manager, and SQLite-based storage). Returns an error if any
 // dependency initialization fails.
-func NewDefaultModel(config config.Config) (Model, error) {
+func NewDefaultModel(cfg config.Config) (Model, error) {
 
 	browser, err := api.NewRadioBrowser()
 	if err != nil {
 		return Model{}, err
 	}
 
-	playbackManager := playback.NewFFPlaybackManager()
+	// Normalize player preferences and create playback manager with configured volume
+	playerPrefs := cfg.PlayerPreferences.ValidateAndNormalize()
+	playbackManager := playback.NewFFPlaybackManager(playerPrefs.DefaultVolume)
 
 	storageService, err := storage.NewSQLiteStorage()
 	if err != nil {
 		return Model{}, err
 	}
 
-	return NewModel(config, browser, playbackManager, storageService), nil
+	return NewModel(cfg, browser, playbackManager, storageService), nil
 
 }
 

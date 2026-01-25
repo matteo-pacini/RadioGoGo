@@ -120,7 +120,7 @@ radiogogo/
 │   ├── click_station_response.go
 │   └── vote_station_response.go
 ├── config/           # Configuration management
-│   ├── config.go     # Config struct (Language, Theme, Keybindings)
+│   ├── config.go     # Config struct (Language, Theme, Keybindings, PlayerPreferences)
 │   ├── keybindings.go    # Keybindings struct with validation
 │   └── paths.go      # Platform-specific config paths
 ├── data/             # Application metadata
@@ -478,6 +478,9 @@ keybindings:
   navigateUp: "k"
   stopPlayback: "ctrl+k"
   vote: "v"
+
+playerPreferences:
+  defaultVolume: 80  # Initial volume level (0-100)
 ```
 
 ### Reserved Keys (cannot be remapped)
@@ -496,6 +499,14 @@ Validation happens in `main.go` at startup:
 - Duplicate keys are rejected with a warning
 - Invalid keys fall back to defaults
 - Empty keys are filled with defaults
+
+### Player Preferences
+
+The `playerPreferences` section allows customizing playback behavior:
+
+- **defaultVolume**: Initial volume level when starting the application (0-100, default: 80)
+
+Values are validated and clamped to valid ranges. Missing preferences use sensible defaults.
 
 ## Internationalization (i18n)
 

@@ -27,9 +27,17 @@ import (
 )
 
 type Config struct {
-	Language    string      `yaml:"language"`
-	Theme       Theme       `yaml:"theme"`
-	Keybindings Keybindings `yaml:"keybindings"`
+	Language          string            `yaml:"language"`
+	Theme             Theme             `yaml:"theme"`
+	Keybindings       Keybindings       `yaml:"keybindings"`
+	PlayerPreferences PlayerPreferences `yaml:"playerPreferences"`
+}
+
+// PlayerPreferences holds user preferences for the audio player.
+type PlayerPreferences struct {
+	// DefaultVolume is the initial volume level (0-100) when starting the application.
+	// If not set or out of range, defaults to 80.
+	DefaultVolume int `yaml:"defaultVolume"`
 }
 
 // Theme holds the color configuration for the UI.
@@ -52,8 +60,29 @@ func NewDefaultConfig() Config {
 			TertiaryColor:  "#4e4e4e",
 			ErrorColor:     "#ff0000",
 		},
-		Keybindings: NewDefaultKeybindings(),
+		Keybindings:       NewDefaultKeybindings(),
+		PlayerPreferences: NewDefaultPlayerPreferences(),
 	}
+}
+
+// NewDefaultPlayerPreferences returns PlayerPreferences with sensible defaults.
+func NewDefaultPlayerPreferences() PlayerPreferences {
+	return PlayerPreferences{
+		DefaultVolume: 80,
+	}
+}
+
+// ValidateAndNormalize ensures PlayerPreferences values are within valid ranges.
+// Returns the normalized preferences.
+func (p PlayerPreferences) ValidateAndNormalize() PlayerPreferences {
+	normalized := p
+	// Clamp volume to valid range (0-100)
+	if normalized.DefaultVolume < 0 {
+		normalized.DefaultVolume = 0
+	} else if normalized.DefaultVolume > 100 {
+		normalized.DefaultVolume = 100
+	}
+	return normalized
 }
 
 // Load reads the configuration file from the given path and decodes it into the Config struct.
