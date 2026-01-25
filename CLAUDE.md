@@ -461,9 +461,14 @@ The stations table (`models/stations.go`) displays these columns:
 
 > **Note:** Stars are used instead of colored text because the bubbles/table component's Cell style overrides pre-rendered ANSI color codes, making per-cell coloring impossible.
 
-**Helper functions:**
+**Helper functions (`models/stations.go`):**
 - `formatNumber(n uint64)` - Formats large numbers: 1000+ → "1.0K", 1000000+ → "1.0M"
-- `min(a, b int)` - Returns smaller of two integers
+- `removeStationByUUID(stations, uuid)` - Returns new slice with station removed
+- `setCursorSafely(cursor int)` - Bounds-checked cursor setting on StationsModel
+- `rebuildTablePreservingCursor(cursorOverride int)` - Rebuilds table, restores cursor position
+
+**Helper functions (`models/stations_commands.go`):**
+- `clearErrorAfterDelayCmd()` - Returns tea.Cmd to clear errors after 3 seconds
 
 **Now-Playing Box** (`renderNowPlayingBox`):
 When a station is playing, the status bar shows a multi-line bordered box:
