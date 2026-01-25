@@ -446,10 +446,20 @@ The stations table (`models/stations.go`) displays these columns:
 |--------|-------|-------------|
 | Name | 35 | Station name with `▶` (now playing) and `⭐` (bookmarked) prefixes |
 | Country | 10 | ISO 3166-1 alpha-2 country code |
-| Quality | 12 | Combined bitrate + codec (e.g., "128k MP3") |
+| Quality | 12 | Bitrate + codec + star tier (e.g., "320k MP3 ★★", "128k AAC ★", "64k OGG") |
 | Clicks | 10 | Listener count (formatted: 45234 → "45.2K") |
 | Votes | 8 | Vote count (formatted with K/M suffixes) |
 | Status | 6 | Online status: "✓" (OK) or "✗" (broken) |
+
+**Quality Tier Stars:**
+| Bitrate | Indicator | Example |
+|---------|-----------|---------|
+| 256+ kbps | ★★ (high) | `320k MP3 ★★` |
+| 128-255 kbps | ★ (medium) | `128k AAC ★` |
+| <128 kbps | (none) | `64k OGG` |
+| No info | — | `—` |
+
+> **Note:** Stars are used instead of colored text because the bubbles/table component's Cell style overrides pre-rendered ANSI color codes, making per-cell coloring impossible.
 
 **Helper functions:**
 - `formatNumber(n uint64)` - Formats large numbers: 1000+ → "1.0K", 1000000+ → "1.0M"
