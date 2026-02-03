@@ -19,7 +19,7 @@ A terminal UI for browsing and playing internet radio stations. Built with Go us
 - Customizable color themes and keybindings
 - Bookmark favorite stations for quick access
 - Hide unwanted stations from search results
-- Cross-platform (Linux, macOS, Windows, *BSD)
+- Cross-platform (Linux, macOS, Windows)
 - Multi-language UI (English, German, Greek, Spanish, Italian, Japanese, Portuguese, Russian, Chinese)
 
 ## How It Works
@@ -30,8 +30,8 @@ RadioGoGo uses FFmpeg tools for audio:
 - **Recording**: `ffmpeg` runs alongside `ffplay` when recording. Both connect to the stream independently—audio keeps playing while the stream saves to disk.
 
 The header shows two status indicators:
-- `(●) ffplay` — green when playing, yellow during volume restart, gray when idle
-- `(●) rec` — red when recording, gray when idle
+- `(●) play` — green when playing, yellow during volume restart, gray when idle
+- `(●) recording` — red when recording, gray when idle
 
 ## Keyboard Shortcuts
 
@@ -108,11 +108,6 @@ sudo pacman -S ffmpeg
 brew install ffmpeg
 ```
 
-**FreeBSD:**
-```
-pkg install ffmpeg
-```
-
 ### Install RadioGoGo
 
 **Via Go:**
@@ -139,26 +134,12 @@ Download the binary for your platform from the [Releases](https://github.com/zi0
 | | ARMv6 | `linux_armv6.zip` | Pi 1, Pi Zero, Pi Zero W |
 | **Windows** | x64 | `windows_amd64.zip` | |
 | | x86 | `windows_386.zip` | |
-| | ARM64 | `windows_arm64.zip` | Windows on ARM |
-| | ARM | `windows_arm.zip` | |
-| **FreeBSD** | x64 | `freebsd_amd64.zip` | |
-| | x86 | `freebsd_386.zip` | |
-| | ARM64 | `freebsd_arm64.zip` | |
-| | ARM | `freebsd_arm.zip` | |
-| **OpenBSD** | x64 | `openbsd_amd64.zip` | |
-| | x86 | `openbsd_386.zip` | |
-| | ARM64 | `openbsd_arm64.zip` | |
-| | ARM | `openbsd_arm.zip` | |
-| **NetBSD** | x64 | `netbsd_amd64.zip` | |
-| | x86 | `netbsd_386.zip` | |
-| | ARM64 | `netbsd_arm64.zip` | |
-| | ARM | `netbsd_arm.zip` | |
 
 ## Configuration
 
 Config file location:
 - **Windows:** `%LOCALAPPDATA%\radiogogo\config.yaml`
-- **Linux/macOS/*BSD:** `~/.config/radiogogo/config.yaml`
+- **Linux/macOS:** `~/.config/radiogogo/config.yaml`
 
 Created automatically on first run.
 
@@ -276,7 +257,7 @@ theme:
 
 ### Prerequisites
 
-- Go 1.22 or later
+- Go 1.25 or later
 - FFmpeg (for playback and recording)
 
 ### Build
