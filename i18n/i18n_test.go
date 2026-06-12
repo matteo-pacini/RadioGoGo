@@ -138,12 +138,12 @@ func TestTf(t *testing.T) {
 	_ = Init("en")
 
 	t.Run("substitutes template variables", func(t *testing.T) {
-		result := Tf("cmd_quit", map[string]interface{}{"Key": "q"})
+		result := Tf("cmd_quit", map[string]any{"Key": "q"})
 		assert.Equal(t, "q: quit", result)
 	})
 
 	t.Run("substitutes multiple template variables", func(t *testing.T) {
-		result := Tf("cmd_volume", map[string]interface{}{
+		result := Tf("cmd_volume", map[string]any{
 			"VolumeDown": "9",
 			"VolumeUp":   "0",
 		})
@@ -151,7 +151,7 @@ func TestTf(t *testing.T) {
 	})
 
 	t.Run("returns message ID for unknown message", func(t *testing.T) {
-		result := Tf("unknown_message_id", map[string]interface{}{"Key": "x"})
+		result := Tf("unknown_message_id", map[string]any{"Key": "x"})
 		assert.Equal(t, "unknown_message_id", result)
 	})
 
@@ -162,7 +162,7 @@ func TestTf(t *testing.T) {
 	})
 
 	t.Run("handles empty data map", func(t *testing.T) {
-		result := Tf("search_placeholder", map[string]interface{}{})
+		result := Tf("search_placeholder", map[string]any{})
 		assert.Equal(t, "Name", result)
 	})
 }
@@ -188,13 +188,13 @@ func TestTfn(t *testing.T) {
 	_ = Init("en")
 
 	t.Run("returns message ID for unknown message", func(t *testing.T) {
-		result := Tfn("unknown_message_id", 1, map[string]interface{}{"Key": "x"})
+		result := Tfn("unknown_message_id", 1, map[string]any{"Key": "x"})
 		assert.Equal(t, "unknown_message_id", result)
 	})
 
 	t.Run("returns message ID when no plural form defined", func(t *testing.T) {
 		// go-i18n requires explicit plural forms for Tfn to work
-		result := Tfn("search_title", 1, map[string]interface{}{"Type": "stations"})
+		result := Tfn("search_title", 1, map[string]any{"Type": "stations"})
 		// Returns message ID since no plural form is defined
 		assert.Equal(t, "search_title", result)
 	})
@@ -232,7 +232,7 @@ func TestAutoInitialization(t *testing.T) {
 	t.Run("Tf auto-initializes if not initialized", func(t *testing.T) {
 		localizer = nil
 		bundle = nil
-		result := Tf("cmd_quit", map[string]interface{}{"Key": "q"})
+		result := Tf("cmd_quit", map[string]any{"Key": "q"})
 		assert.Equal(t, "q: quit", result)
 	})
 
@@ -247,7 +247,7 @@ func TestAutoInitialization(t *testing.T) {
 	t.Run("Tfn auto-initializes if not initialized", func(t *testing.T) {
 		localizer = nil
 		bundle = nil
-		result := Tfn("unknown_message", 1, map[string]interface{}{"Key": "x"})
+		result := Tfn("unknown_message", 1, map[string]any{"Key": "x"})
 		// Returns message ID since no plural form and auto-inits
 		assert.Equal(t, "unknown_message", result)
 	})
@@ -278,7 +278,7 @@ func TestTf_EdgeCases(t *testing.T) {
 	_ = Init("en")
 
 	t.Run("handles extra template variables", func(t *testing.T) {
-		result := Tf("cmd_quit", map[string]interface{}{
+		result := Tf("cmd_quit", map[string]any{
 			"Key":   "q",
 			"Extra": "ignored",
 		})
@@ -288,7 +288,7 @@ func TestTf_EdgeCases(t *testing.T) {
 	t.Run("handles missing template variables", func(t *testing.T) {
 		// When a required variable is missing, go-i18n may return an error
 		// or use a zero value - test that it doesn't panic
-		result := Tf("cmd_quit", map[string]interface{}{})
+		result := Tf("cmd_quit", map[string]any{})
 		// Result should either have the template unchanged or empty
 		assert.NotPanics(t, func() {
 			_ = Tf("cmd_quit", nil)
@@ -297,7 +297,7 @@ func TestTf_EdgeCases(t *testing.T) {
 	})
 
 	t.Run("handles numeric values in template", func(t *testing.T) {
-		result := Tf("cmd_volume", map[string]interface{}{
+		result := Tf("cmd_volume", map[string]any{
 			"VolumeDown": 9,
 			"VolumeUp":   0,
 		})

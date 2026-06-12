@@ -123,7 +123,7 @@ func T(messageID string) string {
 }
 
 // Tf returns the localized string for the given message ID with template data.
-func Tf(messageID string, data map[string]interface{}) string {
+func Tf(messageID string, data map[string]any) string {
 	// Auto-initialize if not done (for tests)
 	if localizer == nil {
 		_ = Init("en")
@@ -155,7 +155,7 @@ func Tn(messageID string, count int) string {
 }
 
 // Tfn returns the localized string with both template data and pluralization.
-func Tfn(messageID string, count int, data map[string]interface{}) string {
+func Tfn(messageID string, count int, data map[string]any) string {
 	// Auto-initialize if not done (for tests)
 	if localizer == nil {
 		_ = Init("en")

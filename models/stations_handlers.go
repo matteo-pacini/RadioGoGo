@@ -100,7 +100,7 @@ func (m StationsModel) handleVolumeMessages(msg tea.Msg) (bool, StationsModel, t
 		m.currentStation = msg.station
 		return true, m, func() tea.Msg { return playbackStatusMsg{status: PlaybackPlaying} }
 	case volumeRestartFailedMsg:
-		m.err = i18n.Tf("error_volume_change", map[string]interface{}{"Error": msg.err})
+		m.err = i18n.Tf("error_volume_change", map[string]any{"Error": msg.err})
 		return true, m, clearErrorAfterDelayCmd()
 	}
 	return false, m, nil
@@ -121,7 +121,7 @@ func (m StationsModel) handleRecordingMessages(msg tea.Msg) (bool, StationsModel
 			func() tea.Msg { return recordingStatusMsg{isRecording: false} },
 		)
 	case recordingErrorMsg:
-		m.err = i18n.Tf("error_recording", map[string]interface{}{"Error": msg.err})
+		m.err = i18n.Tf("error_recording", map[string]any{"Error": msg.err})
 		return true, m, clearErrorAfterDelayCmd()
 	}
 	return false, m, nil
@@ -161,11 +161,11 @@ func (m StationsModel) handleBookmarkMessages(msg tea.Msg) (bool, StationsModel,
 		)
 
 	case bookmarksFetchFailedMsg:
-		m.err = i18n.Tf("error_load_bookmarks", map[string]interface{}{"Error": msg.err})
+		m.err = i18n.Tf("error_load_bookmarks", map[string]any{"Error": msg.err})
 		return true, m, clearErrorAfterDelayCmd()
 
 	case bookmarkToggleFailedMsg:
-		m.err = i18n.Tf("error_bookmark_toggle", map[string]interface{}{"Error": msg.err})
+		m.err = i18n.Tf("error_bookmark_toggle", map[string]any{"Error": msg.err})
 		return true, m, clearErrorAfterDelayCmd()
 	}
 	return false, m, nil
@@ -192,15 +192,15 @@ func (m StationsModel) handleHiddenStationMessages(msg tea.Msg) (bool, StationsM
 		return true, m, nil
 
 	case hiddenFetchFailedMsg:
-		m.err = i18n.Tf("error_load_hidden", map[string]interface{}{"Error": msg.err})
+		m.err = i18n.Tf("error_load_hidden", map[string]any{"Error": msg.err})
 		return true, m, clearErrorAfterDelayCmd()
 
 	case hideStationFailedMsg:
-		m.err = i18n.Tf("error_hide_station", map[string]interface{}{"Error": msg.err})
+		m.err = i18n.Tf("error_hide_station", map[string]any{"Error": msg.err})
 		return true, m, clearErrorAfterDelayCmd()
 
 	case unhideStationFailedMsg:
-		m.err = i18n.Tf("error_unhide_station", map[string]interface{}{"Error": msg.err})
+		m.err = i18n.Tf("error_unhide_station", map[string]any{"Error": msg.err})
 		return true, m, clearErrorAfterDelayCmd()
 
 	case stationUnhiddenMsg:
@@ -219,13 +219,7 @@ func (m StationsModel) handleHiddenStationMessages(msg tea.Msg) (bool, StationsM
 		return true, m, nil
 
 	case stationsRefetchedMsg:
-		filtered := make([]common.Station, 0, len(msg.stations))
-		for _, s := range msg.stations {
-			if !m.storage.IsHidden(s.StationUuid) {
-				filtered = append(filtered, s)
-			}
-		}
-		m.stations = filtered
+		m.stations = filterHiddenStations(msg.stations, m.storage)
 		// Restore cursor position (used by vote success and unhide)
 		m.rebuildTablePreservingCursor(m.savedCursor)
 		m.savedCursor = 0
@@ -237,7 +231,7 @@ func (m StationsModel) handleHiddenStationMessages(msg tea.Msg) (bool, StationsM
 		}
 
 	case stationsRefetchFailedMsg:
-		m.err = i18n.Tf("error_refresh_stations", map[string]interface{}{"Error": msg.err})
+		m.err = i18n.Tf("error_refresh_stations", map[string]any{"Error": msg.err})
 		return true, m, clearErrorAfterDelayCmd()
 	}
 	return false, m, nil
@@ -261,11 +255,11 @@ func (m StationsModel) handleVoteMessages(msg tea.Msg) (bool, StationsModel, tea
 		)
 
 	case voteFailedMsg:
-		m.err = i18n.Tf("error_vote", map[string]interface{}{"Error": msg.err})
+		m.err = i18n.Tf("error_vote", map[string]any{"Error": msg.err})
 		return true, m, clearErrorAfterDelayCmd()
 
 	case voteCooldownMsg:
-		m.err = i18n.Tfn("error_vote_cooldown", msg.remainingMinutes, map[string]interface{}{"Minutes": msg.remainingMinutes})
+		m.err = i18n.Tfn("error_vote_cooldown", msg.remainingMinutes, map[string]any{"Minutes": msg.remainingMinutes})
 		return true, m, clearErrorAfterDelayCmd()
 
 	case clearSuccessMsg:
@@ -386,10 +380,6 @@ func (m StationsModel) handleBookmarksViewToggle() (bool, StationsModel, tea.Cmd
 
 	// Return from bookmarks to previous stations (or search if none saved)
 	if len(m.savedStations) > 0 {
-		if err := m.playbackManager.StopStation(); err != nil {
-			m.err = err.Error()
-			// Continue anyway - we're transitioning views
-		}
 		m.currentStation = common.Station{}
 		m.currentStationSpinner = spinner.Model{}
 
@@ -400,6 +390,7 @@ func (m StationsModel) handleBookmarksViewToggle() (bool, StationsModel, tea.Cmd
 		m.savedCursor = 0
 		m.rebuildTablePreservingCursor(cursorToRestore)
 		return true, m, tea.Batch(
+			stopStationCmd(m.playbackManager),
 			updateCommandsCmd(m.viewMode, false, m.volume, m.playbackManager.VolumeIsPercentage(), false, m.keybindings),
 			func() tea.Msg { return playbackStatusMsg{status: PlaybackIdle} },
 			func() tea.Msg {

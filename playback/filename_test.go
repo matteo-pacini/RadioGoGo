@@ -21,6 +21,7 @@ package playback
 
 import (
 	"regexp"
+	"strings"
 	"testing"
 	"time"
 
@@ -105,12 +106,12 @@ func TestSanitizeFilename(t *testing.T) {
 
 func TestSanitizeFilename_LengthLimit(t *testing.T) {
 	// Create a string longer than 100 characters
-	longName := ""
-	for i := 0; i < 150; i++ {
-		longName += "a"
+	var longName strings.Builder
+	for range 150 {
+		longName.WriteString("a")
 	}
 
-	result := SanitizeFilename(longName)
+	result := SanitizeFilename(longName.String())
 	assert.LessOrEqual(t, len(result), 100)
 }
 
@@ -314,11 +315,11 @@ func TestNormalizeCodec_EdgeCases(t *testing.T) {
 func TestSanitizeFilename_EdgeCases(t *testing.T) {
 	t.Run("exactly 100 characters", func(t *testing.T) {
 		// Create exactly 100 character string
-		name := ""
-		for i := 0; i < 100; i++ {
-			name += "a"
+		var name strings.Builder
+		for range 100 {
+			name.WriteString("a")
 		}
-		result := SanitizeFilename(name)
+		result := SanitizeFilename(name.String())
 		assert.Equal(t, 100, len(result))
 	})
 
@@ -383,11 +384,11 @@ func TestGenerateRecordingFilename_EdgeCases(t *testing.T) {
 	})
 
 	t.Run("very long station name truncated", func(t *testing.T) {
-		longName := ""
-		for i := 0; i < 200; i++ {
-			longName += "a"
+		var longName strings.Builder
+		for range 200 {
+			longName.WriteString("a")
 		}
-		filename := GenerateRecordingFilename(longName, "mp3")
+		filename := GenerateRecordingFilename(longName.String(), "mp3")
 		// Name part should be truncated to 100 chars
 		// Total filename will be: 100 chars + "-" + 19 chars timestamp + ".mp3" = 124 chars
 		assert.LessOrEqual(t, len(filename), 130)

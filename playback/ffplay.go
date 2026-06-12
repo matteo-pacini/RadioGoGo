@@ -1,3 +1,6 @@
+// Package playback provides audio playback and recording management for RadioGoGo
+// via FFplay and FFmpeg. It defines the PlaybackManagerService interface and its
+// FFplay-backed implementation, FFPlayPlaybackManager.
 package playback
 
 import (
@@ -62,9 +65,9 @@ type realCmd struct {
 	cmd *exec.Cmd
 }
 
-func (c *realCmd) Start() error        { return c.cmd.Start() }
-func (c *realCmd) Run() error          { return c.cmd.Run() }
-func (c *realCmd) Process() Process    { return &realProcess{proc: c.cmd.Process} }
+func (c *realCmd) Start() error         { return c.cmd.Start() }
+func (c *realCmd) Run() error           { return c.cmd.Run() }
+func (c *realCmd) Process() Process     { return &realProcess{proc: c.cmd.Process} }
 func (c *realCmd) SetStderr(w *os.File) { c.cmd.Stderr = w }
 func (c *realCmd) SetStdout(w *os.File) { c.cmd.Stdout = w }
 
@@ -73,10 +76,10 @@ type realProcess struct {
 	proc *os.Process
 }
 
-func (p *realProcess) Kill() error                       { return p.proc.Kill() }
-func (p *realProcess) Signal(sig os.Signal) error        { return p.proc.Signal(sig) }
-func (p *realProcess) Wait() (*os.ProcessState, error)   { return p.proc.Wait() }
-func (p *realProcess) Pid() int                          { return p.proc.Pid }
+func (p *realProcess) Kill() error                     { return p.proc.Kill() }
+func (p *realProcess) Signal(sig os.Signal) error      { return p.proc.Signal(sig) }
+func (p *realProcess) Wait() (*os.ProcessState, error) { return p.proc.Wait() }
+func (p *realProcess) Pid() int                        { return p.proc.Pid }
 
 // FFPlayPlaybackManager represents a playback manager for FFPlay.
 type FFPlayPlaybackManager struct {
@@ -112,14 +115,17 @@ func NewFFPlaybackManagerWithExecutor(executor CommandExecutor) *FFPlayPlaybackM
 	}
 }
 
+// Name returns the identifier of this playback backend ("ffplay").
 func (d FFPlayPlaybackManager) Name() string {
 	return "ffplay"
 }
 
+// IsPlaying reports whether a station is currently playing.
 func (d FFPlayPlaybackManager) IsPlaying() bool {
 	return d.nowPlaying != nil
 }
 
+// IsAvailable reports whether the ffplay executable can be found in PATH.
 func (d FFPlayPlaybackManager) IsAvailable() bool {
 	_, err := d.executor.LookPath("ffplay")
 	return err == nil
@@ -129,6 +135,8 @@ func (d FFPlayPlaybackManager) NotAvailableErrorString() string {
 	return i18n.T("error_ffplay_required")
 }
 
+// PlayStation starts streaming the given station at the specified volume level (0–100).
+// Any currently playing station is stopped first.
 func (d *FFPlayPlaybackManager) PlayStation(station common.Station, volume int) error {
 	err := d.StopStation()
 	if err != nil {
@@ -183,14 +191,17 @@ func (d *FFPlayPlaybackManager) StopStation() error {
 	return nil
 }
 
+// VolumeMin returns the minimum supported volume level (0).
 func (d FFPlayPlaybackManager) VolumeMin() int {
 	return 0
 }
 
+// VolumeDefault returns the configured default volume level used when starting playback.
 func (d FFPlayPlaybackManager) VolumeDefault() int {
 	return d.defaultVolume
 }
 
+// VolumeMax returns the maximum supported volume level (100).
 func (d FFPlayPlaybackManager) VolumeMax() int {
 	return 100
 }
@@ -203,6 +214,8 @@ func (d FFPlayPlaybackManager) CurrentStation() common.Station {
 	return d.currentStation
 }
 
+// IsRecordingAvailable reports whether the ffmpeg executable can be found in PATH,
+// which is required to record streams.
 func (d FFPlayPlaybackManager) IsRecordingAvailable() bool {
 	_, err := d.executor.LookPath("ffmpeg")
 	return err == nil
@@ -212,10 +225,13 @@ func (d FFPlayPlaybackManager) RecordingNotAvailableErrorString() string {
 	return i18n.T("error_ffmpeg_required")
 }
 
+// IsRecording reports whether a recording session is currently active.
 func (d FFPlayPlaybackManager) IsRecording() bool {
 	return d.nowRecording != nil
 }
 
+// StartRecording begins recording the currently playing stream to outputPath using ffmpeg.
+// It returns an error if no station is playing. Any existing recording is stopped first.
 func (d *FFPlayPlaybackManager) StartRecording(outputPath string) error {
 	if !d.IsPlaying() {
 		return errors.New(i18n.T("error_no_station_playing"))
@@ -284,6 +300,8 @@ func (d *FFPlayPlaybackManager) StopRecording() (string, error) {
 	return filePath, nil
 }
 
+// CurrentRecordingPath returns the file path of the active recording,
+// or an empty string if no recording is in progress.
 func (d FFPlayPlaybackManager) CurrentRecordingPath() string {
 	return d.recordingPath
 }

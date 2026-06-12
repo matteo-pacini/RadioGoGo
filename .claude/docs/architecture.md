@@ -41,10 +41,10 @@ radiogogo/
 
 | Interface | File | Purpose |
 |-----------|------|---------|
-| `RadioBrowserService` | `api/browser.go:15` | API client for station search/vote/click |
-| `PlaybackManagerService` | `playback/manager.go:10` | Audio playback and recording |
-| `StationStorageService` | `storage/storage.go:12` | Bookmarks and hidden stations |
-| `HTTPClientService` | `api/http.go:10` | HTTP client abstraction for testing |
+| `RadioBrowserService` | `api/browser.go:38` | API client for station search/vote/click |
+| `PlaybackManagerService` | `playback/manager.go:27` | Audio playback and recording |
+| `StationStorageService` | `storage/storage.go:33` | Bookmarks and hidden stations |
+| `HTTPClientService` | `api/http.go:27` | HTTP client abstraction for testing |
 
 ## Package Dependencies
 
@@ -70,7 +70,7 @@ common ──> (stdlib only)
 - `last_vote` - Global vote cooldown (10min per RadioBrowser rules)
 - `schema_version` - Migration tracking (current: v3)
 
-**Schema details:** `storage/sqlite_storage.go:30-60`
+**Schema details:** `storage/sqlite_storage.go:121-193`
 
 ## Platform Differences
 

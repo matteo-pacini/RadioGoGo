@@ -17,9 +17,15 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+// Package data provides build-time metadata for RadioGoGo,
+// such as the application version and HTTP User-Agent string.
 package data
 
 var (
-	Version   = "dev"
+	// Version is the application version string. It defaults to "dev" and is
+	// overridden at build time via -ldflags.
+	Version = "dev"
+	// UserAgent is the HTTP User-Agent header value sent to the RadioBrowser API,
+	// composed from the application name and Version.
 	UserAgent = "radiogogo/" + Version
 )

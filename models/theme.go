@@ -20,6 +20,8 @@
 package models
 
 import (
+	"strings"
+
 	"github.com/zi0p4tch0/radiogogo/config"
 
 	"github.com/charmbracelet/bubbles/table"
@@ -45,7 +47,8 @@ type Theme struct {
 	QualityMediumStyle lipgloss.Style
 	QualityLowStyle    lipgloss.Style
 
-	StatusBoxStyle lipgloss.Style
+	StatusBoxStyle     lipgloss.Style
+	NowPlayingBoxStyle lipgloss.Style
 
 	// Color values for dynamic styling
 	SecondaryColor string
@@ -118,6 +121,11 @@ func NewTheme(config config.Config) Theme {
 		BorderForeground(lipgloss.Color(config.Theme.PrimaryColor)).
 		Padding(0, 1)
 
+	nowPlayingBoxStyle := lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(lipgloss.Color(config.Theme.SecondaryColor)).
+		Padding(0, 1)
+
 	return Theme{
 		PrimaryBlock:       primaryBlock,
 		SecondaryBlock:     secondaryBlock,
@@ -133,6 +141,7 @@ func NewTheme(config config.Config) Theme {
 		QualityMediumStyle: qualityMediumStyle,
 		QualityLowStyle:    qualityLowStyle,
 		StatusBoxStyle:     statusBoxStyle,
+		NowPlayingBoxStyle: nowPlayingBoxStyle,
 		SecondaryColor:     config.Theme.SecondaryColor,
 	}
 }
@@ -145,15 +154,15 @@ func NewTheme(config config.Config) Theme {
 // The styled commands are concatenated into a single string and returned.
 func (t Theme) StyleBottomBar(commands []string) string {
 
-	var bottomBar string
+	var bottomBar strings.Builder
 	for i, command := range commands {
 		if i%2 == 0 {
-			bottomBar += t.PrimaryBlock.Render(command)
+			bottomBar.WriteString(t.PrimaryBlock.Render(command))
 		} else {
-			bottomBar += t.SecondaryBlock.Render(command)
+			bottomBar.WriteString(t.SecondaryBlock.Render(command))
 		}
 	}
-	return bottomBar
+	return bottomBar.String()
 
 }
 

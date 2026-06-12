@@ -721,7 +721,7 @@ func TestFFPlayPlaybackManager_ConcurrentOperations(t *testing.T) {
 		killCount := 0
 		executor.commandFunc = func(name string, args ...string) Cmd {
 			return &mockCmd{process: &mockProcess{
-				pid: 12345,
+				pid:     12345,
 				killErr: nil,
 			}}
 		}

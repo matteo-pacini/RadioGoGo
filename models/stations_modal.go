@@ -20,6 +20,8 @@
 package models
 
 import (
+	"strings"
+
 	"github.com/zi0p4tch0/radiogogo/i18n"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -73,10 +75,11 @@ func (m *StationsModel) handleHiddenModalInput(msg tea.KeyMsg) (bool, tea.Cmd) {
 // The modal is centered on the screen and displays the list of hidden stations
 // with navigation controls.
 func (m StationsModel) renderWithModal(baseView string) string {
-	modalContent := m.theme.SecondaryText.Bold(true).Render(i18n.T("hidden_stations_title")) + "\n\n"
+	var modalContent strings.Builder
+	modalContent.WriteString(m.theme.SecondaryText.Bold(true).Render(i18n.T("hidden_stations_title")) + "\n\n")
 
 	if len(m.hiddenStations) == 0 {
-		modalContent += m.theme.TertiaryText.Render(i18n.T("no_hidden_stations"))
+		modalContent.WriteString(m.theme.TertiaryText.Render(i18n.T("no_hidden_stations")))
 	} else {
 		for i, station := range m.hiddenStations {
 			cursor := "  "
@@ -88,12 +91,12 @@ func (m StationsModel) renderWithModal(baseView string) string {
 			if len(name) > modalNameMaxLength {
 				name = name[:modalNameMaxLength-3] + "..."
 			}
-			modalContent += cursor + name + "\n"
+			modalContent.WriteString(cursor + name + "\n")
 		}
 	}
-	modalContent += "\n" + m.theme.TertiaryText.Render(i18n.Tf("hidden_modal_help", map[string]interface{}{"ManageHiddenKey": m.keybindings.ManageHidden}))
+	modalContent.WriteString("\n" + m.theme.TertiaryText.Render(i18n.Tf("hidden_modal_help", map[string]any{"ManageHiddenKey": m.keybindings.ManageHidden})))
 
-	modal := m.theme.ModalStyle.Render(modalContent)
+	modal := m.theme.ModalStyle.Render(modalContent.String())
 
 	// Center the modal on the screen
 	return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, modal)

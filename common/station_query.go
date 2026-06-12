@@ -43,6 +43,8 @@ const (
 	StationQueryByTagExact         StationQuery = "bytagexact"         // Returns radio stations by exact tag.
 )
 
+// Render returns a human-readable, localised label for the query type,
+// suitable for display in the TUI search interface.
 func (m StationQuery) Render() string {
 	switch m {
 	case StationQueryByUuid:
@@ -77,6 +79,9 @@ func (m StationQuery) Render() string {
 	return i18n.T("filter_none")
 }
 
+// ExampleString returns a localised example search string for the query type,
+// used as placeholder text in the TUI search input. Returns an empty string
+// for query types that do not have a meaningful example.
 func (m StationQuery) ExampleString() string {
 	switch m {
 	case StationQueryByName:

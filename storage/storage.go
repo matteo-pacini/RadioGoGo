@@ -17,6 +17,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+// Package storage defines the persistence layer for RadioGoGo.
+// It provides the StationStorageService interface for managing bookmarked
+// and hidden stations, as well as vote rate-limiting metadata, backed
+// by a SQLite database via modernc.org/sqlite.
 package storage
 
 import (

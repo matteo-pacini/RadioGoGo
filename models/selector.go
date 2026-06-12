@@ -21,6 +21,7 @@ package models
 
 import (
 	"fmt"
+	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -98,32 +99,33 @@ func (m SelectorModel[T]) Update(msg tea.Msg) (SelectorModel[T], tea.Cmd) {
 
 func (m SelectorModel[T]) View() string {
 
-	v := m.theme.SecondaryText.Bold(true).Render(m.title) + "\n\n"
+	var v strings.Builder
+	v.WriteString(m.theme.SecondaryText.Bold(true).Render(m.title) + "\n\n")
 
 	for i, item := range m.items {
 		if i == m.selection {
 			if m.focus {
-				v += fmt.Sprintf(
+				v.WriteString(fmt.Sprintf(
 					"%s%s%s ",
 					m.theme.Text.Render("> ["),
 					m.theme.SecondaryText.Render("•"),
 					m.theme.Text.Render("]"),
-				)
+				))
 			} else {
-				v += fmt.Sprintf(
+				v.WriteString(fmt.Sprintf(
 					"%s%s%s ",
 					m.theme.Text.Render("  ["),
 					m.theme.SecondaryText.Render("•"),
 					m.theme.Text.Render("]"),
-				)
+				))
 			}
 		} else {
-			v += m.theme.Text.Render("  [ ] ")
+			v.WriteString(m.theme.Text.Render("  [ ] "))
 		}
-		v += m.theme.Text.Render(item.Render())
-		v += "\n"
+		v.WriteString(m.theme.Text.Render(item.Render()))
+		v.WriteString("\n")
 	}
 
-	return v
+	return v.String()
 
 }

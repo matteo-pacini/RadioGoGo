@@ -187,7 +187,7 @@ keybindings:
   stopPlayback: ctrl+k
 ```
 
-**Reserved keys** (cannot be remapped): arrow keys (`up`, `down`, `left`, `right`), `tab`, `enter`, `esc`, `backspace`, `delete`, `pgup`, `pgdown`, `home`, `end`, and terminal control keys (`ctrl+c`, `ctrl+z`, `ctrl+s`, `ctrl+q`, `ctrl+l`, `ctrl+a`, `ctrl+e`, `ctrl+u`, `ctrl+k`, `ctrl+w`, `ctrl+d`, `ctrl+h`).
+**Reserved keys** (cannot be remapped): arrow keys (`up`, `down`, `left`, `right`), `tab`, `enter`, `esc`, `backspace`, `delete`, `pgup`, `pgdown`, `home`, `end`, and terminal control keys (`ctrl+c`, `ctrl+z`, `ctrl+s`, `ctrl+q`, `ctrl+l`, `ctrl+a`, `ctrl+e`, `ctrl+u`, `ctrl+w`, `ctrl+d`, `ctrl+h`).
 
 If you set an invalid key or duplicate, the app warns at startup and uses the default for that key.
 

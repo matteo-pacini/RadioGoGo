@@ -115,9 +115,6 @@ func (m Model) handleLanguageChange(msg languageChangedMsg) (bool, Model, tea.Cm
 func (m Model) handleStateTransitions(msg tea.Msg) (bool, Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case switchToSearchModelMsg:
-		if m.playbackManager != nil {
-			m.playbackManager.StopStation()
-		}
 		m.headerModel.showOffset = false
 		m.headerModel.playbackStatus = PlaybackIdle
 		m.headerModel.isRecording = false
@@ -125,7 +122,7 @@ func (m Model) handleStateTransitions(msg tea.Msg) (bool, Model, tea.Cmd) {
 		m.searchModel = NewSearchModel(m.theme, m.browser, m.storage, m.config.Keybindings)
 		m.searchModel.SetWidthAndHeight(m.width, m.height-2)
 		m.state = searchState
-		return true, m, m.searchModel.Init()
+		return true, m, tea.Batch(stopStationCmd(m.playbackManager), m.searchModel.Init())
 
 	case switchToLoadingModelMsg:
 		m.headerModel.showOffset = false

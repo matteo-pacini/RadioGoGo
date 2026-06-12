@@ -58,14 +58,6 @@ func formatNumber(n uint64) string {
 	return strconv.FormatUint(n, 10)
 }
 
-// min returns the smaller of two integers.
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
-
 // removeStationByUUID returns a new slice with the station matching the given UUID removed.
 // If no station matches, the original slice contents are returned in a new slice.
 func removeStationByUUID(stations []common.Station, stationUUID uuid.UUID) []common.Station {
@@ -374,11 +366,7 @@ func (m StationsModel) renderNowPlayingBox() string {
 	}
 
 	// Create the box with rounded border
-	boxStyle := lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(lipgloss.Color(m.theme.SecondaryColor)).
-		Padding(0, 1).
-		Width(m.width - 4)
+	boxStyle := m.theme.NowPlayingBoxStyle.Width(m.width - 4)
 
 	return boxStyle.Render(boxContent)
 }
@@ -404,7 +392,7 @@ func (m StationsModel) View() string {
 	if len(m.stations) == 0 {
 		var emptyMsg string
 		if m.viewMode == viewModeBookmarks {
-			emptyMsg = i18n.Tf("no_bookmarks", map[string]interface{}{"BookmarksKey": m.keybindings.BookmarksView})
+			emptyMsg = i18n.Tf("no_bookmarks", map[string]any{"BookmarksKey": m.keybindings.BookmarksView})
 		} else {
 			emptyMsg = i18n.T("no_stations")
 		}
@@ -425,21 +413,15 @@ func (m StationsModel) View() string {
 	// m.height = terminal - 3 (1 header + 2 bottom bars)
 	// Layout: 1 (leading \n) + tableArea + 1 (blank before status) + statusHeight + 1 (space before bottom bar)
 	// tableArea = m.height - 3 - statusHeight
-	tableAreaHeight := m.height - 3 - statusHeight
-	if tableAreaHeight < 1 {
-		tableAreaHeight = 1
-	}
+	tableAreaHeight := max(m.height-3-statusHeight, 1)
 
 	// Filler = tableArea - actual table content
-	fillerHeight := tableAreaHeight - tableHeight
-	if fillerHeight < 0 {
-		fillerHeight = 0
-	}
+	fillerHeight := max(tableAreaHeight-tableHeight, 0)
 
 	// Add filler, then blank line before status, then status bar, then blank line after
 	v += RenderFiller(fillerHeight)
 	v += "\n\n" + statusBar // First \n terminates filler/table, second \n creates blank line
-	v += "\n\n" // First \n terminates status, second \n creates blank line before bottom bar
+	v += "\n\n"             // First \n terminates status, second \n creates blank line before bottom bar
 
 	// Render hidden modal if showing
 	if m.showHiddenModal {
@@ -463,20 +445,14 @@ func (m *StationsModel) updateTableDimensions() {
 
 	// Calculate actual status bar height (can wrap to multiple lines)
 	statusBar := m.buildStatusBar()
-	statusHeight := lipgloss.Height(statusBar)
-	if statusHeight < 1 {
-		statusHeight = 1
-	}
+	statusHeight := max(lipgloss.Height(statusBar), 1)
 
 	// Table height calculation for viewport (max visible rows):
 	// m.height = terminal - 3 (from model_handlers: 1 header + 2 bottom bars)
 	// Layout: 1 (space after header) + table + filler + 1 (space before status) + statusHeight + 1 (space before bottom bar)
 	// The table gets the maximum available space. View() adds filler between table and status bar
 	// to keep status bar at a consistent position from the bottom.
-	tableHeight := m.height - 3 - statusHeight
-	if tableHeight < 1 {
-		tableHeight = 1
-	}
+	tableHeight := max(m.height-3-statusHeight, 1)
 	m.stationsTable.SetHeight(tableHeight)
 }
 

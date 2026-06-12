@@ -99,11 +99,11 @@ func updateSearchCommandsCmd(kb config.Keybindings, textfieldFocused bool) tea.C
 
 		return bottomBarUpdateMsg{
 			commands: []string{
-				i18n.Tf("cmd_quit", map[string]interface{}{"Key": kb.Quit}),
+				i18n.Tf("cmd_quit", map[string]any{"Key": kb.Quit}),
 				i18n.T("cmd_cycle_focus"),
 				contextCmd,
-				i18n.Tf("cmd_bookmarks", map[string]interface{}{"Key": kb.BookmarksView}),
-				i18n.Tf("cmd_change_language", map[string]interface{}{"Key": kb.ChangeLanguage}),
+				i18n.Tf("cmd_bookmarks", map[string]any{"Key": kb.BookmarksView}),
+				i18n.Tf("cmd_change_language", map[string]any{"Key": kb.ChangeLanguage}),
 				i18n.T("current_language"),
 			},
 		}
@@ -192,7 +192,7 @@ func (m SearchModel) View() string {
 	searchType = strings.ToLower(searchType)
 
 	v := fmt.Sprintf("\n%s\n\n%s\n\n%s\n%s\n",
-		m.theme.SecondaryText.Render(i18n.Tf("search_title", map[string]interface{}{"Type": searchType})),
+		m.theme.SecondaryText.Render(i18n.Tf("search_title", map[string]any{"Type": searchType})),
 		m.inputModel.View(),
 		m.querySelector.View(),
 		m.theme.TertiaryText.Render(m.querySelector.Selection().ExampleString()),

@@ -17,6 +17,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+// Package config manages application configuration for RadioGoGo,
+// including theme colours, keybindings, language selection, and
+// player preferences. Configuration is persisted as YAML in the
+// user's OS-specific config directory.
 package config
 
 import (
@@ -26,6 +30,8 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// Config holds the full application configuration for RadioGoGo.
+// It is loaded from and saved to a YAML file via LoadOrCreateNew.
 type Config struct {
 	Language          string            `yaml:"language"`
 	Theme             Theme             `yaml:"theme"`

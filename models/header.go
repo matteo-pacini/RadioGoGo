@@ -150,10 +150,7 @@ func (m HeaderModel) View() string {
 	rightHeader := m.theme.PrimaryBlock.Render(fmt.Sprintf("%d/%d", m.stationOffset+1, m.totalStations))
 
 	// Fill remaining space to push station counter to the right edge
-	fillerWidth := m.width - lipgloss.Width(leftHeader) - lipgloss.Width(rightHeader)
-	if fillerWidth < 0 {
-		fillerWidth = 0
-	}
+	fillerWidth := max(m.width-lipgloss.Width(leftHeader)-lipgloss.Width(rightHeader), 0)
 	filler := lipgloss.NewStyle().Width(fillerWidth).Render(" ")
 
 	return leftHeader + filler + rightHeader + "\n"

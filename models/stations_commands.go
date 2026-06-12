@@ -395,15 +395,15 @@ func updateCommandsCmd(viewMode stationsViewMode, isPlaying bool, volume int, vo
 		var commands []string
 		if viewMode == viewModeSearchResults {
 			commands = []string{
-				i18n.Tf("cmd_quit", map[string]interface{}{"Key": kb.Quit}),
-				i18n.Tf("cmd_search", map[string]interface{}{"Key": kb.Search}),
+				i18n.Tf("cmd_quit", map[string]any{"Key": kb.Quit}),
+				i18n.Tf("cmd_search", map[string]any{"Key": kb.Search}),
 				i18n.T("cmd_enter_play"),
 				i18n.T("cmd_move"),
 			}
 		} else {
 			commands = []string{
-				i18n.Tf("cmd_quit", map[string]interface{}{"Key": kb.Quit}),
-				i18n.Tf("cmd_back", map[string]interface{}{"Key": kb.BookmarksView}),
+				i18n.Tf("cmd_quit", map[string]any{"Key": kb.Quit}),
+				i18n.Tf("cmd_back", map[string]any{"Key": kb.BookmarksView}),
 				i18n.T("cmd_enter_play"),
 				i18n.T("cmd_move"),
 			}
@@ -414,31 +414,31 @@ func updateCommandsCmd(viewMode stationsViewMode, isPlaying bool, volume int, vo
 			volumeDisplay = i18n.T("volume_mute")
 		} else {
 			if volumeIsPercentage {
-				volumeDisplay = i18n.Tf("volume_display_percent", map[string]interface{}{"Volume": volume})
+				volumeDisplay = i18n.Tf("volume_display_percent", map[string]any{"Volume": volume})
 			} else {
-				volumeDisplay = i18n.Tf("volume_display", map[string]interface{}{"Volume": volume})
+				volumeDisplay = i18n.Tf("volume_display", map[string]any{"Volume": volume})
 			}
 		}
 
 		if isPlaying {
 			if isRecording {
 				commands = append(commands,
-					i18n.Tf("cmd_stop_record", map[string]interface{}{"Key": kb.Record}),
-					i18n.Tf("cmd_stop", map[string]interface{}{"Key": kb.StopPlayback}),
-					i18n.Tf("cmd_volume", map[string]interface{}{"VolumeDown": kb.VolumeDown, "VolumeUp": kb.VolumeUp}),
+					i18n.Tf("cmd_stop_record", map[string]any{"Key": kb.Record}),
+					i18n.Tf("cmd_stop", map[string]any{"Key": kb.StopPlayback}),
+					i18n.Tf("cmd_volume", map[string]any{"VolumeDown": kb.VolumeDown, "VolumeUp": kb.VolumeUp}),
 					volumeDisplay,
 				)
 			} else {
 				commands = append(commands,
-					i18n.Tf("cmd_record", map[string]interface{}{"Key": kb.Record}),
-					i18n.Tf("cmd_stop", map[string]interface{}{"Key": kb.StopPlayback}),
-					i18n.Tf("cmd_volume", map[string]interface{}{"VolumeDown": kb.VolumeDown, "VolumeUp": kb.VolumeUp}),
+					i18n.Tf("cmd_record", map[string]any{"Key": kb.Record}),
+					i18n.Tf("cmd_stop", map[string]any{"Key": kb.StopPlayback}),
+					i18n.Tf("cmd_volume", map[string]any{"VolumeDown": kb.VolumeDown, "VolumeUp": kb.VolumeUp}),
 					volumeDisplay,
 				)
 			}
 		} else {
 			commands = append(commands,
-				i18n.Tf("cmd_volume", map[string]interface{}{"VolumeDown": kb.VolumeDown, "VolumeUp": kb.VolumeUp}),
+				i18n.Tf("cmd_volume", map[string]any{"VolumeDown": kb.VolumeDown, "VolumeUp": kb.VolumeUp}),
 				volumeDisplay,
 			)
 		}
@@ -447,15 +447,15 @@ func updateCommandsCmd(viewMode stationsViewMode, isPlaying bool, volume int, vo
 		var secondaryCommands []string
 		if viewMode == viewModeSearchResults {
 			secondaryCommands = []string{
-				i18n.Tf("cmd_bookmark", map[string]interface{}{"Key": kb.BookmarkToggle}),
-				i18n.Tf("cmd_bookmarks", map[string]interface{}{"Key": kb.BookmarksView}),
-				i18n.Tf("cmd_vote", map[string]interface{}{"Key": kb.Vote}),
-				i18n.Tf("cmd_hide", map[string]interface{}{"Key": kb.HideStation}),
-				i18n.Tf("cmd_manage_hidden", map[string]interface{}{"Key": kb.ManageHidden}),
+				i18n.Tf("cmd_bookmark", map[string]any{"Key": kb.BookmarkToggle}),
+				i18n.Tf("cmd_bookmarks", map[string]any{"Key": kb.BookmarksView}),
+				i18n.Tf("cmd_vote", map[string]any{"Key": kb.Vote}),
+				i18n.Tf("cmd_hide", map[string]any{"Key": kb.HideStation}),
+				i18n.Tf("cmd_manage_hidden", map[string]any{"Key": kb.ManageHidden}),
 			}
 		} else {
 			// "B: back" is already in primary row, no hide commands in bookmarks mode
-			secondaryCommands = []string{i18n.Tf("cmd_bookmark", map[string]interface{}{"Key": kb.BookmarkToggle})}
+			secondaryCommands = []string{i18n.Tf("cmd_bookmark", map[string]any{"Key": kb.BookmarkToggle})}
 		}
 
 		return bottomBarUpdateMsg{

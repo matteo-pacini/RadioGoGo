@@ -509,31 +509,6 @@ func TestFormatNumber(t *testing.T) {
 	}
 }
 
-func TestMin(t *testing.T) {
-	tests := []struct {
-		name     string
-		a        int
-		b        int
-		expected int
-	}{
-		{"a smaller", 5, 10, 5},
-		{"b smaller", 10, 5, 5},
-		{"equal", 5, 5, 5},
-		{"negative a", -10, 5, -10},
-		{"negative b", 5, -10, -10},
-		{"both negative", -5, -10, -10},
-		{"zero and positive", 0, 5, 0},
-		{"zero and negative", 0, -5, -5},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result := min(tt.a, tt.b)
-			assert.Equal(t, tt.expected, result)
-		})
-	}
-}
-
 func TestQualityStringFormatting(t *testing.T) {
 	tests := []struct {
 		name         string

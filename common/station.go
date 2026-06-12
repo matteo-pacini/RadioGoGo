@@ -17,6 +17,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+// Package common provides shared data models used across RadioGoGo,
+// including the Station type returned by the RadioBrowser API and
+// supporting types for JSON unmarshalling.
 package common
 
 import (
@@ -29,6 +32,9 @@ import (
 // BoolFromlInt represents a boolean value that is converted from an integer value (0 or 1).
 type BoolFromlInt bool
 
+// Station represents a radio station as returned by the RadioBrowser API.
+// Fields are mapped directly from the JSON response; pointer fields are optional
+// and may be absent in some API responses.
 type Station struct {
 	// A globally unique identifier for the change of the station information
 	ChangeUuid uuid.UUID `json:"changeuuid"`
@@ -95,6 +101,8 @@ type Station struct {
 	HasExtendedInfo *bool `json:"has_extended_info,omitempty"`
 }
 
+// UnmarshalJSON implements json.Unmarshaler for BoolFromlInt.
+// It accepts "1" and "true" as true, and "0", "false", and "null" as false.
 func (bi *BoolFromlInt) UnmarshalJSON(data []byte) error {
 	s := string(data)
 	switch s {

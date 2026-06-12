@@ -31,10 +31,7 @@ import "strings"
 // - Total = headerContentHeight + fillerHeight + bottomBarHeight - 1 (one merge)
 // - Therefore: fillerHeight = terminalHeight - headerContentHeight - bottomBarHeight + 1
 func CalculateFillerHeight(terminalHeight, headerContentHeight, bottomBarHeight int) int {
-	filler := terminalHeight - headerContentHeight - bottomBarHeight + 1
-	if filler < 0 {
-		filler = 0
-	}
+	filler := max(terminalHeight-headerContentHeight-bottomBarHeight+1, 0)
 	return filler
 }
 

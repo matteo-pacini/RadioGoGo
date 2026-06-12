@@ -96,6 +96,9 @@ type ValidationWarning struct {
 	Default string
 }
 
+// String returns a human-readable description of the ValidationWarning,
+// including the key name, the invalid value, the reason it was rejected,
+// and the default value that will be used instead.
 func (w ValidationWarning) String() string {
 	return fmt.Sprintf("keybinding '%s' has invalid value '%s' (%s), using default '%s'",
 		w.Key, w.Value, w.Reason, w.Default)

@@ -268,22 +268,18 @@ func TestSQLiteStorage_ConcurrentAccess(t *testing.T) {
 		var wg sync.WaitGroup
 
 		// Concurrent writes
-		for i := 0; i < 50; i++ {
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
+		for range 50 {
+			wg.Go(func() {
 				id := uuid.New()
 				_ = s.AddBookmark(id)
-			}()
+			})
 		}
 
 		// Concurrent reads
-		for i := 0; i < 50; i++ {
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
+		for range 50 {
+			wg.Go(func() {
 				_, _ = s.GetBookmarks()
-			}()
+			})
 		}
 
 		wg.Wait()
@@ -481,22 +477,18 @@ func TestSQLiteStorage_VoteTimestamp_Concurrent(t *testing.T) {
 		var wg sync.WaitGroup
 
 		// Concurrent writes
-		for i := 0; i < 20; i++ {
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
+		for range 20 {
+			wg.Go(func() {
 				now := time.Now()
 				_ = s.SetLastVoteTimestamp(now)
-			}()
+			})
 		}
 
 		// Concurrent reads
-		for i := 0; i < 20; i++ {
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
+		for range 20 {
+			wg.Go(func() {
 				_, _ = s.GetLastVoteTimestamp()
-			}()
+			})
 		}
 
 		wg.Wait()

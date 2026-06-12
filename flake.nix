@@ -38,7 +38,6 @@
             gotools
             ffmpeg
             # LLMs
-            claude-code
             nodejs
             # Release
             zip

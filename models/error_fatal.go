@@ -103,9 +103,9 @@ func (m ErrorModel) View() string {
 
 	var message string
 	if m.recoverable {
-		message = m.message + "\n\n" + i18n.Tf("error_recoverable", map[string]interface{}{"QuitKey": m.keybindings.Quit})
+		message = m.message + "\n\n" + i18n.Tf("error_recoverable", map[string]any{"QuitKey": m.keybindings.Quit})
 	} else {
-		message = m.message + "\n\n" + i18n.Tf("error_quitting", map[string]interface{}{"Seconds": quitTicks - m.tickCount, "QuitKey": m.keybindings.Quit})
+		message = m.message + "\n\n" + i18n.Tf("error_quitting", map[string]any{"Seconds": quitTicks - m.tickCount, "QuitKey": m.keybindings.Quit})
 	}
 
 	return "\n" + m.theme.ErrorText.Render(message) + "\n\n"

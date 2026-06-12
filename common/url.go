@@ -29,6 +29,8 @@ type RadioGoGoURL struct {
 	URL url.URL
 }
 
+// UnmarshalJSON implements json.Unmarshaler for RadioGoGoURL.
+// It unquotes the JSON string value and parses it as a URL.
 func (m *RadioGoGoURL) UnmarshalJSON(data []byte) error {
 
 	// Unquote the JSON string

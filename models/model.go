@@ -219,8 +219,8 @@ func (m Model) View() string {
 	// Handle terminal too small state separately
 	if m.state == terminalTooSmallState {
 		message := m.theme.ErrorText.Bold(true).Render(i18n.T("terminal_too_small")) + "\n\n" +
-			i18n.Tf("terminal_min_size", map[string]interface{}{"MinWidth": minTerminalWidth, "MinHeight": minTerminalHeight}) + "\n" +
-			i18n.Tf("terminal_current_size", map[string]interface{}{"Width": m.width, "Height": m.height})
+			i18n.Tf("terminal_min_size", map[string]any{"MinWidth": minTerminalWidth, "MinHeight": minTerminalHeight}) + "\n" +
+			i18n.Tf("terminal_current_size", map[string]any{"Width": m.width, "Height": m.height})
 
 		return lipgloss.Place(
 			m.width, m.height,

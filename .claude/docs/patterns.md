@@ -6,10 +6,13 @@ All UI updates flow through the message-passing pattern:
 
 ```go
 // Commands produce messages asynchronously
-func fetchStationsCmd(browser RadioBrowserService) tea.Cmd {
+func searchStations(browser api.RadioBrowserService, query common.StationQuery, queryText string) tea.Cmd {
     return func() tea.Msg {
-        stations, err := browser.GetStations(...)
-        return stationsLoadedMsg{stations: stations, err: err}
+        stations, err := browser.GetStations(query, queryText, "votes", true, 0, 100, true)
+        if err != nil {
+            return switchToErrorModelMsg{err: err.Error(), recoverable: true}
+        }
+        return switchToStationsModelMsg{stations: stations, query: query, queryText: queryText}
     }
 }
 
@@ -49,10 +52,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 - `switchToStationsModelMsg{stations, query, queryText}` - Show results
 - `switchToErrorModelMsg{err, recoverable}` - Show error
 
-**Async results** (`models/stations_handlers.go`):
-- `stationsLoadedMsg{stations, err}` - API response
-- `playbackStatusMsg{station, status}` - Playback state
-- `bookmarkToggledMsg{stationUUID, added}` - Bookmark change
+**Async results** (status updates within current state):
+- `playbackStatusMsg{status}` - Playback state update (`models/header.go`)
+- `bookmarkToggledMsg{station}` - Bookmark toggled (`models/stations_commands.go`)
 
 ## Theme-based Styling
 
