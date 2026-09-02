@@ -13,7 +13,7 @@ in
 
     src = lib.cleanSource ../.;
 
-    vendorHash = "sha256-6rcS4M6MPEQBFBvCt02xybp7XuybopgYBqIr5vHU5wQ=";
+    vendorHash = "sha256-7j5BZx+meKZKW+w0vf0oGIg7/FB8KkooRMaJ8qi3qdU=";
 
     nativeBuildInputs = [makeWrapper];
 
