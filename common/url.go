@@ -46,7 +46,7 @@ func (m *RadioGoGoURL) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	m.URL = *u
+	m.URL = *u.Clone()
 
 	return nil
 }

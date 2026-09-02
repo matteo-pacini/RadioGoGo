@@ -23,10 +23,10 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/google/uuid"
 	"github.com/zi0p4tch0/radiogogo/common"
 	"github.com/zi0p4tch0/radiogogo/config"
 	"github.com/zi0p4tch0/radiogogo/mocks"
+	"uuid"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/stretchr/testify/assert"

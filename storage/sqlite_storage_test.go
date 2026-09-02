@@ -26,8 +26,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"uuid"
 )
 
 func TestSQLiteStorage_Bookmarks(t *testing.T) {
@@ -550,22 +550,22 @@ func TestSQLiteStorage_NilUUID(t *testing.T) {
 	defer s.Close()
 
 	t.Run("can bookmark nil UUID", func(t *testing.T) {
-		err := s.AddBookmark(uuid.Nil)
+		err := s.AddBookmark(uuid.Nil())
 		assert.NoError(t, err)
-		assert.True(t, s.IsBookmarked(uuid.Nil))
+		assert.True(t, s.IsBookmarked(uuid.Nil()))
 
-		err = s.RemoveBookmark(uuid.Nil)
+		err = s.RemoveBookmark(uuid.Nil())
 		assert.NoError(t, err)
-		assert.False(t, s.IsBookmarked(uuid.Nil))
+		assert.False(t, s.IsBookmarked(uuid.Nil()))
 	})
 
 	t.Run("can hide nil UUID", func(t *testing.T) {
-		err := s.AddHidden(uuid.Nil)
+		err := s.AddHidden(uuid.Nil())
 		assert.NoError(t, err)
-		assert.True(t, s.IsHidden(uuid.Nil))
+		assert.True(t, s.IsHidden(uuid.Nil()))
 
-		err = s.RemoveHidden(uuid.Nil)
+		err = s.RemoveHidden(uuid.Nil())
 		assert.NoError(t, err)
-		assert.False(t, s.IsHidden(uuid.Nil))
+		assert.False(t, s.IsHidden(uuid.Nil()))
 	})
 }

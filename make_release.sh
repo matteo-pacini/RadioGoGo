@@ -9,6 +9,11 @@ if [ -z "$1" ]; then
     exit 1
 fi
 
+echo "Running unit tests"
+go test ./...
+echo "Running API contract tests"
+go test -tags contract -count=1 ./api/
+
 TARGETS=(
     # macOS
     "darwin|arm64"

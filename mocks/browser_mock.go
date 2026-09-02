@@ -20,8 +20,8 @@
 package mocks
 
 import (
-	"github.com/google/uuid"
 	"github.com/zi0p4tch0/radiogogo/common"
+	"uuid"
 )
 
 type MockRadioBrowserService struct {

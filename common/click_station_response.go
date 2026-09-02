@@ -19,7 +19,7 @@
 
 package common
 
-import "github.com/google/uuid"
+import "uuid"
 
 // ClickStationResponse represents the response returned by the API when a user clicks on a station.
 type ClickStationResponse struct {

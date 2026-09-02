@@ -29,8 +29,8 @@ import (
 	"github.com/zi0p4tch0/radiogogo/data"
 	"github.com/zi0p4tch0/radiogogo/mocks"
 
-	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"uuid"
 )
 
 func TestBrowserImplGetStations(t *testing.T) {

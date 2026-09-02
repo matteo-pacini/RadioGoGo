@@ -25,9 +25,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/zi0p4tch0/radiogogo/common"
+	"uuid"
 )
 
 // mockProcess implements the Process interface for testing.

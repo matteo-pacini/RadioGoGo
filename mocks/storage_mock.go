@@ -22,7 +22,7 @@ package mocks
 import (
 	"time"
 
-	"github.com/google/uuid"
+	"uuid"
 )
 
 type MockStationStorageService struct {

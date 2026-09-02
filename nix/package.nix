@@ -1,25 +1,19 @@
 {
   lib,
   stdenv,
-  fetchFromGitHub,
-  buildGoModule,
+  buildGo127Module,
   ffmpeg,
   makeWrapper,
 }: let
-  version = "0.3.4";
+  version = "0.4.2";
 in
-  buildGoModule {
+  buildGo127Module {
     pname = "radiogogo";
     inherit version;
 
-    src = fetchFromGitHub {
-      owner = "matteo-pacini";
-      repo = "RadioGoGo";
-      rev = "v${version}";
-      hash = "sha256-StbSd6tHoe4hBQV2CMSBgHkgGhAINBkd6KyP1SlGi6k=";
-    };
+    src = lib.cleanSource ../.;
 
-    vendorHash = "sha256-yOc1qYy3Qy4rpaSycPqWheOFW+mIrmzEuw3l+yZ0TRY=";
+    vendorHash = "sha256-6rcS4M6MPEQBFBvCt02xybp7XuybopgYBqIr5vHU5wQ=";
 
     nativeBuildInputs = [makeWrapper];
 

@@ -26,7 +26,7 @@ package storage
 import (
 	"time"
 
-	"github.com/google/uuid"
+	"uuid"
 )
 
 // StationStorageService defines operations for persistent station lists (bookmarks and hidden).

@@ -27,9 +27,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/zi0p4tch0/radiogogo/config"
 	_ "modernc.org/sqlite"
+	"uuid"
 )
 
 const (

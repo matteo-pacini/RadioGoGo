@@ -26,7 +26,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
+	"uuid"
 )
 
 // BoolFromlInt represents a boolean value that is converted from an integer value (0 or 1).

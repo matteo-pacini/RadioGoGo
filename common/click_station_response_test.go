@@ -23,8 +23,8 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"uuid"
 )
 
 func TestClickStationResponse_JSONUnmarshal(t *testing.T) {
@@ -63,7 +63,7 @@ func TestClickStationResponse_JSONUnmarshal(t *testing.T) {
 		assert.NoError(t, err)
 		assert.False(t, response.Ok)
 		assert.Equal(t, "station not found", response.Message)
-		assert.Equal(t, uuid.Nil, response.StationUuid)
+		assert.Equal(t, uuid.Nil(), response.StationUuid)
 	})
 
 	t.Run("parses response with empty message", func(t *testing.T) {

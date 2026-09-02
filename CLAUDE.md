@@ -9,6 +9,7 @@ Terminal UI application for searching, browsing, and playing internet radio stat
 ```bash
 go build -o radiogogo    # Build
 go test ./...            # Test all
+go test -tags contract -count=1 ./api/   # Contract tests (real RadioBrowser API)
 go fmt ./...             # Format
 go vet ./...             # Lint
 ./make_release.sh v1.0   # Release build

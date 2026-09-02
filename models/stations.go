@@ -24,13 +24,13 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/google/uuid"
 	"github.com/zi0p4tch0/radiogogo/api"
 	"github.com/zi0p4tch0/radiogogo/common"
 	"github.com/zi0p4tch0/radiogogo/config"
 	"github.com/zi0p4tch0/radiogogo/i18n"
 	"github.com/zi0p4tch0/radiogogo/playback"
 	"github.com/zi0p4tch0/radiogogo/storage"
+	"uuid"
 
 	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/table"
@@ -152,7 +152,7 @@ func newStationsTableModel(theme Theme, stations []common.Station, storage stora
 		name := station.Name
 
 		// Add now-playing indicator if this is the currently playing station
-		if currentStation.StationUuid != uuid.Nil && station.StationUuid == currentStation.StationUuid {
+		if currentStation.StationUuid != uuid.Nil() && station.StationUuid == currentStation.StationUuid {
 			name = "▶ " + name
 		}
 
@@ -378,7 +378,7 @@ func (m StationsModel) buildStatusBar() string {
 		return m.theme.SuccessText.Render(m.successMsg)
 	} else if m.err != "" {
 		return m.theme.ErrorText.Render(m.err)
-	} else if m.currentStation.StationUuid != uuid.Nil && m.playbackManager.IsPlaying() {
+	} else if m.currentStation.StationUuid != uuid.Nil() && m.playbackManager.IsPlaying() {
 		return m.renderNowPlayingBox()
 	}
 	return m.theme.TertiaryText.Render(i18n.T("select_station"))

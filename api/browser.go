@@ -30,9 +30,9 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/google/uuid"
 	"github.com/zi0p4tch0/radiogogo/common"
 	"github.com/zi0p4tch0/radiogogo/data"
+	"uuid"
 )
 
 type RadioBrowserService interface {
@@ -91,7 +91,7 @@ func NewRadioBrowserWithDependencies(
 	if err != nil {
 		return nil, err
 	}
-	browser.baseUrl = *url
+	browser.baseUrl = *url.Clone()
 	return browser, nil
 }
 
