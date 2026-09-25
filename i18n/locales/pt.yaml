@@ -270,3 +270,7 @@ filter_example_by_tag_exact:
     - "rock" corresponde a estações com tag "rock".
     - "jazz" corresponde a estações com tag "jazz".
     - "pop" corresponde a estações com tag "pop".
+
+# Developer tools
+remote_attached:
+  other: "remoto"

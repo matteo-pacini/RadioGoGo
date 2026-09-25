@@ -270,3 +270,7 @@ filter_example_by_tag_exact:
     - "rock" βρίσκει σταθμούς με ετικέτα "rock".
     - "jazz" βρίσκει σταθμούς με ετικέτα "jazz".
     - "pop" βρίσκει σταθμούς με ετικέτα "pop".
+
+# Developer tools
+remote_attached:
+  other: "απομακρυσμένο"

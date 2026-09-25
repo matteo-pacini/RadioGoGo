@@ -348,3 +348,21 @@ func TestAvailableLanguages_Idempotent(t *testing.T) {
 		_ = SetLanguage("en")
 	})
 }
+
+func TestRemoteAttachedTranslated(t *testing.T) {
+	_ = Init("en")
+	english := T("remote_attached")
+	assert.NotEqual(t, "remote_attached", english)
+
+	for _, lang := range AvailableLanguages() {
+		if lang == "en" {
+			continue
+		}
+		t.Run(lang, func(t *testing.T) {
+			_ = SetLanguage(lang)
+			// Missing keys fall back to English, so a translated value must differ.
+			assert.NotEqual(t, english, T("remote_attached"))
+		})
+	}
+	_ = SetLanguage("en")
+}

@@ -270,3 +270,7 @@ filter_example_by_tag_exact:
     - "rock" trova stazioni con "rock" come tag.
     - "jazz" trova stazioni con "jazz" come tag.
     - "pop" trova stazioni con "pop" come tag.
+
+# Developer tools
+remote_attached:
+  other: "remoto"

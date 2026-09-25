@@ -270,3 +270,7 @@ filter_example_by_tag_exact:
     - "rock" coincide con emisoras que tienen "rock" como etiqueta.
     - "jazz" coincide con emisoras que tienen "jazz" como etiqueta.
     - "pop" coincide con emisoras que tienen "pop" como etiqueta.
+
+# Developer tools
+remote_attached:
+  other: "remoto"

@@ -31,6 +31,8 @@
 package models
 
 import (
+	"strings"
+
 	"github.com/zi0p4tch0/radiogogo/api"
 	"github.com/zi0p4tch0/radiogogo/common"
 	"github.com/zi0p4tch0/radiogogo/config"
@@ -86,6 +88,12 @@ type bottomBarUpdateMsg struct {
 	secondaryCommands []string
 }
 
+// RemoteClientsChangedMsg reports how many developer tools are attached to the
+// running instance. While Count is above zero the bottom bar shows an indicator.
+type RemoteClientsChangedMsg struct {
+	Count int
+}
+
 // Language change message
 type languageChangedMsg struct {
 	lang string
@@ -138,6 +146,7 @@ type Model struct {
 	previousState   modelState
 	width           int
 	height          int
+	remoteClients   int
 	browser         api.RadioBrowserService
 	playbackManager playback.PlaybackManagerService
 	storage         storage.StationStorageService
@@ -265,12 +274,27 @@ func (m Model) View() string {
 	if m.state == stationsState && m.stationsModel.showHiddenModal {
 		// Don't render bottom bar when hidden modal is open
 	} else if len(m.bottomBarSecondaryCommands) > 0 {
-		view += m.theme.StyleTwoRowBottomBar(m.bottomBarCommands, m.bottomBarSecondaryCommands)
+		view += m.withRemoteIndicator(m.theme.StyleTwoRowBottomBar(m.bottomBarCommands, m.bottomBarSecondaryCommands))
 	} else {
-		view += m.theme.StyleBottomBar(m.bottomBarCommands)
+		view += m.withRemoteIndicator(m.theme.StyleBottomBar(m.bottomBarCommands))
 	}
 
 	return view
+}
+
+// withRemoteIndicator appends the remote indicator to the last row of bar when
+// a developer tool is attached. The indicator is omitted if it would make that
+// row wider than the terminal, so command hints always take precedence.
+func (m Model) withRemoteIndicator(bar string) string {
+	if m.remoteClients == 0 {
+		return bar
+	}
+	indicator := m.theme.RemoteIndicatorBlock.Render(i18n.T("remote_attached"))
+	lastRow := bar[strings.LastIndex(bar, "\n")+1:]
+	if lipgloss.Width(lastRow)+lipgloss.Width(indicator) > m.width {
+		return bar
+	}
+	return bar + indicator
 }
 
 // filterHiddenStations removes hidden stations from the list

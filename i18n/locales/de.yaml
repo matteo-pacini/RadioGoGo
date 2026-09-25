@@ -270,3 +270,7 @@ filter_example_by_tag_exact:
     - "rock" findet Sender mit Tag "rock".
     - "jazz" findet Sender mit Tag "jazz".
     - "pop" findet Sender mit Tag "pop".
+
+# Developer tools
+remote_attached:
+  other: "Remote"

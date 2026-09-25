@@ -271,3 +271,7 @@ filter_example_by_tag_exact:
     - "rock" находит станции с тегом "rock".
     - "jazz" находит станции с тегом "jazz".
     - "pop" находит станции с тегом "pop".
+
+# Developer tools
+remote_attached:
+  other: "удалённо"

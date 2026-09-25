@@ -32,6 +32,10 @@ import (
 
 func main() {
 
+	if code, handled := runDevtoolsCtl(os.Args[1:]); handled {
+		os.Exit(code)
+	}
+
 	// Create config
 
 	cfg := config.NewDefaultConfig()
@@ -66,9 +70,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	p := tea.NewProgram(model, tea.WithAltScreen())
+	rootModel, attachDevtools, cleanupDevtools := setupDevtools(model)
 
-	if _, err := p.Run(); err != nil {
+	p := tea.NewProgram(rootModel, tea.WithAltScreen())
+	attachDevtools(p)
+
+	_, err = p.Run()
+	cleanupDevtools()
+	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error starting program: %v\n", err)
 		os.Exit(1)
 	}

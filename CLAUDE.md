@@ -10,6 +10,8 @@ Terminal UI application for searching, browsing, and playing internet radio stat
 go build -o radiogogo    # Build
 go test ./...            # Test all
 go test -tags contract -count=1 ./api/   # Contract tests (real RadioBrowser API)
+go build -tags devtools -o radiogogo       # Dev build with control socket (see devtools.md)
+go test -tags devtools -race ./devtools/  # Devtools tests
 go fmt ./...             # Format
 go vet ./...             # Lint
 ./make_release.sh v1.0   # Release build
@@ -37,6 +39,7 @@ radiogogo/
 ├── api/          # RadioBrowser API client
 ├── common/       # Shared models (Station, StationQuery)
 ├── config/       # Config management
+├── devtools/     # Dev control socket (devtools build tag only)
 ├── i18n/         # Internationalization (9 languages)
 ├── models/       # TUI components and state machine
 ├── playback/     # FFplay audio playback
@@ -75,3 +78,4 @@ Read these files based on task relevance:
 | `.claude/docs/pitfalls.md` | Common mistakes with solutions |
 | `.claude/docs/config.md` | Configuration structure, keybindings, i18n |
 | `.claude/docs/releases.md` | Release process, platform support |
+| `.claude/docs/devtools.md` | Dev control socket, `radiogogo ctl`, driving the TUI from an LLM |

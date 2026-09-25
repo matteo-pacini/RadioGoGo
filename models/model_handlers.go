@@ -56,6 +56,10 @@ func (m Model) handleGlobalMessages(msg tea.Msg) (bool, Model, tea.Cmd) {
 		m.bottomBarSecondaryCommands = msg.secondaryCommands
 		return true, m, nil
 
+	case RemoteClientsChangedMsg:
+		m.remoteClients = msg.Count
+		return true, m, nil
+
 	case languageChangedMsg:
 		return m.handleLanguageChange(msg)
 	}

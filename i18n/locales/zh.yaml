@@ -269,3 +269,7 @@ filter_example_by_tag_exact:
     - "rock" 匹配标签中有 "rock" 的电台。
     - "jazz" 匹配标签中有 "jazz" 的电台。
     - "pop" 匹配标签中有 "pop" 的电台。
+
+# Developer tools
+remote_attached:
+  other: "远程"

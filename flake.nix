@@ -39,6 +39,7 @@
             ffmpeg
             # LLMs
             nodejs
+            openspec
             # Release
             zip
           ];

@@ -269,3 +269,7 @@ filter_example_by_tag_exact:
     - "rock" はタグに "rock" がある放送局に一致します。
     - "jazz" はタグに "jazz" がある放送局に一致します。
     - "pop" はタグに "pop" がある放送局に一致します。
+
+# Developer tools
+remote_attached:
+  other: "リモート"

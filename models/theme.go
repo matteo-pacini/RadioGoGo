@@ -32,6 +32,8 @@ import (
 type Theme struct {
 	PrimaryBlock   lipgloss.Style
 	SecondaryBlock lipgloss.Style
+	// RemoteIndicatorBlock marks the bottom bar while a developer tool is attached.
+	RemoteIndicatorBlock lipgloss.Style
 
 	Text          lipgloss.Style
 	PrimaryText   lipgloss.Style
@@ -65,6 +67,12 @@ func NewTheme(config config.Config) Theme {
 	secondaryBlock := lipgloss.NewStyle().
 		Foreground(lipgloss.Color(config.Theme.TextColor)).
 		Background(lipgloss.Color(config.Theme.SecondaryColor)).
+		PaddingLeft(2).
+		PaddingRight(2)
+
+	remoteIndicatorBlock := lipgloss.NewStyle().
+		Foreground(lipgloss.Color(config.Theme.TextColor)).
+		Background(lipgloss.Color(config.Theme.ErrorColor)).
 		PaddingLeft(2).
 		PaddingRight(2)
 
@@ -127,22 +135,23 @@ func NewTheme(config config.Config) Theme {
 		Padding(0, 1)
 
 	return Theme{
-		PrimaryBlock:       primaryBlock,
-		SecondaryBlock:     secondaryBlock,
-		Text:               text,
-		PrimaryText:        primaryText,
-		SecondaryText:      secondaryText,
-		TertiaryText:       tertiaryText,
-		ErrorText:          errorText,
-		SuccessText:        successText,
-		StationsTableStyle: stationsTableStyles,
-		ModalStyle:         modalStyle,
-		QualityHighStyle:   qualityHighStyle,
-		QualityMediumStyle: qualityMediumStyle,
-		QualityLowStyle:    qualityLowStyle,
-		StatusBoxStyle:     statusBoxStyle,
-		NowPlayingBoxStyle: nowPlayingBoxStyle,
-		SecondaryColor:     config.Theme.SecondaryColor,
+		PrimaryBlock:         primaryBlock,
+		SecondaryBlock:       secondaryBlock,
+		RemoteIndicatorBlock: remoteIndicatorBlock,
+		Text:                 text,
+		PrimaryText:          primaryText,
+		SecondaryText:        secondaryText,
+		TertiaryText:         tertiaryText,
+		ErrorText:            errorText,
+		SuccessText:          successText,
+		StationsTableStyle:   stationsTableStyles,
+		ModalStyle:           modalStyle,
+		QualityHighStyle:     qualityHighStyle,
+		QualityMediumStyle:   qualityMediumStyle,
+		QualityLowStyle:      qualityLowStyle,
+		StatusBoxStyle:       statusBoxStyle,
+		NowPlayingBoxStyle:   nowPlayingBoxStyle,
+		SecondaryColor:       config.Theme.SecondaryColor,
 	}
 }
 
